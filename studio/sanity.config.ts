@@ -1,17 +1,16 @@
-import { defineConfig } from 'sanity'
-import { deskTool } from 'sanity/desk'
-import { visionTool } from '@sanity/vision'
-import { schemaTypes } from './schemaTypes'
-import { markdownSchema } from 'sanity-plugin-markdown'
+import {defineConfig} from 'sanity'
+import {structureTool} from 'sanity/structure'
+import {visionTool} from '@sanity/vision'
+import {schemaTypes} from './schemaTypes'
 
 export default defineConfig({
   name: 'default',
-  title: 'Astro Sanity Starter',
+  title: 'ddt-app',
 
-  projectId: (process.env.SANITY_STUDIO_PROJECT_ID ?? process.env.SANITY_PROJECT_ID) as string,
-  dataset: (process.env.SANITY_STUDIO_DATASET ?? process.env.SANITY_DATASET) as string,
+  projectId: 'i1ywpsq5',
+  dataset: 'production',
 
-  plugins: [deskTool(), visionTool(), markdownSchema()],
+  plugins: [structureTool(), visionTool()],
 
   schema: {
     types: schemaTypes,

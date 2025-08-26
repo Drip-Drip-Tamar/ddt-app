@@ -1,5 +1,9 @@
-# dependencies
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# Dependencies
 /node_modules
+/.pnp
+.pnp.js
 
 # Compiled Sanity Studio
 /dist
@@ -11,9 +15,15 @@
 /logs
 *.log
 
-# environment variables
-.env
-.env.production
+# Coverage directory used by testing tools
+/coverage
 
-# macOS-specific files
+# Misc
 .DS_Store
+*.pem
+
+# Typescript
+*.tsbuildinfo
+
+# Dotenv and similar local-only files
+*.local
