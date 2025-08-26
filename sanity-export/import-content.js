@@ -408,7 +408,7 @@ const siteConfig = {
     _type: 'header',
     title: 'Drip Drip Tamar',
     logo: null,
-    links: [
+    navLinks: [
       { _type: 'actionLink', _key: 'link1', label: 'Home', url: '/' },
       { _type: 'actionLink', _key: 'link2', label: 'About', url: '/about' },
       { _type: 'actionLink', _key: 'link3', label: 'Results', url: '/results' },

@@ -13,7 +13,7 @@ const { title, logo, navLinks, 'data-sb-field-path': fieldPath } = Astro.props;
 <nav class="p-4 sm:p-5" data-sb-field-path={fieldPath}>
     <div class="flex items-center justify-between w-full gap-6 mx-auto max-w-7xl">
         {
-            logo.src ? (
+            logo?.src ? (
                 <a class="flex items-center" href="/">
                     <ResponsiveImage _id={logo._id} src={logo.src} width={logo.dimensions?.width} height={logo.dimensions?.height} alt={logo.alt} />
                 </a>
