@@ -45,7 +45,7 @@ const pageContent = {
         _type: 'heroSection',
         _key: 'hero1',
         heading: 'Working towards a healthy Tamar River',
-        body: 'Drip Drip is a community group in the Tamar Valley working to improve the river\'s health for people and wildlife. We sample water regularly, share results in plain English, and press for practical action.',
+        body: 'Drip Drip Tamar is a community group dedicated to understanding and advocating for the health of the River Tamar. We routinely sample the water for professional laboratory testing, building a comprehensive picture of river health to protect this vital waterway for people and wildlife.',
         backgroundImage: {
           _type: 'backgroundImage',
           type: 'color',
@@ -73,22 +73,22 @@ const pageContent = {
             _type: 'card',
             _key: 'card1',
             heading: 'Monitoring',
-            body: 'We take river samples for professional lab testing to track bacteria such as E. coli and Intestinal Enterococci.',
-            image: null
+            body: 'We routinely sample the water for professional laboratory testing to track bacteria levels including E. coli and Intestinal Enterococci. Our volunteers collect samples weekly at strategic locations, building a comprehensive picture of river health over time.',
+            image: null // Upload via Sanity Studio: /public/images/river_sampling.jpg
           },
           {
             _type: 'card',
             _key: 'card2',
             heading: 'Action',
-            body: 'We advocate for cleaner, safer water by engaging with those who can fix problems.',
-            image: null
+            body: 'We advocate for a cleaner, safer river by engaging with water companies, local councils, environmental agencies and other stakeholders who can address pollution sources and implement solutions.',
+            image: null // Upload via Sanity Studio: /public/images/water_bottles.jpg
           },
           {
             _type: 'card',
             _key: 'card3',
             heading: 'Community',
-            body: 'We organise local events and encourage residents to get involved.',
-            image: null
+            body: 'We organise community events, share our findings in plain English, and provide opportunities for local residents to get involved through sampling, donations, or raising awareness about river health.',
+            image: null // Upload via Sanity Studio: /public/images/community_event.jpg
           }
         ]
       },
@@ -151,7 +151,7 @@ const pageContent = {
         _type: 'heroSection',
         _key: 'hero1',
         heading: 'Who we are',
-        body: 'Drip Drip began after a People\'s Assembly raised serious community concerns about the River Tamar\'s condition. Based around Calstock, we\'re volunteers focused on protecting and restoring the river for current and future generations.',
+        body: 'Drip Drip Tamar emerged from a People\'s Assembly where the community raised serious concerns about the River Tamar\'s deteriorating health. Based around Calstock, we are a dedicated group of volunteers working tirelessly to protect and restore this vital waterway. Our mission is to understand, document, and advocate for river health through scientific monitoring and community action.',
         backgroundImage: {
           _type: 'backgroundImage',
           type: 'color',
@@ -193,7 +193,12 @@ const pageContent = {
         _type: 'heroSection',
         _key: 'hero3',
         heading: 'Our journey so far',
-        body: 'We\'ve launched a structured sampling programme, built community momentum through events, and secured support via crowdfunding to sustain year-round monitoring.'
+        body: 'Since emerging from the People\'s Assembly, we\'ve established a rigorous weekly water sampling programme, built strong community momentum through regular events and engagement, secured crowdfunding support to sustain year-round monitoring, and are working to strengthen scientific research partnerships. Our website serves as a hub for sharing results and mobilising community action.',
+        backgroundImage: {
+          _type: 'backgroundImage',
+          type: 'color',
+          color: '#79c3e3'
+        }
       },
       {
         _type: 'ctaSection',
@@ -263,8 +268,8 @@ const pageContent = {
       {
         _type: 'heroSection',
         _key: 'hero1',
-        heading: 'News',
-        body: 'Welcome to our update hub. Here we share results summaries, project milestones, volunteer stories, and notices about local river events.',
+        heading: 'News & Updates',
+        body: 'Welcome to our community hub for River Tamar updates. Here we share weekly water sampling results, volunteer experiences from the field, project milestones, and opportunities to get involved. Stay informed about the health of our river and join us in protecting this precious waterway.',
         backgroundImage: {
           _type: 'backgroundImage',
           type: 'color',
@@ -279,20 +284,20 @@ const pageContent = {
           {
             _type: 'card',
             _key: 'card1',
-            heading: 'Regular updates',
-            body: 'Regular updates from our weekly sampling'
+            heading: 'Weekly sampling results',
+            body: 'Every week, our volunteers collect water samples that are tested for E. coli and Intestinal Enterococci. We publish these results promptly so you can make informed decisions about river use.'
           },
           {
             _type: 'card',
             _key: 'card2',
             heading: 'River safety guidance',
-            body: 'Guidance on safer river use'
+            body: 'We provide clear guidance on safer river use, especially after rainfall events. Check our updates alongside South West Water\'s WaterFit Live for storm overflow status.'
           },
           {
             _type: 'card',
             _key: 'card3',
             heading: 'Community stories',
-            body: 'Community stories and ways to get involved'
+            body: 'Read about volunteer experiences, community events, and discover ways you can contribute through sampling, donations, or spreading awareness about river health.'
           }
         ]
       }
@@ -407,7 +412,7 @@ const siteConfig = {
   header: {
     _type: 'header',
     title: 'Drip Drip Tamar',
-    logo: null,
+    logo: null, // Logo image can be uploaded via Sanity Studio: /public/images/drip_drip_logo.png
     navLinks: [
       { _type: 'actionLink', _key: 'link1', label: 'Home', url: '/' },
       { _type: 'actionLink', _key: 'link2', label: 'About', url: '/about' },
@@ -418,11 +423,7 @@ const siteConfig = {
   },
   footer: {
     _type: 'footer',
-    copyrightText: `© ${new Date().getFullYear()} Drip Drip Tamar`,
-    links: [
-      { _type: 'actionLink', _key: 'link1', label: 'Privacy Policy', url: '/privacy' },
-      { _type: 'actionLink', _key: 'link2', label: 'Contact', url: '/contact' }
-    ]
+    text: `© ${new Date().getFullYear()} Drip Drip Tamar - Working towards a healthy Tamar River\n\n[Facebook](https://www.facebook.com/dripdrip.tamar) | [Contact](/contact) | [WaterFit Live](https://www.southwestwater.co.uk/environment/waterfit/waterfit-live/)`
   }
 }
 
