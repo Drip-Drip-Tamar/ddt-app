@@ -34,7 +34,7 @@ export const client = createClient(sanityConfig);
         if (event.transition === 'appear' || event.transition === 'disappear') {
             const filePath = path.join(__dirname, '../layouts/Layout.astro');
             const time = new Date();
-            
+
             // update the updatedat stamp for the layout file, triggering astro to refresh the data in getStaticPaths
             await fs.promises.utimes(filePath, time, time);
         }
