@@ -1,0 +1,193 @@
+{
+    "_id": "about-page-001",
+    "_type": "page",
+    "_createdAt": "2024-08-26T10:00:00Z",
+    "_updatedAt": "2024-08-26T10:00:00Z",
+    "title": "About Us",
+    "slug": {
+        "_type": "slug",
+        "current": "about"
+    },
+    "metaTitle": "About Us - AI Company",
+    "metaDescription": "Learn about AI Company's mission, values, and the team driving innovation in artificial intelligence solutions.",
+    "sections": [
+        {
+            "_key": "hero-about-001",
+            "_type": "heroSection",
+            "heading": "Pioneering the Future of AI",
+            "body": "Founded in 2020, **AI Company** has rapidly emerged as a leader in artificial intelligence solutions. Our mission is to democratize AI technology and make it accessible to businesses of all sizes.\n\nWe believe that AI should enhance human capabilities, not replace them. Our team of world-class engineers, data scientists, and industry experts work tirelessly to create solutions that empower organizations to achieve their full potential.",
+            "backgroundImage": {
+                "_type": "backgroundImage",
+                "opacity": 30
+            },
+            "theme": "light",
+            "width": "inset",
+            "cta": [
+                {
+                    "_key": "cta-hero-001",
+                    "_type": "actionButton",
+                    "label": "Join Our Team",
+                    "url": "/careers",
+                    "theme": "primary"
+                },
+                {
+                    "_key": "cta-hero-002",
+                    "_type": "actionLink",
+                    "label": "View Our Solutions",
+                    "url": "/solutions"
+                }
+            ]
+        },
+        {
+            "_key": "cards-values-001",
+            "_type": "cardsSection",
+            "heading": "Our Core Values",
+            "body": "The principles that guide everything we do at AI Company.",
+            "items": [
+                {
+                    "_key": "card-innovation-001",
+                    "_type": "card",
+                    "heading": "Innovation First",
+                    "body": "We constantly push the boundaries of what's possible with AI. Our research team explores cutting-edge technologies to deliver breakthrough solutions that give our clients a competitive advantage.",
+                    "badge": {
+                        "_type": "badge",
+                        "label": "INNOVATE",
+                        "theme": "accent"
+                    },
+                    "hasBorder": true
+                },
+                {
+                    "_key": "card-integrity-001",
+                    "_type": "card",
+                    "heading": "Integrity & Ethics",
+                    "body": "We believe in responsible AI development. Every solution we create is built with transparency, fairness, and ethical considerations at its core. We're committed to AI that benefits humanity.",
+                    "badge": {
+                        "_type": "badge",
+                        "label": "ETHICS",
+                        "theme": "primary"
+                    },
+                    "hasBorder": true
+                },
+                {
+                    "_key": "card-collaboration-001",
+                    "_type": "card",
+                    "heading": "Collaborative Excellence",
+                    "body": "Great things happen when brilliant minds work together. We foster a culture of collaboration, both within our team and with our clients, to create solutions that truly make a difference.",
+                    "badge": {
+                        "_type": "badge",
+                        "label": "TEAMWORK",
+                        "theme": "secondary"
+                    },
+                    "hasBorder": true
+                }
+            ]
+        },
+        {
+            "_key": "cards-journey-001",
+            "_type": "cardsSection",
+            "heading": "Our Journey",
+            "body": "Key milestones in our company's evolution.",
+            "items": [
+                {
+                    "_key": "card-2020-001",
+                    "_type": "card",
+                    "heading": "2020: The Beginning",
+                    "body": "Started with a team of 5 passionate AI researchers in a small garage. Our first prototype helped local businesses optimize their operations using machine learning.",
+                    "hasBorder": false
+                },
+                {
+                    "_key": "card-2022-001",
+                    "_type": "card",
+                    "heading": "2022: Rapid Growth",
+                    "body": "Expanded to 50+ employees and launched our flagship AI platform. Secured Series A funding and established partnerships with Fortune 500 companies.",
+                    "hasBorder": false
+                },
+                {
+                    "_key": "card-2024-001",
+                    "_type": "card",
+                    "heading": "2024: Industry Leader",
+                    "body": "Now serving over 1000 clients globally with a team of 200+ experts. Recognized as one of the fastest-growing AI companies by leading tech publications.",
+                    "hasBorder": false
+                }
+            ]
+        },
+        {
+            "_key": "testimonials-team-001",
+            "_type": "testimonialsSection",
+            "heading": "Meet Our Leadership",
+            "body": "The visionaries driving AI Company forward.",
+            "items": [
+                {
+                    "_key": "testimonial-ceo-001",
+                    "_type": "testimonial",
+                    "quote": "\"Every day, I'm inspired by our team's dedication to solving complex problems with AI. We're not just building technology; we're shaping the future of how businesses operate and thrive.\"",
+                    "author": {
+                        "_type": "person",
+                        "name": "Sarah Chen",
+                        "title": "CEO & Co-Founder",
+                        "company": {
+                            "_type": "company",
+                            "name": "AI Company"
+                        }
+                    },
+                    "hasBorder": true,
+                    "theme": "light"
+                },
+                {
+                    "_key": "testimonial-cto-001",
+                    "_type": "testimonial",
+                    "quote": "\"Our technical excellence stems from our commitment to continuous learning and innovation. We invest heavily in R&D to ensure our clients always have access to the most advanced AI capabilities.\"",
+                    "author": {
+                        "_type": "person",
+                        "name": "Dr. Marcus Johnson",
+                        "title": "CTO & Co-Founder",
+                        "company": {
+                            "_type": "company",
+                            "name": "AI Company"
+                        }
+                    },
+                    "hasBorder": true
+                },
+                {
+                    "_key": "testimonial-cpo-001",
+                    "_type": "testimonial",
+                    "quote": "\"What sets us apart is our human-centered approach to AI. We design solutions that augment human intelligence and creativity, making technology work for people, not the other way around.\"",
+                    "author": {
+                        "_type": "person",
+                        "name": "Elena Rodriguez",
+                        "title": "Chief Product Officer",
+                        "company": {
+                            "_type": "company",
+                            "name": "AI Company"
+                        }
+                    },
+                    "hasBorder": true,
+                    "theme": "light"
+                }
+            ]
+        },
+        {
+            "_key": "cta-careers-001",
+            "_type": "ctaSection",
+            "heading": "Join Our Mission",
+            "body": "Be part of a team that's defining the future of artificial intelligence.",
+            "cta": [
+                {
+                    "_key": "cta-button-001",
+                    "_type": "actionButton",
+                    "label": "View Open Positions",
+                    "url": "/careers",
+                    "theme": "primary"
+                },
+                {
+                    "_key": "cta-link-001",
+                    "_type": "actionLink",
+                    "label": "Learn about our culture",
+                    "url": "/culture"
+                }
+            ],
+            "theme": "dark",
+            "width": "full"
+        }
+    ]
+}
