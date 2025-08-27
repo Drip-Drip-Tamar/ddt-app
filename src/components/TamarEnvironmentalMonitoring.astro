@@ -416,8 +416,7 @@ const csoChartId = `cso-chart-${Math.random().toString(36).substr(2, 9)}`;
             
             try {
               // Load Chart.js from CDN
-              const { loadChart } = await import('@utils/chart-loader.js');
-              const Chart = await loadChart();
+              const Chart = await window.loadChart();
               
               // Common chart options
               const commonOptions = {

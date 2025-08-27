@@ -187,8 +187,7 @@ const plymouthChartId = `plymouth-chart-${Math.random().toString(36).substr(2, 9
             
             try {
               // Load Chart.js from CDN
-              const { loadChart } = await import('@utils/chart-loader.js');
-              const Chart = await loadChart();
+              const Chart = await window.loadChart();
               
               // Render Gunnislake chart
               if (data.gunnislake) {
