@@ -1,0 +1,241 @@
+/**
+ * Brand Design System
+ * ===================
+ * This file contains the source of truth for all branding colors and design tokens.
+ * 
+ * Usage:
+ * - Use semantic variables (--color-primary, --color-text, etc.) in components
+ * - Core palette variables are available for special cases
+ * - All colors support opacity modifiers (--color-primary-10 through --color-primary-90)
+ * 
+ * Color Palette:
+ * - Gunmetal: Dark blue-grey for backgrounds and depth
+ * - Verdigris: Vibrant teal for primary actions and brand identity
+ * - Celeste: Light cyan for highlights and accents
+ * - Midnight Green: Dark teal for text and strong elements
+ * - Teal: Medium teal for secondary elements
+ */
+
+:root {
+    /* ========================================
+       Core Brand Colors
+       ======================================== */
+    
+    /* Gunmetal - Dark blue-grey */
+    --gunmetal: #0A242E;
+    --gunmetal-rgb: 10, 36, 46;
+    --gunmetal-hsl: 197, 64%, 11%;
+    
+    /* Verdigris - Vibrant teal */
+    --verdigris: #3AB6B7;
+    --verdigris-rgb: 58, 182, 183;
+    --verdigris-hsl: 180, 52%, 47%;
+    
+    /* Celeste - Light cyan */
+    --celeste: #C0FBF6;
+    --celeste-rgb: 192, 251, 246;
+    --celeste-hsl: 175, 88%, 87%;
+    
+    /* Midnight Green - Dark teal */
+    --midnight-green: #244A53;
+    --midnight-green-rgb: 36, 74, 83;
+    --midnight-green-hsl: 191, 39%, 23%;
+    
+    /* Teal - Medium teal */
+    --teal: #11848A;
+    --teal-rgb: 17, 132, 138;
+    --teal-hsl: 183, 78%, 30%;
+    
+    /* ========================================
+       Semantic Color Variables
+       ======================================== */
+    
+    /* Primary - Main brand color */
+    --color-primary: var(--verdigris);
+    --color-primary-hover: #2FA0A1;
+    --color-primary-active: #258D8E;
+    --color-primary-light: #5FC5C6;
+    --color-primary-dark: #2A9899;
+    
+    /* Secondary - Supporting actions */
+    --color-secondary: var(--teal);
+    --color-secondary-hover: #0F6F74;
+    --color-secondary-active: #0D5A5F;
+    --color-secondary-light: #1A9BA2;
+    --color-secondary-dark: #0C5B60;
+    
+    /* Accent - Highlights and special elements */
+    --color-accent: var(--celeste);
+    --color-accent-hover: #A8F6F0;
+    --color-accent-active: #90F2EA;
+    --color-accent-light: #D8FDFA;
+    --color-accent-dark: #7DEEE4;
+    
+    /* Neutral - Text and borders */
+    --color-neutral: var(--midnight-green);
+    --color-neutral-hover: #1E3D45;
+    --color-neutral-active: #193138;
+    --color-neutral-light: #3A6672;
+    --color-neutral-dark: #1A353C;
+    
+    /* Base - Backgrounds */
+    --color-base: var(--gunmetal);
+    --color-base-hover: #081D26;
+    --color-base-active: #061620;
+    --color-base-light: #0F3542;
+    --color-base-dark: #051118;
+    
+    /* ========================================
+       Functional Colors
+       ======================================== */
+    
+    /* Text Colors */
+    --color-text-primary: var(--midnight-green);
+    --color-text-secondary: var(--teal);
+    --color-text-muted: #5A7981;
+    --color-text-on-primary: #FFFFFF;
+    --color-text-on-dark: var(--celeste);
+    --color-text-on-light: var(--gunmetal);
+    
+    /* Background Colors */
+    --color-bg-primary: #FFFFFF;
+    --color-bg-secondary: #F8FFFE;
+    --color-bg-tertiary: #EFF9F8;
+    --color-bg-dark: var(--gunmetal);
+    --color-bg-card: #FFFFFF;
+    --color-bg-hover: #F0FAF9;
+    
+    /* Border Colors */
+    --color-border-default: #D4E9E8;
+    --color-border-light: #E8F5F4;
+    --color-border-dark: var(--midnight-green);
+    --color-border-focus: var(--verdigris);
+    
+    /* State Colors */
+    --color-success: #10B981;
+    --color-warning: #F59E0B;
+    --color-error: #EF4444;
+    --color-info: var(--verdigris);
+    
+    /* ========================================
+       Opacity Variations
+       ======================================== */
+    
+    /* Primary with opacity */
+    --color-primary-10: rgba(var(--verdigris-rgb), 0.1);
+    --color-primary-20: rgba(var(--verdigris-rgb), 0.2);
+    --color-primary-30: rgba(var(--verdigris-rgb), 0.3);
+    --color-primary-40: rgba(var(--verdigris-rgb), 0.4);
+    --color-primary-50: rgba(var(--verdigris-rgb), 0.5);
+    --color-primary-60: rgba(var(--verdigris-rgb), 0.6);
+    --color-primary-70: rgba(var(--verdigris-rgb), 0.7);
+    --color-primary-80: rgba(var(--verdigris-rgb), 0.8);
+    --color-primary-90: rgba(var(--verdigris-rgb), 0.9);
+    
+    /* Neutral with opacity */
+    --color-neutral-10: rgba(var(--midnight-green-rgb), 0.1);
+    --color-neutral-20: rgba(var(--midnight-green-rgb), 0.2);
+    --color-neutral-30: rgba(var(--midnight-green-rgb), 0.3);
+    --color-neutral-40: rgba(var(--midnight-green-rgb), 0.4);
+    --color-neutral-50: rgba(var(--midnight-green-rgb), 0.5);
+    --color-neutral-60: rgba(var(--midnight-green-rgb), 0.6);
+    --color-neutral-70: rgba(var(--midnight-green-rgb), 0.7);
+    --color-neutral-80: rgba(var(--midnight-green-rgb), 0.8);
+    --color-neutral-90: rgba(var(--midnight-green-rgb), 0.9);
+    
+    /* ========================================
+       Gradients
+       ======================================== */
+    
+    /* Brand Gradients */
+    --gradient-brand: linear-gradient(135deg, var(--verdigris), var(--teal));
+    --gradient-brand-reverse: linear-gradient(135deg, var(--teal), var(--verdigris));
+    --gradient-light: linear-gradient(135deg, var(--celeste), #FFFFFF);
+    --gradient-dark: linear-gradient(135deg, var(--gunmetal), var(--midnight-green));
+    
+    /* Directional Gradients */
+    --gradient-top: linear-gradient(0deg, var(--gunmetal), var(--verdigris), var(--celeste));
+    --gradient-right: linear-gradient(90deg, var(--gunmetal), var(--verdigris), var(--celeste));
+    --gradient-bottom: linear-gradient(180deg, var(--gunmetal), var(--verdigris), var(--celeste));
+    --gradient-left: linear-gradient(270deg, var(--gunmetal), var(--verdigris), var(--celeste));
+    
+    /* Diagonal Gradients */
+    --gradient-top-right: linear-gradient(45deg, var(--gunmetal), var(--verdigris), var(--celeste));
+    --gradient-bottom-right: linear-gradient(135deg, var(--gunmetal), var(--verdigris), var(--celeste));
+    --gradient-top-left: linear-gradient(225deg, var(--gunmetal), var(--verdigris), var(--celeste));
+    --gradient-bottom-left: linear-gradient(315deg, var(--gunmetal), var(--verdigris), var(--celeste));
+    
+    /* Special Effect Gradients */
+    --gradient-radial: radial-gradient(circle, var(--verdigris), var(--teal), var(--gunmetal));
+    --gradient-hero: linear-gradient(135deg, var(--gunmetal) 0%, var(--midnight-green) 50%, var(--teal) 100%);
+    --gradient-overlay: linear-gradient(180deg, rgba(var(--gunmetal-rgb), 0.8) 0%, rgba(var(--gunmetal-rgb), 0) 100%);
+    
+    /* ========================================
+       Shadows
+       ======================================== */
+    
+    --shadow-xs: 0 1px 2px 0 rgba(var(--gunmetal-rgb), 0.05);
+    --shadow-sm: 0 2px 4px -1px rgba(var(--gunmetal-rgb), 0.06), 0 1px 2px -1px rgba(var(--gunmetal-rgb), 0.03);
+    --shadow-md: 0 4px 6px -2px rgba(var(--gunmetal-rgb), 0.05), 0 2px 4px -2px rgba(var(--gunmetal-rgb), 0.03);
+    --shadow-lg: 0 10px 15px -3px rgba(var(--gunmetal-rgb), 0.1), 0 4px 6px -2px rgba(var(--gunmetal-rgb), 0.05);
+    --shadow-xl: 0 20px 25px -5px rgba(var(--gunmetal-rgb), 0.1), 0 10px 10px -5px rgba(var(--gunmetal-rgb), 0.04);
+    --shadow-2xl: 0 25px 50px -12px rgba(var(--gunmetal-rgb), 0.25);
+    --shadow-inner: inset 0 2px 4px 0 rgba(var(--gunmetal-rgb), 0.06);
+    --shadow-brand: 0 10px 40px -10px rgba(var(--verdigris-rgb), 0.4);
+    
+    /* ========================================
+       Typography
+       ======================================== */
+    
+    --font-primary: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    --font-secondary: Georgia, Cambria, 'Times New Roman', Times, serif;
+    --font-mono: 'SF Mono', Monaco, Inconsolata, 'Fira Code', 'Droid Sans Mono', monospace;
+    
+    /* ========================================
+       Spacing & Sizing
+       ======================================== */
+    
+    --space-xs: 0.25rem;
+    --space-sm: 0.5rem;
+    --space-md: 1rem;
+    --space-lg: 1.5rem;
+    --space-xl: 2rem;
+    --space-2xl: 3rem;
+    --space-3xl: 4rem;
+    
+    --radius-sm: 0.25rem;
+    --radius-md: 0.375rem;
+    --radius-lg: 0.5rem;
+    --radius-xl: 0.75rem;
+    --radius-2xl: 1rem;
+    --radius-full: 9999px;
+    
+    /* ========================================
+       Transitions
+       ======================================== */
+    
+    --transition-fast: 150ms ease;
+    --transition-base: 250ms ease;
+    --transition-slow: 350ms ease;
+    --transition-slower: 500ms ease;
+}
+
+/* Dark mode overrides */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --color-text-primary: var(--celeste);
+        --color-text-secondary: var(--verdigris);
+        --color-text-muted: #7FA9A8;
+        --color-text-on-light: var(--celeste);
+        
+        --color-bg-primary: var(--gunmetal);
+        --color-bg-secondary: #0C2A36;
+        --color-bg-tertiary: #0E303C;
+        --color-bg-card: var(--midnight-green);
+        --color-bg-hover: #0F3542;
+        
+        --color-border-default: var(--midnight-green);
+        --color-border-light: #1A3B44;
+        --color-border-dark: var(--teal);
+    }
+}
