@@ -2,6 +2,7 @@
 import Layout from '@layouts/Layout.astro';
 import Hero from '@components/Hero.astro';
 import WaterQualityChart from '@components/WaterQualityChart.astro';
+import TamarRiverLevel from '@components/TamarRiverLevel.astro';
 import Cta from '@components/Cta.astro';
 
 const pageTitle = 'Water Quality Results';
@@ -67,6 +68,7 @@ const ctaSection = {
 <Layout title={pageTitle} description={pageDescription}>
   <Hero {...heroSection} />
   <WaterQualityChart {...chartSection} />
+  <TamarRiverLevel theme="light" width="inset" />
   <Hero {...infoSection} />
   <Cta {...ctaSection} />
 </Layout>

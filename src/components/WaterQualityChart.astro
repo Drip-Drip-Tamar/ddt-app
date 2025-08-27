@@ -72,49 +72,65 @@ const chartId = `water-chart-${Math.random().toString(36).substr(2, 9)}`;
     )}
     
     {showTable && (
-      <div class="overflow-x-auto mb-8">
-        <h3 class="text-xl font-semibold mb-4">Recent Test Results</h3>
-        <table class="table table-zebra w-full">
-          <thead>
-            <tr>
-              <th>Date</th>
-              <th>Site</th>
-              <th>E. coli (cfu/100ml)</th>
-              <th>Enterococci (cfu/100ml)</th>
-              {samples.some(s => s.rainfall !== null) && <th>Rainfall (mm)</th>}
-            </tr>
-          </thead>
-          <tbody>
-            {sortedSamples.slice(0, 20).map((sample) => (
-              <tr>
-                <td>{new Date(sample.date).toLocaleDateString('en-GB')}</td>
-                <td>{sample.siteName}</td>
-                <td class:list={[
-                  sample.ecoli > 1000 ? 'text-error font-semibold' : 
-                  sample.ecoli > 500 ? 'text-warning' : 
-                  'text-success'
-                ]}>
-                  {sample.ecoli ?? '—'}
-                </td>
-                <td class:list={[
-                  sample.enterococci > 400 ? 'text-error font-semibold' : 
-                  sample.enterococci > 200 ? 'text-warning' : 
-                  'text-success'
-                ]}>
-                  {sample.enterococci ?? '—'}
-                </td>
-                {samples.some(s => s.rainfall !== null) && (
-                  <td>{sample.rainfall ?? '—'}</td>
-                )}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-        {sortedSamples.length > 20 && (
-          <p class="text-sm text-base-content/70 mt-2">
-            Showing most recent 20 results of {sortedSamples.length} total samples
-          </p>
-        )}
+      <div class="table-section mb-8">
+        <button 
+          type="button"
+          class="btn btn-secondary btn-sm mb-4 table-toggle"
+          aria-expanded="false"
+          aria-controls={`table-${chartId}`}
+        >
+          <span class="toggle-text">View data table</span>
+          <svg class="chevron-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+        
+        <div id={`table-${chartId}`} class="table-container" style="max-height: 0; overflow: hidden;">
+          <div class="table-content overflow-x-auto">
+            <h3 class="text-xl font-semibold mb-4">Recent Test Results</h3>
+            <table class="table table-zebra w-full">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Site</th>
+                  <th>E. coli (cfu/100ml)</th>
+                  <th>Enterococci (cfu/100ml)</th>
+                  {samples.some(s => s.rainfall !== null) && <th>Rainfall (mm)</th>}
+                </tr>
+              </thead>
+              <tbody>
+                {sortedSamples.slice(0, 20).map((sample) => (
+                  <tr>
+                    <td>{new Date(sample.date).toLocaleDateString('en-GB')}</td>
+                    <td>{sample.siteName}</td>
+                    <td class:list={[
+                      sample.ecoli > 1000 ? 'text-error font-semibold' : 
+                      sample.ecoli > 500 ? 'text-warning' : 
+                      'text-success'
+                    ]}>
+                      {sample.ecoli ?? '—'}
+                    </td>
+                    <td class:list={[
+                      sample.enterococci > 400 ? 'text-error font-semibold' : 
+                      sample.enterococci > 200 ? 'text-warning' : 
+                      'text-success'
+                    ]}>
+                      {sample.enterococci ?? '—'}
+                    </td>
+                    {samples.some(s => s.rainfall !== null) && (
+                      <td>{sample.rainfall ?? '—'}</td>
+                    )}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            {sortedSamples.length > 20 && (
+              <p class="text-sm text-base-content/70 mt-2">
+                Showing most recent 20 results of {sortedSamples.length} total samples
+              </p>
+            )}
+          </div>
+        </div>
       </div>
     )}
     
@@ -130,6 +146,38 @@ const chartId = `water-chart-${Math.random().toString(36).substr(2, 9)}`;
     )}
   </div>
 </Section>
+
+{/* Table toggle functionality */}
+{showTable && (
+  <script define:vars={{ chartId }}>
+    document.addEventListener('DOMContentLoaded', () => {
+      const toggleBtn = document.querySelector(`.table-toggle[aria-controls="table-${chartId}"]`);
+      const tableContainer = document.getElementById(`table-${chartId}`);
+      
+      if (toggleBtn && tableContainer) {
+        toggleBtn.addEventListener('click', () => {
+          const isExpanded = toggleBtn.getAttribute('aria-expanded') === 'true';
+          const toggleText = toggleBtn.querySelector('.toggle-text');
+          const chevron = toggleBtn.querySelector('.chevron-icon');
+          
+          if (isExpanded) {
+            // Collapse
+            toggleBtn.setAttribute('aria-expanded', 'false');
+            toggleText.textContent = 'View data table';
+            tableContainer.style.maxHeight = '0';
+            chevron.style.transform = 'rotate(0deg)';
+          } else {
+            // Expand
+            toggleBtn.setAttribute('aria-expanded', 'true');
+            toggleText.textContent = 'Hide data table';
+            tableContainer.style.maxHeight = tableContainer.scrollHeight + 'px';
+            chevron.style.transform = 'rotate(180deg)';
+          }
+        });
+      }
+    });
+  </script>
+)}
 
 {/* Only load Chart.js when the chart is visible */}
 {showChart && (
@@ -232,5 +280,26 @@ const chartId = `water-chart-${Math.random().toString(36).substr(2, 9)}`;
     .water-chart {
       max-height: 400px !important;
     }
+  }
+  
+  /* Table toggle styles */
+  .table-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  
+  .chevron-icon {
+    width: 1.25rem;
+    height: 1.25rem;
+    transition: transform 0.3s ease;
+  }
+  
+  .table-container {
+    transition: max-height 0.3s ease-in-out;
+  }
+  
+  .table-content {
+    padding-top: 1rem;
   }
 </style>

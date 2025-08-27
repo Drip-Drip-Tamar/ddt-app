@@ -1,0 +1,519 @@
+---
+import Section from '@components/Section.astro';
+
+export interface Props {
+  class?: string;
+  theme?: string;
+  width?: 'full' | 'inset';
+  'data-sb-field-path'?: string;
+}
+
+const { class: className, ...sectionProps } = Astro.props;
+
+// Generate unique IDs for both charts
+const gunnislakeChartId = `gunnislake-chart-${Math.random().toString(36).substr(2, 9)}`;
+const plymouthChartId = `plymouth-chart-${Math.random().toString(36).substr(2, 9)}`;
+---
+
+<Section {...sectionProps} class={className}>
+  <div class="river-level-container">
+    <div class="mb-6">
+      <h3 class="text-2xl font-bold mb-2">
+        River Conditions — Tamar
+      </h3>
+      <p class="text-sm text-base-content/70">
+        Monitor freshwater flow at Gunnislake and tidal patterns at Plymouth to assess conditions.
+        High river flow indicates recent rainfall and increased contamination risk. Tide timing affects water movement at sampling sites.
+      </p>
+    </div>
+    
+    <div class="charts-grid">
+      <!-- Gunnislake Freshwater Chart -->
+      <div class="bg-base-100 rounded-lg shadow-lg p-4 md:p-6">
+        <div class="mb-3">
+          <h4 class="text-lg font-semibold mb-1">River Flow — Gunnislake</h4>
+          <p class="text-xs text-base-content/60">
+            Freshwater levels above tidal limit. High flow = recent rainfall.
+          </p>
+        </div>
+        
+        <!-- Current Level Display -->
+        <div id={`${gunnislakeChartId}-current`} class="flex items-center justify-between mb-3 p-2 bg-base-200 rounded">
+          <div>
+            <div class="text-xs text-base-content/70">Current Level</div>
+            <div class="text-xl font-bold">
+              <span id={`${gunnislakeChartId}-value`}>—</span> m
+            </div>
+            <div class="text-xs text-base-content/60 mt-1" id={`${gunnislakeChartId}-time`}>Loading...</div>
+          </div>
+          <div id={`${gunnislakeChartId}-badge`} class="badge badge-lg">Loading</div>
+        </div>
+        
+        <!-- Chart Canvas -->
+        <div class="chart-wrapper">
+          <canvas 
+            id={gunnislakeChartId}
+            class="river-chart"
+            style="height: 250px; max-height: 300px;"
+          ></canvas>
+        </div>
+      </div>
+      
+      <!-- Plymouth Tidal Chart -->
+      <div class="bg-base-100 rounded-lg shadow-lg p-4 md:p-6">
+        <div class="mb-3">
+          <h4 class="text-lg font-semibold mb-1">Tidal Level — Plymouth</h4>
+          <p class="text-xs text-base-content/60">
+            Estuarine tidal cycles. Shows tide state affecting downstream areas.
+          </p>
+        </div>
+        
+        <!-- Current Level Display -->
+        <div id={`${plymouthChartId}-current`} class="flex items-center justify-between mb-3 p-2 bg-base-200 rounded">
+          <div>
+            <div class="text-xs text-base-content/70">Current Level</div>
+            <div class="text-xl font-bold">
+              <span id={`${plymouthChartId}-value`}>—</span> m
+            </div>
+            <div class="text-xs text-base-content/60 mt-1" id={`${plymouthChartId}-time`}>Loading...</div>
+          </div>
+          <div id={`${plymouthChartId}-badge`} class="badge badge-lg">Loading</div>
+        </div>
+        
+        <!-- Chart Canvas -->
+        <div class="chart-wrapper">
+          <canvas 
+            id={plymouthChartId}
+            class="river-chart"
+            style="height: 250px; max-height: 300px;"
+          ></canvas>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Attribution -->
+    <div class="mt-6 pt-3 border-t border-base-300">
+      <p class="text-xs text-base-content/60">
+        Data: <a href="https://environment.data.gov.uk/flood-monitoring/doc/reference" 
+                 target="_blank" 
+                 rel="noopener noreferrer"
+                 class="link link-hover">
+          Environment Agency real-time API
+        </a> • Updated ~15 min
+      </p>
+    </div>
+    
+    <!-- Error message (hidden by default) -->
+    <div id="river-level-error" class="alert alert-warning mt-4 hidden">
+      <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+      </svg>
+      <span>Unable to load river level data. Please try again later.</span>
+    </div>
+    
+    <noscript>
+      <div class="alert alert-warning mt-4">
+        <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+        </svg>
+        <span>JavaScript is required to view the live river level data.</span>
+      </div>
+    </noscript>
+  </div>
+</Section>
+
+<script define:vars={{ gunnislakeChartId, plymouthChartId }}>
+  // Fetch river level data and render charts
+  async function loadRiverLevels() {
+    try {
+      const response = await fetch('/api/tamar-level.json');
+      if (!response.ok) throw new Error('Failed to fetch data');
+      
+      const data = await response.json();
+      
+      // Update Gunnislake display
+      if (data.gunnislake) {
+        const gunnislakeValue = document.getElementById(`${gunnislakeChartId}-value`);
+        const gunnislakeTime = document.getElementById(`${gunnislakeChartId}-time`);
+        const gunnislakeBadge = document.getElementById(`${gunnislakeChartId}-badge`);
+        
+        if (data.gunnislake.latest !== null) {
+          gunnislakeValue.textContent = data.gunnislake.latest.toFixed(3);
+          
+          if (data.gunnislake.lastUpdated) {
+            const date = new Date(data.gunnislake.lastUpdated);
+            gunnislakeTime.textContent = `${date.toLocaleString('en-GB', {
+              day: 'numeric',
+              month: 'short',
+              hour: '2-digit',
+              minute: '2-digit'
+            })}`;
+          }
+          
+          gunnislakeBadge.textContent = data.gunnislake.status;
+          gunnislakeBadge.className = `badge badge-lg badge-${data.gunnislake.statusColor}`;
+        }
+      }
+      
+      // Update Plymouth display
+      if (data.plymouth) {
+        const plymouthValue = document.getElementById(`${plymouthChartId}-value`);
+        const plymouthTime = document.getElementById(`${plymouthChartId}-time`);
+        const plymouthBadge = document.getElementById(`${plymouthChartId}-badge`);
+        
+        if (data.plymouth.latest !== null) {
+          plymouthValue.textContent = data.plymouth.latest.toFixed(2);
+          
+          if (data.plymouth.lastUpdated) {
+            const date = new Date(data.plymouth.lastUpdated);
+            plymouthTime.textContent = `${date.toLocaleString('en-GB', {
+              day: 'numeric',
+              month: 'short',
+              hour: '2-digit',
+              minute: '2-digit'
+            })}`;
+          }
+          
+          plymouthBadge.textContent = data.plymouth.status;
+          plymouthBadge.className = `badge badge-lg badge-${data.plymouth.statusColor}`;
+        }
+      }
+      
+      // Load Chart.js and render charts
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(async entry => {
+          if (entry.isIntersecting) {
+            observer.disconnect();
+            
+            try {
+              // Load Chart.js dynamically
+              const [chartModule, annotationModule] = await Promise.all([
+                import('/node_modules/chart.js/auto/auto.js'),
+                import('/node_modules/chartjs-plugin-annotation/dist/chartjs-plugin-annotation.esm.js')
+              ]);
+              
+              const Chart = chartModule.default;
+              const annotationPlugin = annotationModule.default;
+              Chart.register(annotationPlugin);
+              
+              // Render Gunnislake chart
+              if (data.gunnislake) {
+                const gunnislakeCtx = document.getElementById(gunnislakeChartId);
+                if (gunnislakeCtx) {
+                  new Chart(gunnislakeCtx, {
+                    type: 'line',
+                    data: {
+                      labels: data.gunnislake.labels,
+                      datasets: [{
+                        label: 'River Level (m)',
+                        data: data.gunnislake.values,
+                        borderColor: 'rgb(59, 130, 246)',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        tension: 0.3,
+                        borderWidth: 2,
+                        pointRadius: 1,
+                        pointHoverRadius: 3,
+                        fill: true
+                      }]
+                    },
+                    options: {
+                      responsive: true,
+                      maintainAspectRatio: false,
+                      interaction: {
+                        mode: 'index',
+                        intersect: false
+                      },
+                      plugins: {
+                        legend: {
+                          display: false
+                        },
+                        tooltip: {
+                          callbacks: {
+                            label: function(context) {
+                              return `Level: ${context.parsed.y.toFixed(3)} m`;
+                            }
+                          }
+                        },
+                        annotation: {
+                          annotations: {
+                            typicalRange: {
+                              type: 'box',
+                              yMin: data.gunnislake.typicalRange.low,
+                              yMax: data.gunnislake.typicalRange.high,
+                              backgroundColor: 'rgba(34, 197, 94, 0.1)',
+                              borderColor: 'rgba(34, 197, 94, 0.3)',
+                              borderWidth: 1,
+                              borderDash: [5, 5]
+                            },
+                            typicalLow: {
+                              type: 'line',
+                              yMin: data.gunnislake.typicalRange.low,
+                              yMax: data.gunnislake.typicalRange.low,
+                              borderColor: 'rgba(34, 197, 94, 0.5)',
+                              borderWidth: 1,
+                              borderDash: [2, 2],
+                              label: {
+                                display: true,
+                                content: 'Typical Low',
+                                position: 'start',
+                                font: { size: 9 }
+                              }
+                            }
+                          }
+                        }
+                      },
+                      scales: {
+                        x: {
+                          display: true,
+                          ticks: {
+                            maxRotation: 45,
+                            minRotation: 45,
+                            autoSkip: true,
+                            maxTicksLimit: 6,
+                            font: { size: 10 }
+                          }
+                        },
+                        y: {
+                          display: true,
+                          title: {
+                            display: true,
+                            text: 'Level (m)',
+                            font: { size: 10 }
+                          },
+                          ticks: {
+                            callback: function(value) {
+                              return value.toFixed(1);
+                            },
+                            font: { size: 10 }
+                          }
+                        }
+                      }
+                    }
+                  });
+                }
+              }
+              
+              // Render Plymouth chart
+              if (data.plymouth) {
+                const plymouthCtx = document.getElementById(plymouthChartId);
+                if (plymouthCtx) {
+                  new Chart(plymouthCtx, {
+                    type: 'line',
+                    data: {
+                      labels: data.plymouth.labels,
+                      datasets: [{
+                        label: 'Tidal Level (mAOD)',
+                        data: data.plymouth.values,
+                        borderColor: 'rgb(139, 92, 246)',
+                        backgroundColor: 'rgba(139, 92, 246, 0.1)',
+                        tension: 0.3,
+                        borderWidth: 2,
+                        pointRadius: 1,
+                        pointHoverRadius: 3,
+                        fill: true
+                      }]
+                    },
+                    options: {
+                      responsive: true,
+                      maintainAspectRatio: false,
+                      interaction: {
+                        mode: 'index',
+                        intersect: false
+                      },
+                      plugins: {
+                        legend: {
+                          display: false
+                        },
+                        tooltip: {
+                          callbacks: {
+                            label: function(context) {
+                              return `Level: ${context.parsed.y.toFixed(2)} mAOD`;
+                            }
+                          }
+                        },
+                        annotation: {
+                          annotations: {
+                            meanSeaLevel: {
+                              type: 'line',
+                              yMin: 0,
+                              yMax: 0,
+                              borderColor: 'rgba(107, 114, 128, 0.5)',
+                              borderWidth: 1,
+                              borderDash: [5, 5],
+                              label: {
+                                display: true,
+                                content: 'Mean Sea Level',
+                                position: 'end',
+                                font: { size: 9 }
+                              }
+                            }
+                          }
+                        }
+                      },
+                      scales: {
+                        x: {
+                          display: true,
+                          ticks: {
+                            maxRotation: 45,
+                            minRotation: 45,
+                            autoSkip: true,
+                            maxTicksLimit: 6,
+                            font: { size: 10 }
+                          }
+                        },
+                        y: {
+                          display: true,
+                          title: {
+                            display: true,
+                            text: 'Level (mAOD)',
+                            font: { size: 10 }
+                          },
+                          ticks: {
+                            callback: function(value) {
+                              return value.toFixed(1);
+                            },
+                            font: { size: 10 }
+                          }
+                        }
+                      }
+                    }
+                  });
+                }
+              }
+            } catch (error) {
+              console.error('Failed to load Chart.js:', error);
+              // Try CDN fallback
+              const script1 = document.createElement('script');
+              script1.src = 'https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js';
+              script1.onload = () => {
+                const script2 = document.createElement('script');
+                script2.src = 'https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.0.1/dist/chartjs-plugin-annotation.min.js';
+                script2.onload = () => {
+                  renderChartsWithGlobals();
+                };
+                document.head.appendChild(script2);
+              };
+              document.head.appendChild(script1);
+            }
+          }
+        });
+      }, { rootMargin: '50px' });
+      
+      // Observe the first chart container
+      const chartContainer = document.getElementById(gunnislakeChartId);
+      if (chartContainer) {
+        observer.observe(chartContainer);
+      }
+      
+      // Fallback chart rendering function for CDN
+      function renderChartsWithGlobals() {
+        if (!window.Chart) return;
+        
+        // Render Gunnislake chart
+        if (data.gunnislake) {
+          const gunnislakeCtx = document.getElementById(gunnislakeChartId);
+          if (gunnislakeCtx) {
+            new window.Chart(gunnislakeCtx, {
+              type: 'line',
+              data: {
+                labels: data.gunnislake.labels,
+                datasets: [{
+                  label: 'River Level (m)',
+                  data: data.gunnislake.values,
+                  borderColor: 'rgb(59, 130, 246)',
+                  backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                  tension: 0.3,
+                  borderWidth: 2,
+                  pointRadius: 1,
+                  pointHoverRadius: 3,
+                  fill: true
+                }]
+              },
+              options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                  legend: { display: false }
+                },
+                scales: {
+                  x: { display: true },
+                  y: { display: true, title: { display: true, text: 'Level (m)' }}
+                }
+              }
+            });
+          }
+        }
+        
+        // Render Plymouth chart
+        if (data.plymouth) {
+          const plymouthCtx = document.getElementById(plymouthChartId);
+          if (plymouthCtx) {
+            new window.Chart(plymouthCtx, {
+              type: 'line',
+              data: {
+                labels: data.plymouth.labels,
+                datasets: [{
+                  label: 'Tidal Level (mAOD)',
+                  data: data.plymouth.values,
+                  borderColor: 'rgb(139, 92, 246)',
+                  backgroundColor: 'rgba(139, 92, 246, 0.1)',
+                  tension: 0.3,
+                  borderWidth: 2,
+                  pointRadius: 1,
+                  pointHoverRadius: 3,
+                  fill: true
+                }]
+              },
+              options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                  legend: { display: false }
+                },
+                scales: {
+                  x: { display: true },
+                  y: { display: true, title: { display: true, text: 'Level (mAOD)' }}
+                }
+              }
+            });
+          }
+        }
+      }
+      
+    } catch (error) {
+      console.error('Error loading river level data:', error);
+      document.getElementById('river-level-error').classList.remove('hidden');
+      document.getElementById(`${gunnislakeChartId}-current`).classList.add('hidden');
+      document.getElementById(`${plymouthChartId}-current`).classList.add('hidden');
+    }
+  }
+  
+  // Load data when DOM is ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', loadRiverLevels);
+  } else {
+    loadRiverLevels();
+  }
+</script>
+
+<style>
+  .river-level-container {
+    max-width: 100%;
+  }
+  
+  .charts-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+  
+  .chart-wrapper {
+    width: 100%;
+  }
+  
+  @media (max-width: 640px) {
+    .river-chart {
+      max-height: 200px !important;
+    }
+  }
+</style>
