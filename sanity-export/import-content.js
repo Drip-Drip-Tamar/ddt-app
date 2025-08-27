@@ -245,7 +245,7 @@ const pageContent = {
             _type: 'actionButton',
             _key: 'btn1',
             label: 'Visit our Facebook page',
-            url: 'https://www.facebook.com/dripdrip.tamar'
+            url: 'https://www.facebook.com/people/Drip-Drip-friends-of-the-Tamar-River/61564869366844/'
           }
         ]
       },
@@ -394,7 +394,7 @@ const pageContent = {
             _type: 'actionButton',
             _key: 'btn2',
             label: 'Follow us on Facebook',
-            url: 'https://www.facebook.com/dripdrip.tamar'
+            url: 'https://www.facebook.com/people/Drip-Drip-friends-of-the-Tamar-River/61564869366844/'
           }
         ]
       }
@@ -423,7 +423,7 @@ const siteConfig = {
   },
   footer: {
     _type: 'footer',
-    text: `© ${new Date().getFullYear()} Drip Drip Tamar - Working towards a healthy Tamar River\n\n[Facebook](https://www.facebook.com/dripdrip.tamar) | [Contact](/contact) | [WaterFit Live](https://www.southwestwater.co.uk/environment/waterfit/waterfit-live/)`
+    text: `© ${new Date().getFullYear()} Drip Drip Tamar - Working towards a healthy Tamar River\n\n[Facebook](https://www.facebook.com/people/Drip-Drip-friends-of-the-Tamar-River/61564869366844/) | [Contact](/contact) | [WaterFit Live](https://www.southwestwater.co.uk/environment/waterfit/waterfit-live/)`
   }
 }
 

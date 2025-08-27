@@ -1,0 +1,42 @@
+---
+interface Props {
+  label?: string;
+  class?: string;
+  variant?: 'primary' | 'secondary' | 'link';
+  size?: 'sm' | 'md' | 'lg';
+}
+
+const { 
+  label = 'Follow Us on Facebook', 
+  class: className = '',
+  variant = 'secondary',
+  size = 'md'
+} = Astro.props;
+
+// Central Facebook URL - update this in one place
+const FACEBOOK_URL = 'https://www.facebook.com/people/Drip-Drip-friends-of-the-Tamar-River/61564869366844/';
+
+// Build button classes based on variant and size
+const buttonClasses = [
+  'btn',
+  variant === 'primary' && 'btn-primary',
+  variant === 'secondary' && 'btn-secondary',
+  variant === 'link' && 'btn-link',
+  size === 'sm' && 'btn-sm',
+  size === 'lg' && 'btn-lg',
+  className
+].filter(Boolean).join(' ');
+---
+
+<a 
+  href={FACEBOOK_URL}
+  target="_blank"
+  rel="noopener noreferrer"
+  class={buttonClasses}
+  aria-label={label}
+>
+  <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+    <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+  </svg>
+  <span>{label}</span>
+</a>

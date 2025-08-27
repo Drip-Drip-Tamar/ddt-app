@@ -7,22 +7,20 @@ import Hero from '@components/Hero.astro';
 import Logos from '@components/Logos.astro';
 import Testimonials from '@components/Testimonials.astro';
 import WaterQualityChart from '@components/WaterQualityChart.astro';
-import { fetchData, getPageById } from '@data/page';
+import { getPageBySlug } from '@data/page';
 
-export async function getStaticPaths() {
-    const data = await fetchData();
-    return data.map((page: Page) => {
-        const slug = page.slug.current === '/' ? undefined : page.slug.current;
-        return {
-            params: { slug },
-            props: { id: page._id }
-        };
-    });
-}
+// Get slug from params - undefined means homepage
+const { slug } = Astro.params;
+const slugParam = slug ? (Array.isArray(slug) ? slug.join('/') : slug) : undefined;
 
-const { id } = Astro.props;
-const pages = await getPageById(id);
+// Fetch page data by slug
+const pages = await getPageBySlug(slugParam);
 const page: Page = pages.length ? pages[0] : null;
+
+// If no page found, return 404
+if (!page) {
+    return Astro.redirect('/404');
+}
 
 const { _id, title, sections, metaTitle, metaDescription, socialImage } = page || {};
 
@@ -36,16 +34,19 @@ const componentMap = {
 };
 ---
 
-{
-    page && (
-        <Layout title={metaTitle ?? title} description={metaDescription} image={socialImage}>
-            <div data-sb-object-id={_id}>
-                {sections?.length &&
-                    sections.map((section, idx) => {
-                        const Component = componentMap[section._type];
-                        return <Component {...section} data-sb-field-path={`sections.${idx}`} />;
-                    })}
+<Layout title={metaTitle ?? title} description={metaDescription} image={socialImage}>
+    <div data-sb-object-id={_id}>
+        {sections?.length ? (
+            sections.map((section, idx) => {
+                const Component = componentMap[section._type];
+                return Component ? (
+                    <Component {...section} data-sb-field-path={`sections.${idx}`} />
+                ) : null;
+            })
+        ) : (
+            <div class="container mx-auto p-8">
+                <p>No content available for this page.</p>
             </div>
-        </Layout>
-    )
-}
+        )}
+    </div>
+</Layout>

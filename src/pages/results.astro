@@ -5,6 +5,7 @@ import WaterQualityChart from '@components/WaterQualityChart.astro';
 import TamarEnvironmentalMonitoring from '@components/TamarEnvironmentalMonitoring.astro';
 import PollutionRiskForecast from '@components/PollutionRiskForecast.astro';
 import Cta from '@components/Cta.astro';
+import { SOCIAL_LINKS } from '@config/social';
 
 const pageTitle = 'Water Quality Results';
 const pageDescription = 'View the latest water quality test results for the River Tamar, including E. coli and Enterococci bacteria levels at our regular sampling sites.';
@@ -53,13 +54,13 @@ const ctaSection = {
     {
       _type: 'actionButton',
       label: 'Check WaterFit Live',
-      url: 'https://www.southwestwater.co.uk/environment/waterfit/waterfit-live/',
+      url: SOCIAL_LINKS.waterfitLive,
       theme: 'primary'
     },
     {
       _type: 'actionButton',
       label: 'Follow Us on Facebook',
-      url: 'https://www.facebook.com/dripdrip.tamar',
+      url: SOCIAL_LINKS.facebook,
       theme: 'secondary'
     }
   ]

@@ -240,7 +240,7 @@ const pageContent = {
             _type: 'actionButton',
             _key: 'btn1',
             label: 'Visit our Facebook page',
-            url: 'https://www.facebook.com/dripdrip.tamar'
+            url: 'https://www.facebook.com/people/Drip-Drip-friends-of-the-Tamar-River/61564869366844/'
           }
         ]
       },
@@ -389,7 +389,7 @@ const pageContent = {
             _type: 'actionButton',
             _key: 'btn2',
             label: 'Follow us on Facebook',
-            url: 'https://www.facebook.com/dripdrip.tamar'
+            url: 'https://www.facebook.com/people/Drip-Drip-friends-of-the-Tamar-River/61564869366844/'
           }
         ]
       }

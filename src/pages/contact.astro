@@ -1,0 +1,281 @@
+---
+import Layout from '@layouts/Layout.astro';
+import { SOCIAL_LINKS, FACEBOOK_GROUP_NAME } from '@config/social';
+---
+
+<Layout title="Contact - Drip Drip Tamar" description="Get in touch with Drip Drip - friends of the Tamar River. Contact us about water quality, volunteering, or media enquiries.">
+  <div class="container mx-auto px-4 py-12 max-w-6xl">
+    <h1 class="text-4xl font-bold mb-6">Contact Drip Drip</h1>
+    
+    <p class="text-lg mb-8 max-w-3xl">
+      We're a community group in the Tamar Valley sharing professional water-testing results and practical guidance for safer river use. 
+      Questions, ideas, media requests or want to volunteer? Send us a message below or reach out directly.
+    </p>
+    
+    <div class="grid md:grid-cols-2 gap-8 lg:gap-12">
+      <!-- Contact Form -->
+      <div class="order-2 md:order-1">
+        <form id="contactForm" method="POST" action="/api/contact" class="space-y-6">
+          <!-- Hidden fields for anti-spam -->
+          <input type="hidden" name="_website" value="" aria-hidden="true" tabindex="-1" autocomplete="off">
+          <input type="hidden" name="form_started_at" id="form_started_at" value="">
+          
+          <div>
+            <label for="name" class="block text-sm font-medium mb-2">
+              Name <span class="text-error">*</span>
+            </label>
+            <input
+              type="text"
+              id="name"
+              name="name"
+              required
+              autocomplete="name"
+              class="input input-bordered w-full"
+              aria-describedby="name-error"
+            >
+            <span id="name-error" class="text-error text-sm mt-1 hidden"></span>
+          </div>
+          
+          <div>
+            <label for="email" class="block text-sm font-medium mb-2">
+              Email <span class="text-error">*</span>
+            </label>
+            <input
+              type="email"
+              id="email"
+              name="email"
+              required
+              autocomplete="email"
+              class="input input-bordered w-full"
+              aria-describedby="email-error"
+            >
+            <span id="email-error" class="text-error text-sm mt-1 hidden"></span>
+          </div>
+          
+          <div>
+            <label for="topic" class="block text-sm font-medium mb-2">
+              Topic
+            </label>
+            <select
+              id="topic"
+              name="topic"
+              class="select select-bordered w-full"
+              aria-describedby="topic-help"
+            >
+              <option value="General enquiry">General enquiry</option>
+              <option value="Volunteering">Volunteering</option>
+              <option value="Media/press">Media/press</option>
+            </select>
+            <span id="topic-help" class="text-sm text-base-content/70 mt-1">Select the topic that best describes your enquiry</span>
+          </div>
+          
+          <div>
+            <label for="message" class="block text-sm font-medium mb-2">
+              Message <span class="text-error">*</span>
+            </label>
+            <textarea
+              id="message"
+              name="message"
+              rows="6"
+              required
+              class="textarea textarea-bordered w-full"
+              aria-describedby="message-error"
+            ></textarea>
+            <span id="message-error" class="text-error text-sm mt-1 hidden"></span>
+          </div>
+          
+          <div>
+            <label class="flex items-start gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                id="consent"
+                name="consent"
+                required
+                class="checkbox checkbox-primary mt-0.5"
+                aria-describedby="consent-error"
+              >
+              <span class="text-sm">
+                I'm happy for Drip Drip to store this message and contact me back. 
+                <a href="/privacy" class="link link-primary">Privacy Policy</a>
+              </span>
+            </label>
+            <span id="consent-error" class="text-error text-sm mt-1 hidden"></span>
+          </div>
+          
+          <button type="submit" class="btn btn-primary w-full sm:w-auto">
+            Send Message
+          </button>
+          
+          <!-- Error/Success Messages -->
+          <div id="formMessage" class="alert hidden mt-4" role="alert">
+            <span id="formMessageText"></span>
+          </div>
+        </form>
+        
+        <!-- Privacy Note -->
+        <div class="mt-6 p-4 bg-base-200 rounded-lg">
+          <p class="text-sm">
+            <strong>Privacy Note:</strong> We use the details you provide only to respond to your enquiry. 
+            Your message is stored securely in our content system and not shared outside Drip Drip.
+          </p>
+        </div>
+      </div>
+      
+      <!-- Direct Contact Information -->
+      <div class="order-1 md:order-2">
+        <div class="bg-base-100 rounded-lg p-6 shadow-lg">
+          <h2 class="text-2xl font-semibold mb-4">Direct Contact</h2>
+          
+          <div class="space-y-6">
+            <div>
+              <h3 class="font-semibold mb-2 flex items-center gap-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                </svg>
+                Email
+              </h3>
+              <a href={`mailto:${SOCIAL_LINKS.email}`} class="link link-primary text-lg">
+                {SOCIAL_LINKS.email}
+              </a>
+              <p class="text-sm text-base-content/70 mt-1">
+                For direct enquiries, email us anytime
+              </p>
+            </div>
+            
+            <div>
+              <h3 class="font-semibold mb-2 flex items-center gap-2">
+                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                </svg>
+                Facebook
+              </h3>
+              <a 
+                href={SOCIAL_LINKS.facebook}
+                target="_blank"
+                rel="noopener noreferrer"
+                class="link link-primary"
+              >
+                {FACEBOOK_GROUP_NAME}
+              </a>
+              <p class="text-sm text-base-content/70 mt-1">
+                Follow us for updates and community discussions
+              </p>
+            </div>
+            
+            <div class="divider"></div>
+            
+            <div class="bg-info/10 p-4 rounded-lg">
+              <h3 class="font-semibold mb-2">Media & Press</h3>
+              <p class="text-sm">
+                For media or press enquiries, please select "Media/press" in the topic dropdown 
+                and include your outlet and deadline in your message.
+              </p>
+            </div>
+            
+            <div class="bg-success/10 p-4 rounded-lg">
+              <h3 class="font-semibold mb-2">Want to Help?</h3>
+              <p class="text-sm">
+                Interested in volunteering or supporting our water quality monitoring efforts? 
+                Select "Volunteering" as your topic and tell us how you'd like to get involved.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</Layout>
+
+<script>
+  // Set form start time for anti-spam
+  document.getElementById('form_started_at').value = Date.now().toString();
+  
+  // Handle form submission
+  const form = document.getElementById('contactForm') as HTMLFormElement;
+  const formMessage = document.getElementById('formMessage');
+  const formMessageText = document.getElementById('formMessageText');
+  
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    // Clear any previous messages
+    formMessage?.classList.add('hidden');
+    formMessage?.classList.remove('alert-success', 'alert-error');
+    
+    // Disable submit button
+    const submitBtn = form.querySelector('button[type="submit"]') as HTMLButtonElement;
+    const originalText = submitBtn.textContent;
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Sending...';
+    
+    try {
+      const formData = new FormData(form);
+      
+      const response = await fetch('/api/contact', {
+        method: 'POST',
+        body: formData
+      });
+      
+      const result = await response.json();
+      
+      if (result.ok) {
+        // Success
+        form.reset();
+        document.getElementById('form_started_at').value = Date.now().toString();
+        
+        // Replace form with success message
+        const formContainer = form.parentElement;
+        formContainer.innerHTML = `
+          <div class="alert alert-success">
+            <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <div>
+              <h3 class="font-bold">Thank you!</h3>
+              <p>We've received your message and will reply via email soon.</p>
+            </div>
+          </div>
+          <div class="mt-4">
+            <a href="/" class="btn btn-primary">Return to Home</a>
+          </div>
+        `;
+      } else {
+        // Error
+        formMessage?.classList.remove('hidden');
+        formMessage?.classList.add('alert-error');
+        formMessageText.textContent = result.error || 'Something went wrong. Please try again.';
+        submitBtn.disabled = false;
+        submitBtn.textContent = originalText;
+      }
+    } catch (error) {
+      // Network error
+      formMessage?.classList.remove('hidden');
+      formMessage?.classList.add('alert-error');
+      formMessageText.textContent = 'Network error. Please check your connection and try again.';
+      submitBtn.disabled = false;
+      submitBtn.textContent = originalText;
+    }
+  });
+  
+  // Add client-side validation feedback
+  const requiredFields = form?.querySelectorAll('[required]');
+  requiredFields?.forEach(field => {
+    field.addEventListener('blur', () => {
+      const input = field as HTMLInputElement;
+      const errorSpan = document.getElementById(`${input.name}-error`);
+      
+      if (input.validity.valueMissing) {
+        errorSpan?.classList.remove('hidden');
+        errorSpan.textContent = 'This field is required';
+        input.classList.add('input-error');
+      } else if (input.validity.typeMismatch && input.type === 'email') {
+        errorSpan?.classList.remove('hidden');
+        errorSpan.textContent = 'Please enter a valid email address';
+        input.classList.add('input-error');
+      } else {
+        errorSpan?.classList.add('hidden');
+        input.classList.remove('input-error');
+      }
+    });
+  });
+</script>

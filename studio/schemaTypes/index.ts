@@ -9,6 +9,7 @@ import header from './header'
 import footer from './footer'
 import samplingSite from './samplingSite'
 import waterSample from './waterSample'
+import contactMessage from './contactMessage'
 
 // Section types
 import heroSection from './heroSection'
@@ -38,6 +39,7 @@ export const schemaTypes = [
   footer,
   samplingSite,
   waterSample,
+  contactMessage,
   
   // Section types
   heroSection,
