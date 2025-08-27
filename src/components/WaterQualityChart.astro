@@ -190,17 +190,9 @@ const chartId = `water-chart-${Math.random().toString(36).substr(2, 9)}`;
           observer.unobserve(entry.target);
           
           try {
-            // Use dynamic imports with explicit paths for Vite
-            const [chartModule, annotationModule] = await Promise.all([
-              import('/node_modules/chart.js/auto/auto.js'),
-              import('/node_modules/chartjs-plugin-annotation/dist/chartjs-plugin-annotation.esm.js')
-            ]);
-            
-            const Chart = chartModule.default;
-            const annotationPlugin = annotationModule.default;
-            
-            // Register the annotation plugin
-            Chart.register(annotationPlugin);
+            // Load Chart.js from CDN
+            const { loadChart } = await import('@utils/chart-loader.js');
+            const Chart = await loadChart();
             
             // Create the chart
             const ctx = document.getElementById(chartId);
@@ -213,25 +205,11 @@ const chartId = `water-chart-${Math.random().toString(36).substr(2, 9)}`;
             }
           } catch (error) {
             console.error('Failed to load chart libraries:', error);
-            // Fallback: try loading from CDN
-            const script1 = document.createElement('script');
-            script1.src = 'https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js';
-            script1.onload = () => {
-              const script2 = document.createElement('script');
-              script2.src = 'https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.0.1/dist/chartjs-plugin-annotation.min.js';
-              script2.onload = () => {
-                const ctx = document.getElementById(chartId);
-                if (ctx && window.Chart) {
-                  new window.Chart(ctx, {
-                    type: chartType,
-                    data: chartData,
-                    options: chartConfig
-                  });
-                }
-              };
-              document.head.appendChild(script2);
-            };
-            document.head.appendChild(script1);
+            // Show error message if available
+            const errorElement = document.getElementById('chart-error');
+            if (errorElement) {
+              errorElement.classList.remove('hidden');
+            }
           }
         }
       });

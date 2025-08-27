@@ -186,15 +186,9 @@ const plymouthChartId = `plymouth-chart-${Math.random().toString(36).substr(2, 9
             observer.disconnect();
             
             try {
-              // Load Chart.js dynamically
-              const [chartModule, annotationModule] = await Promise.all([
-                import('/node_modules/chart.js/auto/auto.js'),
-                import('/node_modules/chartjs-plugin-annotation/dist/chartjs-plugin-annotation.esm.js')
-              ]);
-              
-              const Chart = chartModule.default;
-              const annotationPlugin = annotationModule.default;
-              Chart.register(annotationPlugin);
+              // Load Chart.js from CDN
+              const { loadChart } = await import('@utils/chart-loader.js');
+              const Chart = await loadChart();
               
               // Render Gunnislake chart
               if (data.gunnislake) {
@@ -382,18 +376,7 @@ const plymouthChartId = `plymouth-chart-${Math.random().toString(36).substr(2, 9
               }
             } catch (error) {
               console.error('Failed to load Chart.js:', error);
-              // Try CDN fallback
-              const script1 = document.createElement('script');
-              script1.src = 'https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js';
-              script1.onload = () => {
-                const script2 = document.createElement('script');
-                script2.src = 'https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.0.1/dist/chartjs-plugin-annotation.min.js';
-                script2.onload = () => {
-                  renderChartsWithGlobals();
-                };
-                document.head.appendChild(script2);
-              };
-              document.head.appendChild(script1);
+              document.getElementById('river-level-error').classList.remove('hidden');
             }
           }
         });
@@ -403,81 +386,6 @@ const plymouthChartId = `plymouth-chart-${Math.random().toString(36).substr(2, 9
       const chartContainer = document.getElementById(gunnislakeChartId);
       if (chartContainer) {
         observer.observe(chartContainer);
-      }
-      
-      // Fallback chart rendering function for CDN
-      function renderChartsWithGlobals() {
-        if (!window.Chart) return;
-        
-        // Render Gunnislake chart
-        if (data.gunnislake) {
-          const gunnislakeCtx = document.getElementById(gunnislakeChartId);
-          if (gunnislakeCtx) {
-            new window.Chart(gunnislakeCtx, {
-              type: 'line',
-              data: {
-                labels: data.gunnislake.labels,
-                datasets: [{
-                  label: 'River Level (m)',
-                  data: data.gunnislake.values,
-                  borderColor: 'rgb(59, 130, 246)',
-                  backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                  tension: 0.3,
-                  borderWidth: 2,
-                  pointRadius: 1,
-                  pointHoverRadius: 3,
-                  fill: true
-                }]
-              },
-              options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                  legend: { display: false }
-                },
-                scales: {
-                  x: { display: true },
-                  y: { display: true, title: { display: true, text: 'Level (m)' }}
-                }
-              }
-            });
-          }
-        }
-        
-        // Render Plymouth chart
-        if (data.plymouth) {
-          const plymouthCtx = document.getElementById(plymouthChartId);
-          if (plymouthCtx) {
-            new window.Chart(plymouthCtx, {
-              type: 'line',
-              data: {
-                labels: data.plymouth.labels,
-                datasets: [{
-                  label: 'Tidal Level (mAOD)',
-                  data: data.plymouth.values,
-                  borderColor: 'rgb(139, 92, 246)',
-                  backgroundColor: 'rgba(139, 92, 246, 0.1)',
-                  tension: 0.3,
-                  borderWidth: 2,
-                  pointRadius: 1,
-                  pointHoverRadius: 3,
-                  fill: true
-                }]
-              },
-              options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                  legend: { display: false }
-                },
-                scales: {
-                  x: { display: true },
-                  y: { display: true, title: { display: true, text: 'Level (mAOD)' }}
-                }
-              }
-            });
-          }
-        }
       }
       
     } catch (error) {

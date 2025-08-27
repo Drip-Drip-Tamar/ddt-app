@@ -415,15 +415,9 @@ const csoChartId = `cso-chart-${Math.random().toString(36).substr(2, 9)}`;
             observer.disconnect();
             
             try {
-              // Load Chart.js dynamically
-              const [chartModule, annotationModule] = await Promise.all([
-                import('/node_modules/chart.js/auto/auto.js'),
-                import('/node_modules/chartjs-plugin-annotation/dist/chartjs-plugin-annotation.esm.js')
-              ]);
-              
-              const Chart = chartModule.default;
-              const annotationPlugin = annotationModule.default;
-              Chart.register(annotationPlugin);
+              // Load Chart.js from CDN
+              const { loadChart } = await import('@utils/chart-loader.js');
+              const Chart = await loadChart();
               
               // Common chart options
               const commonOptions = {

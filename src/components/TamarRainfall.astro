@@ -152,12 +152,9 @@ const chartId = `rainfall-chart-${Math.random().toString(36).substr(2, 9)}`;
             observer.disconnect();
             
             try {
-              // Load Chart.js dynamically
-              const [chartModule] = await Promise.all([
-                import('/node_modules/chart.js/auto/auto.js')
-              ]);
-              
-              const Chart = chartModule.default;
+              // Load Chart.js from CDN
+              const { loadChart } = await import('@utils/chart-loader.js');
+              const Chart = await loadChart();
               
               // Prepare chart data
               const labels = data.hourly.map(h => {
@@ -275,13 +272,7 @@ const chartId = `rainfall-chart-${Math.random().toString(36).substr(2, 9)}`;
               }
             } catch (error) {
               console.error('Failed to load Chart.js:', error);
-              // Try CDN fallback
-              const script = document.createElement('script');
-              script.src = 'https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js';
-              script.onload = () => {
-                renderChartWithGlobal();
-              };
-              document.head.appendChild(script);
+              document.getElementById('rainfall-error').classList.remove('hidden');
             }
           }
         });
@@ -291,53 +282,6 @@ const chartId = `rainfall-chart-${Math.random().toString(36).substr(2, 9)}`;
       const chartContainer = document.getElementById(chartId);
       if (chartContainer) {
         observer.observe(chartContainer);
-      }
-      
-      // Fallback chart rendering function for CDN
-      function renderChartWithGlobal() {
-        if (!window.Chart) return;
-        
-        const labels = data.hourly.map(h => {
-          const date = new Date(h.t);
-          return date.toLocaleString('en-GB', {
-            day: 'numeric',
-            month: 'short',
-            hour: '2-digit'
-          });
-        });
-        
-        const ctx = document.getElementById(chartId);
-        if (ctx) {
-          new window.Chart(ctx, {
-            type: 'bar',
-            data: {
-              labels: labels,
-              datasets: [
-                {
-                  label: 'Hourly Rainfall (mm)',
-                  data: data.hourly.map(h => h.mm),
-                  backgroundColor: 'rgba(59, 130, 246, 0.6)',
-                  borderColor: 'rgb(59, 130, 246)',
-                  borderWidth: 1
-                }
-              ]
-            },
-            options: {
-              responsive: true,
-              maintainAspectRatio: false,
-              plugins: {
-                legend: { display: true }
-              },
-              scales: {
-                x: { display: true },
-                y: { 
-                  display: true, 
-                  title: { display: true, text: 'Rainfall (mm)' }
-                }
-              }
-            }
-          });
-        }
       }
       
     } catch (error) {

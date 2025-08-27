@@ -212,12 +212,9 @@ const chartId = `cso-chart-${Math.random().toString(36).substr(2, 9)}`;
             observer.disconnect();
             
             try {
-              // Load Chart.js dynamically
-              const [chartModule] = await Promise.all([
-                import('/node_modules/chart.js/auto/auto.js')
-              ]);
-              
-              const Chart = chartModule.default;
+              // Load Chart.js from CDN
+              const { loadChart } = await import('@utils/chart-loader.js');
+              const Chart = await loadChart();
               
               // Prepare chart data
               const labels = data.activeSeries.map(point => {
@@ -300,13 +297,7 @@ const chartId = `cso-chart-${Math.random().toString(36).substr(2, 9)}`;
               }
             } catch (error) {
               console.error('Failed to load Chart.js:', error);
-              // Try CDN fallback
-              const script = document.createElement('script');
-              script.src = 'https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js';
-              script.onload = () => {
-                renderChartWithGlobal();
-              };
-              document.head.appendChild(script);
+              document.getElementById('cso-error').classList.remove('hidden');
             }
           }
         });
@@ -316,54 +307,6 @@ const chartId = `cso-chart-${Math.random().toString(36).substr(2, 9)}`;
       const chartContainer = document.getElementById(chartId);
       if (chartContainer) {
         observer.observe(chartContainer);
-      }
-      
-      // Fallback chart rendering function for CDN
-      function renderChartWithGlobal() {
-        if (!window.Chart) return;
-        
-        const labels = data.activeSeries.map(point => {
-          const date = new Date(point.t);
-          return date.toLocaleString('en-GB', {
-            day: 'numeric',
-            month: 'short',
-            hour: '2-digit'
-          });
-        });
-        
-        const ctx = document.getElementById(chartId);
-        if (ctx) {
-          new window.Chart(ctx, {
-            type: 'line',
-            data: {
-              labels: labels,
-              datasets: [{
-                label: 'Active Overflows',
-                data: data.activeSeries.map(point => point.count),
-                borderColor: 'rgb(239, 68, 68)',
-                backgroundColor: 'rgba(239, 68, 68, 0.2)',
-                borderWidth: 2,
-                fill: true,
-                stepped: 'before'
-              }]
-            },
-            options: {
-              responsive: true,
-              maintainAspectRatio: false,
-              plugins: {
-                legend: { display: false }
-              },
-              scales: {
-                x: { display: true },
-                y: { 
-                  display: true, 
-                  title: { display: true, text: 'Active Count' },
-                  beginAtZero: true
-                }
-              }
-            }
-          });
-        }
       }
       
     } catch (error) {
