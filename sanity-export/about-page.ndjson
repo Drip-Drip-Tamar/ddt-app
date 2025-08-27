@@ -8,14 +8,14 @@
         "_type": "slug",
         "current": "about"
     },
-    "metaTitle": "About Us - AI Company",
-    "metaDescription": "Learn about AI Company's mission, values, and the team driving innovation in artificial intelligence solutions.",
+    "metaTitle": "About Us - Drip Drip Tamar",
+    "metaDescription": "Learn about Drip Drip's mission to protect and restore the River Tamar through community-led monitoring and advocacy.",
     "sections": [
         {
             "_key": "hero-about-001",
             "_type": "heroSection",
-            "heading": "Pioneering the Future of AI",
-            "body": "Founded in 2020, **AI Company** has rapidly emerged as a leader in artificial intelligence solutions. Our mission is to democratize AI technology and make it accessible to businesses of all sizes.\n\nWe believe that AI should enhance human capabilities, not replace them. Our team of world-class engineers, data scientists, and industry experts work tirelessly to create solutions that empower organizations to achieve their full potential.",
+            "heading": "Our Story",
+            "body": "**Drip Drip** was born out of a People's Assembly held in response to deep community concerns about the state of the River Tamar. Nestled around the village of Calstock, the River Tamar has been central to local life for centuries—once a vital artery for transport and trade, and now a cherished space for recreation and a haven for diverse wildlife.\n\nRecognizing its importance, our community came together with a shared vision: to protect and restore the river for current and future generations.",
             "backgroundImage": {
                 "_type": "backgroundImage",
                 "opacity": 30
@@ -26,32 +26,32 @@
                 {
                     "_key": "cta-hero-001",
                     "_type": "actionButton",
-                    "label": "Join Our Team",
-                    "url": "/careers",
+                    "label": "Join Our Mission",
+                    "url": "/contact",
                     "theme": "primary"
                 },
                 {
                     "_key": "cta-hero-002",
                     "_type": "actionLink",
-                    "label": "View Our Solutions",
-                    "url": "/solutions"
+                    "label": "View Our Results",
+                    "url": "/results"
                 }
             ]
         },
         {
             "_key": "cards-values-001",
             "_type": "cardsSection",
-            "heading": "Our Core Values",
-            "body": "The principles that guide everything we do at AI Company.",
+            "heading": "Why the River Tamar Matters",
+            "body": "The Tamar is not just a scenic backdrop; it's a vital ecosystem and community resource.",
             "items": [
                 {
                     "_key": "card-innovation-001",
                     "_type": "card",
-                    "heading": "Innovation First",
-                    "body": "We constantly push the boundaries of what's possible with AI. Our research team explores cutting-edge technologies to deliver breakthrough solutions that give our clients a competitive advantage.",
+                    "heading": "Protected Wildlife Haven",
+                    "body": "The Tamar is a designated Site of Special Scientific Interest (SSSI) home to protected species like Wild Salmon and Allis Shad. The weir at Gunnislake is the only recorded spawning site for the Allis Shad in the area.",
                     "badge": {
                         "_type": "badge",
-                        "label": "INNOVATE",
+                        "label": "WILDLIFE",
                         "theme": "accent"
                     },
                     "hasBorder": true
@@ -59,11 +59,11 @@
                 {
                     "_key": "card-integrity-001",
                     "_type": "card",
-                    "heading": "Integrity & Ethics",
-                    "body": "We believe in responsible AI development. Every solution we create is built with transparency, fairness, and ethical considerations at its core. We're committed to AI that benefits humanity.",
+                    "heading": "Rich Biodiversity",
+                    "body": "The river welcomes seals, otters, and even beavers, highlighting its ecological richness and significance. This diverse ecosystem supports both aquatic and terrestrial wildlife throughout the Tamar Valley.",
                     "badge": {
                         "_type": "badge",
-                        "label": "ETHICS",
+                        "label": "ECOSYSTEM",
                         "theme": "primary"
                     },
                     "hasBorder": true
@@ -71,11 +71,11 @@
                 {
                     "_key": "card-collaboration-001",
                     "_type": "card",
-                    "heading": "Collaborative Excellence",
-                    "body": "Great things happen when brilliant minds work together. We foster a culture of collaboration, both within our team and with our clients, to create solutions that truly make a difference.",
+                    "heading": "Community Heritage",
+                    "body": "For centuries, the Tamar has been central to local life - from its historic role in transport and trade to its current importance for recreation. For those who live by and love this river, its health is paramount.",
                     "badge": {
                         "_type": "badge",
-                        "label": "TEAMWORK",
+                        "label": "HERITAGE",
                         "theme": "secondary"
                     },
                     "hasBorder": true
@@ -85,105 +85,123 @@
         {
             "_key": "cards-journey-001",
             "_type": "cardsSection",
-            "heading": "Our Journey",
-            "body": "Key milestones in our company's evolution.",
+            "heading": "Our Mission",
+            "body": "At Drip Drip, we safeguard the River Tamar through community-led monitoring, advocacy, and collaboration.",
             "items": [
                 {
                     "_key": "card-2020-001",
                     "_type": "card",
-                    "heading": "2020: The Beginning",
-                    "body": "Started with a team of 5 passionate AI researchers in a small garage. Our first prototype helped local businesses optimize their operations using machine learning.",
+                    "heading": "Monitoring River Health",
+                    "body": "We conduct a rigorous sampling program, collecting weekly water samples from strategic sites. These samples are tested in a laboratory for indicators like E. coli and Enterococcus to identify sewage pollution and assess the river's health.",
                     "hasBorder": false
                 },
                 {
                     "_key": "card-2022-001",
                     "_type": "card",
-                    "heading": "2022: Rapid Growth",
-                    "body": "Expanded to 50+ employees and launched our flagship AI platform. Secured Series A funding and established partnerships with Fortune 500 companies.",
+                    "heading": "Community Engagement",
+                    "body": "By sharing our findings, we empower locals to make informed decisions about using the river safely and responsibly. We engage with community members, stakeholders, environmental groups, and South West Water to drive positive change.",
                     "hasBorder": false
                 },
                 {
                     "_key": "card-2024-001",
                     "_type": "card",
-                    "heading": "2024: Industry Leader",
-                    "body": "Now serving over 1000 clients globally with a team of 200+ experts. Recognized as one of the fastest-growing AI companies by leading tech publications.",
+                    "heading": "Advocacy and Action",
+                    "body": "Using the data we collect, we advocate for policies and actions that protect the river's ecosystem and reduce pollution. We aim to collaborate with councils, legal bodies, and conservation groups to ensure lasting impact.",
                     "hasBorder": false
                 }
             ]
         },
         {
-            "_key": "testimonials-team-001",
-            "_type": "testimonialsSection",
-            "heading": "Meet Our Leadership",
-            "body": "The visionaries driving AI Company forward.",
+            "_key": "cards-impact-001",
+            "_type": "cardsSection",
+            "heading": "Our Journey and Impact",
+            "body": "Since our inception, we have achieved significant milestones in protecting the River Tamar.",
             "items": [
                 {
-                    "_key": "testimonial-ceo-001",
-                    "_type": "testimonial",
-                    "quote": "\"Every day, I'm inspired by our team's dedication to solving complex problems with AI. We're not just building technology; we're shaping the future of how businesses operate and thrive.\"",
-                    "author": {
-                        "_type": "person",
-                        "name": "Sarah Chen",
-                        "title": "CEO & Co-Founder",
-                        "company": {
-                            "_type": "company",
-                            "name": "AI Company"
-                        }
-                    },
-                    "hasBorder": true,
-                    "theme": "light"
-                },
-                {
-                    "_key": "testimonial-cto-001",
-                    "_type": "testimonial",
-                    "quote": "\"Our technical excellence stems from our commitment to continuous learning and innovation. We invest heavily in R&D to ensure our clients always have access to the most advanced AI capabilities.\"",
-                    "author": {
-                        "_type": "person",
-                        "name": "Dr. Marcus Johnson",
-                        "title": "CTO & Co-Founder",
-                        "company": {
-                            "_type": "company",
-                            "name": "AI Company"
-                        }
+                    "_key": "card-sampling-001",
+                    "_type": "card",
+                    "heading": "Comprehensive Sampling Program",
+                    "body": "Initiated a comprehensive sampling program at key points along the Tamar, providing year-round data on water quality to identify pollution sources and trends.",
+                    "badge": {
+                        "_type": "badge",
+                        "label": "MONITORING",
+                        "theme": "primary"
                     },
                     "hasBorder": true
                 },
                 {
-                    "_key": "testimonial-cpo-001",
-                    "_type": "testimonial",
-                    "quote": "\"What sets us apart is our human-centered approach to AI. We design solutions that augment human intelligence and creativity, making technology work for people, not the other way around.\"",
-                    "author": {
-                        "_type": "person",
-                        "name": "Elena Rodriguez",
-                        "title": "Chief Product Officer",
-                        "company": {
-                            "_type": "company",
-                            "name": "AI Company"
-                        }
+                    "_key": "card-engagement-001",
+                    "_type": "card",
+                    "heading": "Community Mobilization",
+                    "body": "Engaged with our community through events like the River Festival, public meetings, and online platforms, raising awareness about river health and water quality issues.",
+                    "badge": {
+                        "_type": "badge",
+                        "label": "OUTREACH",
+                        "theme": "accent"
                     },
-                    "hasBorder": true,
-                    "theme": "light"
+                    "hasBorder": true
+                },
+                {
+                    "_key": "card-funding-001",
+                    "_type": "card",
+                    "heading": "Sustainable Funding",
+                    "body": "Successfully launched a Crowdfunder campaign with significant match funding from Cornwall Council's Climate and Nature Fund and Extinction Rebellion South East Cornwall, ensuring our work continues through all seasons.",
+                    "badge": {
+                        "_type": "badge",
+                        "label": "SUPPORT",
+                        "theme": "secondary"
+                    },
+                    "hasBorder": true
+                }
+            ]
+        },
+        {
+            "_key": "cards-collaboration-001",
+            "_type": "cardsSection",
+            "heading": "Our Community and Collaboration",
+            "body": "Drip Drip thrives on community spirit and collaborative partnerships.",
+            "items": [
+                {
+                    "_key": "card-volunteers-001",
+                    "_type": "card",
+                    "heading": "Dedicated Volunteers",
+                    "body": "We are a group of dedicated volunteers and environmental enthusiasts working together to make a difference. Our volunteers are the backbone of our monitoring and outreach efforts.",
+                    "hasBorder": false
+                },
+                {
+                    "_key": "card-partnerships-001",
+                    "_type": "card",
+                    "heading": "Environmental Partnerships",
+                    "body": "We engage with local and regional environmental groups such as Friends of the Dart, sharing knowledge and best practices to protect waterways across the region.",
+                    "hasBorder": false
+                },
+                {
+                    "_key": "card-committees-001",
+                    "_type": "card",
+                    "heading": "Active Committees",
+                    "body": "We organize events, sampling drives, and educational initiatives. Community members can join hands-on efforts through our committees working for cleaner, safer rivers.",
+                    "hasBorder": false
                 }
             ]
         },
         {
             "_key": "cta-careers-001",
             "_type": "ctaSection",
-            "heading": "Join Our Mission",
-            "body": "Be part of a team that's defining the future of artificial intelligence.",
+            "heading": "Join Us",
+            "body": "The health of the River Tamar is a shared responsibility. Whether you're interested in volunteering, donating, or simply learning more about our work, we welcome you to join our mission. Together, we can ensure that the River Tamar remains a vibrant, safe, and thriving ecosystem for all.",
             "cta": [
                 {
                     "_key": "cta-button-001",
                     "_type": "actionButton",
-                    "label": "View Open Positions",
-                    "url": "/careers",
+                    "label": "Get Involved",
+                    "url": "/contact",
                     "theme": "primary"
                 },
                 {
                     "_key": "cta-link-001",
                     "_type": "actionLink",
-                    "label": "Learn about our culture",
-                    "url": "/culture"
+                    "label": "View Water Quality Results",
+                    "url": "/results"
                 }
             ],
             "theme": "dark",
