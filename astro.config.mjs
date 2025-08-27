@@ -1,11 +1,13 @@
 import { defineConfig } from 'astro/config';
 import tailwindcss from '@tailwindcss/vite';
 import sanity from '@sanity/astro';
+import netlify from '@astrojs/netlify';
 import { sanityConfig } from './src/utils/sanity-client';
 
 // https://astro.build/config
 export default defineConfig({
     output: 'server', // Enable server-side rendering
+    adapter: netlify(),
     image: {
         domains: ['cdn.sanity.io']
     },
