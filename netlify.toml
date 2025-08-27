@@ -1,6 +1,16 @@
 [build]
   publish = "dist"
-  command = "npm ci && npm run build"
+  command = "npm ci --platform=linux --arch=x64 && npm run build"
+
+[build.environment]
+  NODE_VERSION = "20"
+  NPM_CONFIG_PLATFORM = "linux"
+  NPM_CONFIG_ARCH = "x64"
+  NPM_CONFIG_LIBC = "glibc"
+
+[functions]
+  directory = ".netlify/functions-internal"
+  node_bundler = "esbuild"
 
 [dev]
   targetPort = 3000
