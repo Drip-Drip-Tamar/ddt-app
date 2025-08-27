@@ -49,6 +49,7 @@ export default defineType({
         {type: 'heroSection'},
         {type: 'logosSection'},
         {type: 'testimonialsSection'},
+        {type: 'waterQualitySection'},
       ],
       group: 'content',
     }),

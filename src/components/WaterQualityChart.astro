@@ -1,0 +1,236 @@
+---
+import type { WaterQualitySection } from 'types';
+import { getWaterSamples, transformSamplesToChartData, getChartConfig } from '@data/waterQuality';
+import { marked } from 'marked';
+import Action from '@components/Action.astro';
+import Section from '@components/Section.astro';
+
+export interface Props extends WaterQualitySection {
+  'data-sb-field-path'?: string;
+}
+
+const { 
+  heading, 
+  body, 
+  showChart = true, 
+  showTable = false,
+  showThresholds = true,
+  chartType = 'line',
+  cta,
+  ...sectionProps 
+} = Astro.props;
+
+// Fetch water quality data at build time
+const samples = await getWaterSamples();
+const chartData = transformSamplesToChartData(samples);
+const chartConfig = getChartConfig(showThresholds);
+
+// Sort samples by date for table display
+const sortedSamples = [...samples].sort((a, b) => 
+  new Date(b.date).getTime() - new Date(a.date).getTime()
+);
+
+// Generate unique ID for this chart instance
+const chartId = `water-chart-${Math.random().toString(36).substr(2, 9)}`;
+---
+
+<Section {...sectionProps}>
+  <div class="water-quality-container">
+    {heading && (
+      <h2 class="text-3xl font-bold mb-4" data-sb-field-path=".heading">
+        {heading}
+      </h2>
+    )}
+    
+    {body && (
+      <div 
+        class="prose max-w-none mb-6" 
+        data-sb-field-path=".body"
+        set:html={marked(body)}
+      />
+    )}
+    
+    {showChart && (
+      <div class="chart-wrapper mb-8">
+        <div class="bg-base-100 rounded-lg shadow-lg p-4 md:p-6">
+          <canvas 
+            id={chartId}
+            class="water-chart"
+            style="height: 450px; max-height: 600px;"
+          ></canvas>
+          
+          <noscript>
+            <div class="alert alert-warning mt-4">
+              <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+              <span>JavaScript is required to view the interactive chart. Please see the data table below.</span>
+            </div>
+          </noscript>
+        </div>
+      </div>
+    )}
+    
+    {showTable && (
+      <div class="overflow-x-auto mb-8">
+        <h3 class="text-xl font-semibold mb-4">Recent Test Results</h3>
+        <table class="table table-zebra w-full">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Site</th>
+              <th>E. coli (cfu/100ml)</th>
+              <th>Enterococci (cfu/100ml)</th>
+              {samples.some(s => s.rainfall !== null) && <th>Rainfall (mm)</th>}
+            </tr>
+          </thead>
+          <tbody>
+            {sortedSamples.slice(0, 20).map((sample) => (
+              <tr>
+                <td>{new Date(sample.date).toLocaleDateString('en-GB')}</td>
+                <td>{sample.siteName}</td>
+                <td class:list={[
+                  sample.ecoli > 1000 ? 'text-error font-semibold' : 
+                  sample.ecoli > 500 ? 'text-warning' : 
+                  'text-success'
+                ]}>
+                  {sample.ecoli ?? '—'}
+                </td>
+                <td class:list={[
+                  sample.enterococci > 400 ? 'text-error font-semibold' : 
+                  sample.enterococci > 200 ? 'text-warning' : 
+                  'text-success'
+                ]}>
+                  {sample.enterococci ?? '—'}
+                </td>
+                {samples.some(s => s.rainfall !== null) && (
+                  <td>{sample.rainfall ?? '—'}</td>
+                )}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        {sortedSamples.length > 20 && (
+          <p class="text-sm text-base-content/70 mt-2">
+            Showing most recent 20 results of {sortedSamples.length} total samples
+          </p>
+        )}
+      </div>
+    )}
+    
+    {cta && cta.length > 0 && (
+      <div class="flex flex-wrap gap-4 justify-center mt-8">
+        {cta.map((action, idx) => (
+          <Action 
+            {...action} 
+            data-sb-field-path={`.cta.${idx}`}
+          />
+        ))}
+      </div>
+    )}
+  </div>
+</Section>
+
+{/* Only load Chart.js when the chart is visible */}
+{showChart && (
+  <script define:vars={{ chartId, chartData, chartConfig, chartType }}>
+    // Intersection Observer to load chart when visible
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(async entry => {
+        if (entry.isIntersecting) {
+          // Stop observing once loaded
+          observer.unobserve(entry.target);
+          
+          try {
+            // Use dynamic imports with explicit paths for Vite
+            const [chartModule, annotationModule] = await Promise.all([
+              import('/node_modules/chart.js/auto/auto.js'),
+              import('/node_modules/chartjs-plugin-annotation/dist/chartjs-plugin-annotation.esm.js')
+            ]);
+            
+            const Chart = chartModule.default;
+            const annotationPlugin = annotationModule.default;
+            
+            // Register the annotation plugin
+            Chart.register(annotationPlugin);
+            
+            // Create the chart
+            const ctx = document.getElementById(chartId);
+            if (ctx) {
+              new Chart(ctx, {
+                type: chartType,
+                data: chartData,
+                options: chartConfig
+              });
+            }
+          } catch (error) {
+            console.error('Failed to load chart libraries:', error);
+            // Fallback: try loading from CDN
+            const script1 = document.createElement('script');
+            script1.src = 'https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js';
+            script1.onload = () => {
+              const script2 = document.createElement('script');
+              script2.src = 'https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.0.1/dist/chartjs-plugin-annotation.min.js';
+              script2.onload = () => {
+                const ctx = document.getElementById(chartId);
+                if (ctx && window.Chart) {
+                  new window.Chart(ctx, {
+                    type: chartType,
+                    data: chartData,
+                    options: chartConfig
+                  });
+                }
+              };
+              document.head.appendChild(script2);
+            };
+            document.head.appendChild(script1);
+          }
+        }
+      });
+    }, {
+      rootMargin: '50px'
+    });
+    
+    // Start observing the chart canvas
+    const chartElement = document.getElementById(chartId);
+    if (chartElement) {
+      observer.observe(chartElement);
+    }
+  </script>
+)}
+
+<style>
+  .water-quality-container {
+    max-width: 80rem; /* Equivalent to max-w-7xl */
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: 1rem;
+    padding-right: 1rem;
+    padding-top: 2rem;
+    padding-bottom: 2rem;
+  }
+  
+  @media (min-width: 640px) {
+    .water-quality-container {
+      padding-left: 1.5rem;
+      padding-right: 1.5rem;
+    }
+  }
+  
+  @media (min-width: 1024px) {
+    .water-quality-container {
+      padding-left: 2rem;
+      padding-right: 2rem;
+    }
+  }
+  
+  .chart-wrapper {
+    width: 100%;
+  }
+  
+  @media (max-width: 640px) {
+    .water-chart {
+      max-height: 400px !important;
+    }
+  }
+</style>

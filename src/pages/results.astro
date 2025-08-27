@@ -1,0 +1,72 @@
+---
+import Layout from '@layouts/Layout.astro';
+import Hero from '@components/Hero.astro';
+import WaterQualityChart from '@components/WaterQualityChart.astro';
+import Cta from '@components/Cta.astro';
+
+const pageTitle = 'Water Quality Results';
+const pageDescription = 'View the latest water quality test results for the River Tamar, including E. coli and Enterococci bacteria levels at our regular sampling sites.';
+
+// Define the page sections
+const heroSection = {
+  _type: 'heroSection',
+  heading: 'Water Quality Results',
+  body: 'We test the River Tamar weekly at two locations near Calstock. Our laboratory analysis measures E. coli and Intestinal Enterococci levels to help you understand water quality and make informed decisions about river use.',
+  backgroundImage: {
+    _type: 'backgroundImage',
+    type: 'color',
+    color: '#0066CC'
+  }
+};
+
+const chartSection = {
+  _type: 'waterQualitySection',
+  heading: 'Latest Test Results',
+  body: 'The chart below shows bacteria levels over time at our sampling sites. Green lines indicate excellent water quality thresholds, while yellow lines show good quality limits according to EU Bathing Water standards.',
+  showChart: true,
+  showTable: true,
+  showThresholds: true,
+  chartType: 'line'
+};
+
+const infoSection = {
+  _type: 'heroSection',
+  heading: 'Understanding the Results',
+  body: `**E. coli and Enterococci** are indicator bacteria used worldwide to assess water quality. Higher levels suggest increased risk of waterborne illness.
+
+**EU Bathing Water Quality Standards:**
+- **Excellent**: E. coli < 500, Enterococci < 200 (cfu/100ml)
+- **Good**: E. coli < 1000, Enterococci < 400 (cfu/100ml)
+- **Sufficient**: E. coli < 1800, Enterococci < 660 (cfu/100ml)
+
+**Important:** These are single-point measurements. Official bathing water classifications use multiple samples over four years. Always check recent rainfall and storm overflow status before entering the water.`,
+  theme: 'light'
+};
+
+const ctaSection = {
+  _type: 'ctaSection',
+  heading: 'Stay Safe',
+  body: 'Check live storm overflow status before swimming or paddling',
+  cta: [
+    {
+      _type: 'actionButton',
+      label: 'Check WaterFit Live',
+      url: 'https://www.southwestwater.co.uk/environment/waterfit/waterfit-live/',
+      theme: 'primary'
+    },
+    {
+      _type: 'actionButton',
+      label: 'Follow Us on Facebook',
+      url: 'https://www.facebook.com/dripdrip.tamar',
+      theme: 'secondary'
+    }
+  ]
+};
+---
+
+<Layout title={pageTitle} description={pageDescription}>
+  <Hero {...heroSection} />
+  <WaterQualityChart {...chartSection} />
+  <Hero {...infoSection} />
+  <Cta {...ctaSection} />
+</Layout>

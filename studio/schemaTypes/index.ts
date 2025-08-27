@@ -7,6 +7,8 @@ import testimonial from './testimonial'
 import siteConfig from './siteConfig'
 import header from './header'
 import footer from './footer'
+import samplingSite from './samplingSite'
+import waterSample from './waterSample'
 
 // Section types
 import heroSection from './heroSection'
@@ -14,6 +16,7 @@ import cardsSection from './cardsSection'
 import ctaSection from './ctaSection'
 import logosSection from './logosSection'
 import testimonialsSection from './testimonialsSection'
+import waterQualitySection from './waterQualitySection'
 
 // Component types
 import actionButton from './actionButton'
@@ -33,6 +36,8 @@ export const schemaTypes = [
   siteConfig,
   header,
   footer,
+  samplingSite,
+  waterSample,
   
   // Section types
   heroSection,
@@ -40,6 +45,7 @@ export const schemaTypes = [
   ctaSection,
   logosSection,
   testimonialsSection,
+  waterQualitySection,
   
   // Component types
   actionButton,

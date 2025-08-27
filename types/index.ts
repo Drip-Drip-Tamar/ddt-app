@@ -85,7 +85,7 @@ export interface Page {
     _id: string;
     slug: Slug;
     title: string;
-    sections: Array<CardsSection | CtaSection | HeroSection | LogosSection | TestimonialsSection>;
+    sections: Array<CardsSection | CtaSection | HeroSection | LogosSection | TestimonialsSection | WaterQualitySection>;
     metaTitle?: string;
     addTitleSuffix?: boolean;
     metaDescription?: string;
@@ -131,4 +131,49 @@ export interface TestimonialsSection extends Section {
     body?: string;
     items?: Array<Testimonial>;
     columns?: 'one' | 'two';
+}
+
+export interface SamplingSite {
+    _id: string;
+    _type: 'samplingSite';
+    title: string;
+    slug: Slug;
+    description?: string;
+    coordinates?: {
+        lat: number;
+        lng: number;
+    };
+    notes?: string;
+}
+
+export interface WaterSample {
+    _id: string;
+    _type: 'waterSample';
+    date: string;
+    site: {
+        _ref: string;
+        _type: 'reference';
+    } | SamplingSite;
+    ecoli?: number | null;
+    enterococci?: number | null;
+    rainfall?: number | null;
+    notes?: string;
+    labReference?: string;
+}
+
+export interface WaterQualitySection extends Section {
+    _type: 'waterQualitySection';
+    _key?: string;
+    heading?: string;
+    body?: string;
+    showChart?: boolean;
+    showTable?: boolean;
+    siteFilter?: SamplingSite[];
+    dateRange?: {
+        startDate?: string;
+        endDate?: string;
+    };
+    chartType?: 'line' | 'bar';
+    showThresholds?: boolean;
+    cta?: Array<ActionButton | ActionLink>;
 }
