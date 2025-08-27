@@ -1,0 +1,81 @@
+---
+import Layout from '@layouts/Layout.astro';
+import Hero from '@components/Hero.astro';
+import TamarStormOverflowMap from '@components/TamarStormOverflowMap.astro';
+import TamarStormOverflow from '@components/TamarStormOverflow.astro';
+import Cta from '@components/Cta.astro';
+import { SOCIAL_LINKS } from '@config/social';
+
+const pageTitle = 'Storm Overflow Map';
+const pageDescription = 'Interactive map showing real-time storm overflow activity near Calstock on the River Tamar. Monitor CSO discharges to make informed decisions about water activities.';
+
+// Define the page sections
+const heroSection = {
+  _type: 'heroSection',
+  heading: 'Storm Overflow Map',
+  body: 'Monitor real-time Combined Sewer Overflow (CSO) activity within 10km of Calstock. Storm overflows discharge untreated sewage during heavy rainfall. Check this map before swimming, paddling, or other water activities.',
+  backgroundImage: {
+    _type: 'backgroundImage',
+    type: 'color',
+    color: '#0066CC'
+  }
+};
+
+const infoSection = {
+  _type: 'heroSection',
+  heading: 'Understanding the Map',
+  body: `**Map Indicators:**
+- **Red markers**: Currently active overflows discharging into watercourses
+- **Amber markers**: Recent activity (ended within last 5 days)
+- **Grey markers**: Inactive or historical discharge points
+
+**Before entering the water:**
+1. Check for active (red) markers near your location
+2. Review recent rainfall - heavy rain increases overflow risk
+3. Consider waiting 48-72 hours after storm events
+4. Check our water quality test results on the Results page
+
+**Data Source:** South West Water provides near real-time monitoring (updated ~10 minutes) of storm overflow activity through their Event Duration Monitoring system.`,
+  theme: 'light'
+};
+
+const ctaSection = {
+  _type: 'ctaSection',
+  heading: 'Stay Informed',
+  body: 'Check multiple sources before water activities',
+  cta: [
+    {
+      _type: 'actionButton',
+      label: 'View Water Quality Results',
+      url: '/results',
+      theme: 'primary'
+    },
+    {
+      _type: 'actionButton',
+      label: 'WaterFit Live Map',
+      url: SOCIAL_LINKS.waterfitLive,
+      theme: 'secondary'
+    }
+  ]
+};
+---
+
+<Layout title={pageTitle} description={pageDescription}>
+  <Hero {...heroSection} />
+  
+  <!-- Interactive Map Section -->
+  <TamarStormOverflowMap 
+    theme="light" 
+    width="full"
+  />
+  
+  <Hero {...infoSection} />
+  
+  <!-- Activity Chart Section -->
+  <TamarStormOverflow 
+    theme="light" 
+    width="inset"
+  />
+  
+  <Cta {...ctaSection} />
+</Layout>

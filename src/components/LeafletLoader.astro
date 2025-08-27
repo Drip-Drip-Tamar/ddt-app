@@ -1,0 +1,171 @@
+---
+// LeafletLoader component - provides CDN-based Leaflet loading
+// This component should be included once in the Layout
+---
+
+<script is:inline>
+  // Leaflet CDN Loader - Inline version for global access
+  (function() {
+    // CDN URLs with specific versions for consistency
+    const CDN_URLS = {
+      css: [
+        'https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css',
+        'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css',
+        'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css'
+      ],
+      js: [
+        'https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js',
+        'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js',
+        'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js'
+      ]
+    };
+
+    // Track loading state
+    let leafletLoadPromise = null;
+    let isLeafletLoaded = false;
+
+    // Load a CSS file
+    function loadCSS(url) {
+      return new Promise((resolve, reject) => {
+        // Check if CSS already exists
+        const existingLink = document.querySelector(`link[href="${url}"]`);
+        if (existingLink) {
+          resolve();
+          return;
+        }
+
+        const link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = url;
+        link.crossOrigin = 'anonymous';
+        
+        link.onload = resolve;
+        link.onerror = () => {
+          link.remove();
+          reject(new Error(`Failed to load CSS: ${url}`));
+        };
+        
+        document.head.appendChild(link);
+      });
+    }
+
+    // Load a script from URL
+    function loadScript(url) {
+      return new Promise((resolve, reject) => {
+        // Check if script already exists
+        const existingScript = document.querySelector(`script[src="${url}"]`);
+        if (existingScript) {
+          if (existingScript.dataset.loaded === 'true') {
+            resolve();
+            return;
+          }
+          // Wait for existing script to load
+          existingScript.addEventListener('load', resolve);
+          existingScript.addEventListener('error', reject);
+          return;
+        }
+
+        const script = document.createElement('script');
+        script.src = url;
+        script.async = true;
+        script.crossOrigin = 'anonymous';
+        script.dataset.loaded = 'false';
+        
+        script.onload = () => {
+          script.dataset.loaded = 'true';
+          resolve();
+        };
+        
+        script.onerror = () => {
+          script.remove();
+          reject(new Error(`Failed to load script: ${url}`));
+        };
+        
+        document.head.appendChild(script);
+      });
+    }
+
+    // Try loading from multiple CDN URLs
+    async function loadFromCDNs(urls, loadFn, validateFn) {
+      for (const url of urls) {
+        try {
+          await loadFn(url);
+          if (!validateFn || validateFn()) {
+            return true;
+          }
+        } catch (error) {
+          console.warn(`CDN failed: ${url}`, error.message);
+        }
+      }
+      return false;
+    }
+
+    // Main function to load Leaflet
+    window.loadLeaflet = async function() {
+      // Return existing Leaflet if already loaded
+      if (isLeafletLoaded && window.L) {
+        return window.L;
+      }
+
+      // Prevent duplicate loading
+      if (leafletLoadPromise) {
+        return leafletLoadPromise;
+      }
+
+      leafletLoadPromise = (async () => {
+        try {
+          console.log('Loading Leaflet from CDN...');
+          
+          // First load CSS
+          const cssLoaded = await loadFromCDNs(
+            CDN_URLS.css,
+            loadCSS,
+            () => true // CSS doesn't provide a global object to validate
+          );
+
+          if (!cssLoaded) {
+            console.warn('Failed to load Leaflet CSS, map may not display correctly');
+          }
+
+          // Then load JavaScript
+          const jsLoaded = await loadFromCDNs(
+            CDN_URLS.js,
+            loadScript,
+            () => window.L !== undefined && window.L.version !== undefined
+          );
+
+          if (!jsLoaded || !window.L) {
+            throw new Error('Failed to load Leaflet from any CDN');
+          }
+
+          // Configure Leaflet icon paths for markers to work correctly
+          if (window.L && window.L.Icon && window.L.Icon.Default) {
+            // Fix marker icon paths when loaded from CDN
+            delete window.L.Icon.Default.prototype._getIconUrl;
+            window.L.Icon.Default.mergeOptions({
+              iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
+              iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
+              shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
+            });
+          }
+
+          isLeafletLoaded = true;
+          console.log('Leaflet loaded successfully');
+          return window.L;
+          
+        } catch (error) {
+          leafletLoadPromise = null; // Reset to allow retry
+          console.error('Failed to load Leaflet:', error);
+          throw error;
+        }
+      })();
+
+      return leafletLoadPromise;
+    };
+
+    // Also expose a check function
+    window.isLeafletLoaded = function() {
+      return isLeafletLoaded && window.L !== undefined;
+    };
+  })();
+</script>
