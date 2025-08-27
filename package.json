@@ -40,7 +40,7 @@
         "daisyui": "^5.0.0",
         "typescript": "^5.9.2"
     },
-    "optionalDependencies": {
-        "@rollup/rollup-linux-x64-gnu": "4.49.0"
+    "overrides": {
+        "rollup": "npm:@rollup/wasm-node"
     }
 }
