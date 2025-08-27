@@ -1,0 +1,232 @@
+---
+import Section from '@components/Section.astro';
+
+export interface Props {
+  class?: string;
+  theme?: string;
+  width?: 'full' | 'inset';
+  'data-sb-field-path'?: string;
+}
+
+const { class: className, ...sectionProps } = Astro.props;
+
+// Generate unique IDs for the component
+const containerId = `prf-${Math.random().toString(36).substr(2, 9)}`;
+---
+
+<Section {...sectionProps} class={className}>
+  <div class="prf-container">
+    <div class="mb-6">
+      <h3 class="text-2xl font-bold mb-2">
+        Nearest Coastal Pollution Risk (Today)
+      </h3>
+      <p class="text-sm text-base-content/70 mb-2">
+        Daily pollution risk forecasts for Plymouth bathing waters provide a proxy indicator for Tamar water quality.
+        These Environment Agency forecasts predict short-term water quality impacts from rainfall and storm overflows.
+      </p>
+      <p class="text-xs text-base-content/60">
+        ⚠️ These are single-day forecasts. Always check recent weather and storm overflow status before water activities.
+      </p>
+    </div>
+    
+    <!-- Risk badges container -->
+    <div id={`${containerId}-badges`} class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+      <!-- Loading state -->
+      <div class="loading-placeholder">
+        <div class="bg-base-200 rounded-lg p-4 animate-pulse">
+          <div class="h-5 bg-base-300 rounded mb-2"></div>
+          <div class="h-8 bg-base-300 rounded"></div>
+        </div>
+      </div>
+      <div class="loading-placeholder">
+        <div class="bg-base-200 rounded-lg p-4 animate-pulse">
+          <div class="h-5 bg-base-300 rounded mb-2"></div>
+          <div class="h-8 bg-base-300 rounded"></div>
+        </div>
+      </div>
+      <div class="loading-placeholder">
+        <div class="bg-base-200 rounded-lg p-4 animate-pulse">
+          <div class="h-5 bg-base-300 rounded mb-2"></div>
+          <div class="h-8 bg-base-300 rounded"></div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Error message (hidden by default) -->
+    <div id={`${containerId}-error`} class="alert alert-warning hidden">
+      <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+      </svg>
+      <span>Unable to load pollution risk forecast. Please try again later.</span>
+    </div>
+    
+    <!-- Off-season message (hidden by default) -->
+    <div id={`${containerId}-offseason`} class="alert alert-info hidden">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current shrink-0 w-6 h-6">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+      </svg>
+      <span>Pollution Risk Forecasts are only available during bathing season (May to September).</span>
+    </div>
+    
+    <!-- Attribution -->
+    <div class="mt-6 pt-3 border-t border-base-300">
+      <p class="text-xs text-base-content/60">
+        Data: <a href="https://environment.data.gov.uk/data-services/bathing-water-quality/" 
+                 target="_blank" 
+                 rel="noopener noreferrer"
+                 class="link link-hover">
+          Environment Agency Bathing Water Pollution Risk Forecast
+        </a> • 
+        © Crown Copyright, licensed under the 
+        <a href="https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/"
+           target="_blank"
+           rel="noopener noreferrer"
+           class="link link-hover">
+          Open Government Licence v3.0
+        </a>
+      </p>
+    </div>
+    
+    <noscript>
+      <div class="alert alert-warning mt-4">
+        <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+        </svg>
+        <span>JavaScript is required to view the live pollution risk forecast.</span>
+      </div>
+    </noscript>
+  </div>
+</Section>
+
+<script define:vars={{ containerId }}>
+  async function loadPollutionRiskForecast() {
+    const badgesContainer = document.getElementById(`${containerId}-badges`);
+    const errorAlert = document.getElementById(`${containerId}-error`);
+    const offseasonAlert = document.getElementById(`${containerId}-offseason`);
+    
+    try {
+      const response = await fetch('/api/prf.json');
+      if (!response.ok) throw new Error('Failed to fetch data');
+      
+      const data = await response.json();
+      
+      if (!data.sites || data.sites.length === 0) {
+        throw new Error('No data available');
+      }
+      
+      // Check if all sites are off-season
+      const allOffSeason = data.sites.every(site => !site.season);
+      
+      if (allOffSeason) {
+        badgesContainer.style.display = 'none';
+        offseasonAlert.classList.remove('hidden');
+        return;
+      }
+      
+      // Clear loading placeholders
+      badgesContainer.innerHTML = '';
+      
+      // Create badges for each site
+      data.sites.forEach(site => {
+        const siteCard = document.createElement('div');
+        siteCard.className = 'bg-base-100 rounded-lg shadow-md p-4';
+        
+        // Determine risk status and styling
+        let badgeClass = 'badge-neutral';
+        let statusText = 'No Data';
+        let statusIcon = '';
+        
+        if (site.season && site.risk === 'normal') {
+          badgeClass = 'badge-success';
+          statusText = 'Low potential danger';
+          statusIcon = '✓';
+        } else if (site.season && site.risk === 'increased') {
+          badgeClass = 'badge-warning';
+          statusText = 'High potential danger';
+          statusIcon = '⚠';
+        } else if (!site.season) {
+          statusText = 'Off-season';
+          statusIcon = '—';
+        }
+        
+        // Format expiry time
+        let expiryText = '';
+        if (site.expiresAt) {
+          const expiryDate = new Date(site.expiresAt);
+          const now = new Date();
+          if (expiryDate > now) {
+            expiryText = `Valid until ${expiryDate.toLocaleTimeString('en-GB', {
+              hour: '2-digit',
+              minute: '2-digit'
+            })}`;
+          } else {
+            expiryText = 'Forecast expired';
+            badgeClass = 'badge-neutral';
+          }
+        }
+        
+        siteCard.innerHTML = `
+          <h4 class="font-semibold text-base mb-2">${site.label}</h4>
+          <div class="flex flex-col gap-2">
+            <div class="badge ${badgeClass} badge-lg gap-2 py-4 px-3 w-full justify-center">
+              <span class="text-lg">${statusIcon}</span>
+              <span class="font-medium">${statusText}</span>
+            </div>
+            ${expiryText ? `<p class="text-xs text-base-content/60 text-center">${expiryText}</p>` : ''}
+          </div>
+        `;
+        
+        // Add tooltip with more information
+        if (site.season) {
+          siteCard.setAttribute('title', 
+            `EA Pollution Risk Forecast for ${site.label}. ${
+              site.risk === 'increased' 
+                ? 'Increased risk may be due to recent rainfall or storm overflows.' 
+                : 'Normal risk indicates typical conditions.'
+            } ${expiryText}`
+          );
+        }
+        
+        badgesContainer.appendChild(siteCard);
+      });
+      
+    } catch (error) {
+      console.error('Error loading pollution risk forecast:', error);
+      badgesContainer.style.display = 'none';
+      errorAlert.classList.remove('hidden');
+    }
+  }
+  
+  // Load data when DOM is ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', loadPollutionRiskForecast);
+  } else {
+    loadPollutionRiskForecast();
+  }
+  
+  // Refresh data every 15 minutes while page is open
+  setInterval(loadPollutionRiskForecast, 15 * 60 * 1000);
+</script>
+
+<style>
+  .prf-container {
+    max-width: 100%;
+  }
+  
+  .loading-placeholder {
+    width: 100%;
+  }
+  
+  @keyframes pulse {
+    0%, 100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: .5;
+    }
+  }
+  
+  .animate-pulse {
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+</style>
