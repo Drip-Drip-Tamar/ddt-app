@@ -1,0 +1,372 @@
+---
+import Section from '@components/Section.astro';
+
+export interface Props {
+  class?: string;
+  theme?: string;
+  width?: 'full' | 'inset';
+  'data-sb-field-path'?: string;
+}
+
+const { class: className, ...sectionProps } = Astro.props;
+
+// Generate unique ID for chart
+const chartId = `rainfall-chart-${Math.random().toString(36).substr(2, 9)}`;
+---
+
+<Section {...sectionProps} class={className}>
+  <div class="rainfall-container">
+    <div class="mb-6">
+      <h3 class="text-2xl font-bold mb-2">
+        Rainfall — Calstock Area
+      </h3>
+      <p class="text-sm text-base-content/70">
+        Recent rainfall within 10km radius. Heavy rainfall increases contamination risk from agricultural runoff and storm overflows.
+        Shows hourly rainfall (bars) and 24-hour rolling total (line).
+      </p>
+    </div>
+    
+    <div class="bg-base-100 rounded-lg shadow-lg p-4 md:p-6">
+      <div class="mb-3">
+        <h4 class="text-lg font-semibold mb-1">5-Day Rainfall History</h4>
+        <p class="text-xs text-base-content/60">
+          Combined data from nearest EA monitoring stations
+        </p>
+      </div>
+      
+      <!-- Current Status Display -->
+      <div id={`${chartId}-current`} class="flex items-center justify-between mb-3 p-2 bg-base-200 rounded">
+        <div>
+          <div class="text-xs text-base-content/70">24h Total</div>
+          <div class="text-xl font-bold">
+            <span id={`${chartId}-value`}>—</span> mm
+          </div>
+          <div class="text-xs text-base-content/60 mt-1" id={`${chartId}-time`}>Loading...</div>
+        </div>
+        <div id={`${chartId}-badge`} class="badge badge-lg">Loading</div>
+      </div>
+      
+      <!-- Station Info -->
+      <div id={`${chartId}-stations`} class="text-xs text-base-content/60 mb-3">
+        Loading station data...
+      </div>
+      
+      <!-- Chart Canvas -->
+      <div class="chart-wrapper">
+        <canvas 
+          id={chartId}
+          class="rainfall-chart"
+          style="height: 300px; max-height: 350px;"
+        ></canvas>
+      </div>
+    </div>
+    
+    <!-- Attribution -->
+    <div class="mt-6 pt-3 border-t border-base-300">
+      <p class="text-xs text-base-content/60">
+        Data: <a href="https://environment.data.gov.uk/flood-monitoring/doc/reference" 
+                 target="_blank" 
+                 rel="noopener noreferrer"
+                 class="link link-hover">
+          Environment Agency Rainfall API
+        </a> • Open Government Licence v3.0 • Updated ~15 min
+      </p>
+    </div>
+    
+    <!-- Error message (hidden by default) -->
+    <div id="rainfall-error" class="alert alert-warning mt-4 hidden">
+      <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+      </svg>
+      <span>Unable to load rainfall data. Please try again later.</span>
+    </div>
+    
+    <noscript>
+      <div class="alert alert-warning mt-4">
+        <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+        </svg>
+        <span>JavaScript is required to view the live rainfall data.</span>
+      </div>
+    </noscript>
+  </div>
+</Section>
+
+<script define:vars={{ chartId }}>
+  // Fetch rainfall data and render chart
+  async function loadRainfallData() {
+    try {
+      const response = await fetch('/api/rainfall.json');
+      if (!response.ok) throw new Error('Failed to fetch data');
+      
+      const data = await response.json();
+      
+      // Update current status display
+      const valueEl = document.getElementById(`${chartId}-value`);
+      const timeEl = document.getElementById(`${chartId}-time`);
+      const badgeEl = document.getElementById(`${chartId}-badge`);
+      const stationsEl = document.getElementById(`${chartId}-stations`);
+      
+      // Calculate latest 24h total
+      if (data.rolling24h && data.rolling24h.length > 0) {
+        const latest24h = data.rolling24h[data.rolling24h.length - 1];
+        valueEl.textContent = latest24h.mm.toFixed(1);
+        
+        const date = new Date(latest24h.t);
+        timeEl.textContent = `As of ${date.toLocaleString('en-GB', {
+          day: 'numeric',
+          month: 'short',
+          hour: '2-digit',
+          minute: '2-digit'
+        })}`;
+        
+        // Determine rainfall status
+        let status = 'Light';
+        let statusColor = 'success';
+        
+        if (latest24h.mm > 25) {
+          status = 'Heavy';
+          statusColor = 'warning';
+        } else if (latest24h.mm > 10) {
+          status = 'Moderate';
+          statusColor = 'info';
+        } else if (latest24h.mm < 1) {
+          status = 'Dry';
+          statusColor = 'secondary';
+        }
+        
+        badgeEl.textContent = status;
+        badgeEl.className = `badge badge-lg badge-${statusColor}`;
+      }
+      
+      // Update station info
+      if (data.stations && data.stations.length > 0) {
+        const stationNames = data.stations.map(s => `${s.name} (${s.distanceKm}km)`).join(', ');
+        stationsEl.textContent = `Stations: ${stationNames}`;
+      }
+      
+      // Load Chart.js and render chart
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(async entry => {
+          if (entry.isIntersecting) {
+            observer.disconnect();
+            
+            try {
+              // Load Chart.js dynamically
+              const [chartModule] = await Promise.all([
+                import('/node_modules/chart.js/auto/auto.js')
+              ]);
+              
+              const Chart = chartModule.default;
+              
+              // Prepare chart data
+              const labels = data.hourly.map(h => {
+                const date = new Date(h.t);
+                return date.toLocaleString('en-GB', {
+                  day: 'numeric',
+                  month: 'short',
+                  hour: '2-digit'
+                });
+              });
+              
+              const ctx = document.getElementById(chartId);
+              if (ctx) {
+                new Chart(ctx, {
+                  type: 'bar',
+                  data: {
+                    labels: labels,
+                    datasets: [
+                      {
+                        label: 'Hourly Rainfall (mm)',
+                        data: data.hourly.map(h => h.mm),
+                        backgroundColor: 'rgba(59, 130, 246, 0.6)',
+                        borderColor: 'rgb(59, 130, 246)',
+                        borderWidth: 1,
+                        type: 'bar',
+                        yAxisID: 'y',
+                        order: 2
+                      },
+                      {
+                        label: '24h Rolling Total (mm)',
+                        data: data.rolling24h.map(h => h.mm),
+                        borderColor: 'rgb(239, 68, 68)',
+                        backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                        borderWidth: 2,
+                        tension: 0.4,
+                        type: 'line',
+                        yAxisID: 'y1',
+                        pointRadius: 0,
+                        pointHoverRadius: 3,
+                        order: 1
+                      }
+                    ]
+                  },
+                  options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                      mode: 'index',
+                      intersect: false
+                    },
+                    plugins: {
+                      legend: {
+                        display: true,
+                        position: 'bottom',
+                        labels: {
+                          boxWidth: 12,
+                          font: { size: 10 }
+                        }
+                      },
+                      tooltip: {
+                        callbacks: {
+                          label: function(context) {
+                            if (context.dataset.type === 'bar') {
+                              return `Hourly: ${context.parsed.y.toFixed(1)} mm`;
+                            } else {
+                              return `24h Total: ${context.parsed.y.toFixed(1)} mm`;
+                            }
+                          }
+                        }
+                      }
+                    },
+                    scales: {
+                      x: {
+                        display: true,
+                        ticks: {
+                          maxRotation: 45,
+                          minRotation: 45,
+                          autoSkip: true,
+                          maxTicksLimit: 12,
+                          font: { size: 9 }
+                        }
+                      },
+                      y: {
+                        type: 'linear',
+                        display: true,
+                        position: 'left',
+                        title: {
+                          display: true,
+                          text: 'Hourly (mm)',
+                          font: { size: 10 }
+                        },
+                        ticks: {
+                          font: { size: 10 }
+                        }
+                      },
+                      y1: {
+                        type: 'linear',
+                        display: true,
+                        position: 'right',
+                        title: {
+                          display: true,
+                          text: '24h Total (mm)',
+                          font: { size: 10 }
+                        },
+                        ticks: {
+                          font: { size: 10 }
+                        },
+                        grid: {
+                          drawOnChartArea: false
+                        }
+                      }
+                    }
+                  }
+                });
+              }
+            } catch (error) {
+              console.error('Failed to load Chart.js:', error);
+              // Try CDN fallback
+              const script = document.createElement('script');
+              script.src = 'https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js';
+              script.onload = () => {
+                renderChartWithGlobal();
+              };
+              document.head.appendChild(script);
+            }
+          }
+        });
+      }, { rootMargin: '50px' });
+      
+      // Observe the chart container
+      const chartContainer = document.getElementById(chartId);
+      if (chartContainer) {
+        observer.observe(chartContainer);
+      }
+      
+      // Fallback chart rendering function for CDN
+      function renderChartWithGlobal() {
+        if (!window.Chart) return;
+        
+        const labels = data.hourly.map(h => {
+          const date = new Date(h.t);
+          return date.toLocaleString('en-GB', {
+            day: 'numeric',
+            month: 'short',
+            hour: '2-digit'
+          });
+        });
+        
+        const ctx = document.getElementById(chartId);
+        if (ctx) {
+          new window.Chart(ctx, {
+            type: 'bar',
+            data: {
+              labels: labels,
+              datasets: [
+                {
+                  label: 'Hourly Rainfall (mm)',
+                  data: data.hourly.map(h => h.mm),
+                  backgroundColor: 'rgba(59, 130, 246, 0.6)',
+                  borderColor: 'rgb(59, 130, 246)',
+                  borderWidth: 1
+                }
+              ]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: {
+                legend: { display: true }
+              },
+              scales: {
+                x: { display: true },
+                y: { 
+                  display: true, 
+                  title: { display: true, text: 'Rainfall (mm)' }
+                }
+              }
+            }
+          });
+        }
+      }
+      
+    } catch (error) {
+      console.error('Error loading rainfall data:', error);
+      document.getElementById('rainfall-error').classList.remove('hidden');
+      document.getElementById(`${chartId}-current`).classList.add('hidden');
+    }
+  }
+  
+  // Load data when DOM is ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', loadRainfallData);
+  } else {
+    loadRainfallData();
+  }
+</script>
+
+<style>
+  .rainfall-container {
+    max-width: 100%;
+  }
+  
+  .chart-wrapper {
+    width: 100%;
+  }
+  
+  @media (max-width: 640px) {
+    .rainfall-chart {
+      max-height: 250px !important;
+    }
+  }
+</style>
