@@ -74,14 +74,31 @@ const mapId = `cso-map-${Math.random().toString(36).substr(2, 9)}`;
       ></div>
     </div>
     
+    <!-- Data source notice (hidden by default) -->
+    <div id={`${mapId}-notice`} class="alert alert-info mt-4 hidden">
+      <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+      <span>
+        Live data currently unavailable. Showing CSO locations with 2023 historical statistics. 
+        Check <a href="https://www.southwestwater.co.uk/environment/waterfit/waterfit-live/" target="_blank" rel="noopener" class="link">WaterFit Live</a> for latest updates.
+      </span>
+    </div>
+    
     <!-- Attribution -->
     <div class="mt-6 pt-3 border-t border-base-300">
       <p class="text-xs text-base-content/60">
-        Data: <a href="https://www.southwestwater.co.uk/environment/waterfit/waterfit-live/" 
+        Data: <a href="https://theriverstrust.org/key-issues/sewage-in-rivers" 
                  target="_blank" 
                  rel="noopener noreferrer"
                  class="link link-hover">
-          South West Water Storm Overflows (Stream)
+          Rivers Trust EDM 2023
+        </a> + 
+        <a href="https://www.southwestwater.co.uk/environment/waterfit/waterfit-live/" 
+           target="_blank" 
+           rel="noopener noreferrer"
+           class="link link-hover">
+          South West Water
         </a> • CC BY 4.0 • 
         Map: © <a href="https://www.openstreetmap.org/copyright" 
                   target="_blank" 
@@ -183,6 +200,7 @@ const mapId = `cso-map-${Math.random().toString(36).substr(2, 9)}`;
       if (statusEl) {
         const activeCount = data.activeCount || 0;
         const recentCount = data.recentCount || 0;
+        const dataSource = data.dataSource || 'unknown';
         
         if (activeCount > 0) {
           statusEl.textContent = `${activeCount} Active`;
@@ -190,9 +208,20 @@ const mapId = `cso-map-${Math.random().toString(36).substr(2, 9)}`;
         } else if (recentCount > 0) {
           statusEl.textContent = `${recentCount} Recent`;
           statusEl.className = 'badge badge-lg badge-warning';
+        } else if (dataSource === 'base-only') {
+          statusEl.textContent = 'No Live Data';
+          statusEl.className = 'badge badge-lg badge-info';
         } else {
           statusEl.textContent = 'All Clear';
           statusEl.className = 'badge badge-lg badge-success';
+        }
+      }
+      
+      // Show data source notice if base-only
+      if (data.dataSource === 'base-only') {
+        const noticeEl = document.getElementById(`${mapId}-notice`);
+        if (noticeEl) {
+          noticeEl.classList.remove('hidden');
         }
       }
       
@@ -221,13 +250,14 @@ const mapId = `cso-map-${Math.random().toString(36).substr(2, 9)}`;
           });
           
           // Format popup content
-          let popupContent = `<div style="min-width: 200px;">
+          let popupContent = `<div style="min-width: 250px;">
             <strong>${feature.name}</strong><br>
             <span style="color: ${markerColor}; font-weight: bold;">
               ${feature.status === 'active' ? '⚠️ Active' : 
                 feature.status === 'recent' ? '⚡ Recent' : '✓ Inactive'}
             </span><br>`;
           
+          // Add live event information if available
           if (feature.startedAt) {
             const startDate = new Date(feature.startedAt);
             popupContent += `<small>Started: ${startDate.toLocaleString('en-GB', {
@@ -250,12 +280,23 @@ const mapId = `cso-map-${Math.random().toString(36).substr(2, 9)}`;
             popupContent += `<small>Duration: Ongoing</small><br>`;
           }
           
-          if (feature.updatedAt) {
-            const updateDate = new Date(feature.updatedAt);
-            popupContent += `<small>Updated: ${updateDate.toLocaleString('en-GB', {
-              hour: '2-digit',
-              minute: '2-digit'
-            })}</small>`;
+          // Add 2023 statistics if available
+          if (feature.spillCount2023 !== undefined) {
+            popupContent += `<hr style="margin: 8px 0; border-color: #e5e7eb;">`;
+            popupContent += `<small><strong>2023 Statistics:</strong><br>`;
+            popupContent += `Spills: ${feature.spillCount2023} events<br>`;
+            if (feature.totalDuration2023 !== undefined) {
+              popupContent += `Total duration: ${feature.totalDuration2023} hrs</small><br>`;
+            }
+          }
+          
+          // Add receiving water if available
+          if (feature.receivingWater) {
+            popupContent += `<small>Discharges to: ${feature.receivingWater}</small><br>`;
+          }
+          
+          if (feature.waterCompany) {
+            popupContent += `<small>Operator: ${feature.waterCompany}</small>`;
           }
           
           popupContent += '</div>';

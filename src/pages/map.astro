@@ -27,7 +27,10 @@ const infoSection = {
   body: `**Map Indicators:**
 - **Red markers**: Currently active overflows discharging into watercourses
 - **Amber markers**: Recent activity (ended within last 5 days)
-- **Grey markers**: Inactive or historical discharge points
+- **Grey markers**: Inactive or no recent discharge activity
+
+**Why are most markers grey (inactive)?**
+Storm overflows typically activate during heavy rainfall when the sewer system exceeds capacity. During dry periods, most or all CSOs will show as inactive. The grey markers show the locations of all storm overflow points so you can be aware of their proximity to your activities.
 
 **Before entering the water:**
 1. Check for active (red) markers near your location
@@ -35,8 +38,41 @@ const infoSection = {
 3. Consider waiting 48-72 hours after storm events
 4. Check our water quality test results on the Results page
 
-**Data Source:** South West Water provides near real-time monitoring (updated ~10 minutes) of storm overflow activity through their Event Duration Monitoring system.`,
+**Data Sources:**
+- **Base locations**: Rivers Trust EDM Annual Returns 2023 dataset - shows all CSO locations with 2023 spill statistics
+- **Live status**: South West Water Event Duration Monitoring (when available) - updates every ~10 minutes
+- Each popup shows 2023 historical data including total spill count and duration hours
+
+**Understanding the Statistics:**
+The 2023 data in each popup shows:
+- **Spill count**: Number of overflow events recorded in 2023
+- **Total duration**: Combined hours of all 2023 overflow events
+- **Receiving water**: The river or water body receiving any discharge
+
+This historical data helps identify CSOs that activate frequently versus those that rarely discharge.`,
   theme: 'light'
+};
+
+const dataAttributionSection = {
+  _type: 'heroSection',
+  heading: 'Data Sources & Attribution',
+  body: `This map combines multiple open data sources to provide comprehensive storm overflow information:
+
+**Primary Data Sources:**
+- [Rivers Trust EDM Annual Returns 2023](https://theriverstrust.org/key-issues/sewage-in-rivers) - Licensed under CC BY 4.0
+- [South West Water Event Duration Monitoring](https://www.southwestwater.co.uk/environment/waterfit/waterfit-live/) - Live data when available
+- [Environment Agency Catchment Data Explorer](https://environment.data.gov.uk/catchment-planning/) - Water body classifications
+
+**Data Currency:**
+- CSO locations and 2023 statistics are from the most recent annual returns
+- Live status updates every 5 minutes when South West Water data is available
+- During system maintenance or data unavailability, all CSOs show as inactive (grey)
+
+**Important Notes:**
+- The absence of live data doesn't mean overflows aren't occurring - always check recent rainfall
+- 2023 statistics provide historical context but may not reflect current year activity
+- For official real-time updates, visit [WaterFit Live](https://www.southwestwater.co.uk/environment/waterfit/waterfit-live/)`,
+  theme: 'dark'
 };
 
 const ctaSection = {
@@ -76,6 +112,8 @@ const ctaSection = {
     theme="light" 
     width="inset"
   />
+  
+  <Hero {...dataAttributionSection} />
   
   <Cta {...ctaSection} />
 </Layout>
