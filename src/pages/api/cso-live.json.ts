@@ -3,20 +3,21 @@ import type { APIRoute } from 'astro';
 const CALSTOCK_LAT = 50.497;
 const CALSTOCK_LON = -4.202;
 const RADIUS_METERS = 10000; // 10km in meters
-const SWW_ARCGIS_BASE = 'https://services-eu1.arcgis.com/XxS6FebPX29TRGDJ/arcgis/rest/services/EDM_Schema/FeatureServer';
+const SWW_ARCGIS_BASE = 'https://services-eu1.arcgis.com/OMdMOtfhATJPcHe3/arcgis/rest/services/NEH_outlets_PROD/FeatureServer';
 
 interface StormOverflowFeature {
   attributes: {
-    OBJECTID: number;
-    Site_Name?: string;
-    Outfall_Name?: string;
-    Start_Time?: number; // Epoch milliseconds
-    End_Time?: number | null;
-    Duration_mins?: number;
-    Status?: string;
-    Last_Update?: number;
-    Latitude?: number;
-    Longitude?: number;
+    ObjectId: number;
+    ID?: string; // Site ID like 'SWW0906'
+    receivingWaterCourse?: string; // e.g., 'RIVER TAMAR'
+    latestEventStart?: number; // Epoch milliseconds
+    latestEventEnd?: number | null; // Epoch milliseconds
+    statusStart?: number; // When current status began
+    status?: number; // -1=Offline, 0=Stop, 1=Start
+    lastUpdated?: number;
+    latitude?: number;
+    longitude?: number;
+    company?: string;
   };
 }
 
@@ -64,18 +65,13 @@ async function queryStormOverflows(layerId: number, sinceDate: Date): Promise<St
   try {
     const epochMs = sinceDate.getTime();
     
-    // Build query parameters
+    // Build query parameters - simplified query for new API
     const params = new URLSearchParams({
       f: 'json',
-      where: `Start_Time >= ${epochMs} OR (End_Time IS NULL AND Status = 'Active')`,
-      geometry: `${CALSTOCK_LON},${CALSTOCK_LAT}`,
-      geometryType: 'esriGeometryPoint',
-      inSR: '4326',
-      distance: RADIUS_METERS.toString(),
-      units: 'esriSRUnit_Meter',
+      where: '1=1', // Get all records, will filter manually
       outFields: '*',
       returnGeometry: 'false',
-      orderByFields: 'Start_Time DESC'
+      resultRecordCount: '500' // Get more records to ensure we capture all in area
     });
     
     const url = `${SWW_ARCGIS_BASE}/${layerId}/query`;
@@ -89,13 +85,13 @@ async function queryStormOverflows(layerId: number, sinceDate: Date): Promise<St
     
     if (!response.ok) {
       // Try alternate query format if first fails
+      // Fallback already uses simplified query
       const altParams = new URLSearchParams({
         f: 'json',
-        where: '1=1', // Get all recent records
+        where: '1=1',
         outFields: '*',
-        returnGeometry: 'true',
-        orderByFields: 'OBJECTID DESC',
-        resultRecordCount: '100'
+        returnGeometry: 'false',
+        resultRecordCount: '500'
       });
       
       const altResponse = await fetch(`${SWW_ARCGIS_BASE}/${layerId}/query?${altParams}`);
@@ -105,19 +101,50 @@ async function queryStormOverflows(layerId: number, sinceDate: Date): Promise<St
       
       const altData = await altResponse.json() as ArcGISResponse;
       
-      // Filter by distance manually
+      // Filter by distance and date manually
       return altData.features.filter(feature => {
-        const lat = feature.attributes.Latitude;
-        const lon = feature.attributes.Longitude;
+        const lat = feature.attributes.latitude;
+        const lon = feature.attributes.longitude;
+        const eventStart = feature.attributes.latestEventStart;
+        
         if (!lat || !lon) return false;
         
+        // Check distance
         const distance = calculateDistance(CALSTOCK_LAT, CALSTOCK_LON, lat, lon) * 1000; // Convert to meters
-        return distance <= RADIUS_METERS;
+        if (distance > RADIUS_METERS) return false;
+        
+        // Check date
+        if (eventStart && eventStart >= epochMs) return true;
+        // Include active events even if they started before our date range
+        if (feature.attributes.status === 1) return true;
+        
+        return false;
       });
     }
     
     const data = await response.json() as ArcGISResponse;
-    return data.features || [];
+    
+    // Filter by distance and date
+    const filteredFeatures = (data.features || []).filter(feature => {
+      const lat = feature.attributes.latitude;
+      const lon = feature.attributes.longitude;
+      const eventStart = feature.attributes.latestEventStart;
+      
+      if (!lat || !lon) return false;
+      
+      // Check distance
+      const distance = calculateDistance(CALSTOCK_LAT, CALSTOCK_LON, lat, lon) * 1000; // Convert to meters
+      if (distance > RADIUS_METERS) return false;
+      
+      // Check date
+      if (eventStart && eventStart >= sinceDate.getTime()) return true;
+      // Include active events even if they started before our date range
+      if (feature.attributes.status === 1) return true;
+      
+      return false;
+    });
+    
+    return filteredFeatures;
     
   } catch (error) {
     console.error('Error querying storm overflows:', error);
@@ -156,8 +183,8 @@ function processOverflowData(features: StormOverflowFeature[], startDate: Date, 
     
     // Count active overflows for this hour
     features.forEach(feature => {
-      const startTime = feature.attributes.Start_Time ? new Date(feature.attributes.Start_Time) : null;
-      const endTime = feature.attributes.End_Time ? new Date(feature.attributes.End_Time) : null;
+      const startTime = feature.attributes.latestEventStart ? new Date(feature.attributes.latestEventStart) : null;
+      const endTime = feature.attributes.latestEventEnd ? new Date(feature.attributes.latestEventEnd) : null;
       
       if (startTime && startTime <= current) {
         if (!endTime || endTime >= current) {
@@ -176,11 +203,17 @@ function processOverflowData(features: StormOverflowFeature[], startDate: Date, 
   
   // Process individual events
   features.forEach(feature => {
-    const site = feature.attributes.Site_Name || feature.attributes.Outfall_Name || 'Unknown Site';
-    const startTime = feature.attributes.Start_Time ? new Date(feature.attributes.Start_Time).toISOString() : null;
-    const endTime = feature.attributes.End_Time ? new Date(feature.attributes.End_Time).toISOString() : null;
-    const duration = feature.attributes.Duration_mins || null;
-    const status = endTime ? 'ended' : 'active';
+    const site = `${feature.attributes.ID || 'Unknown'} - ${feature.attributes.receivingWaterCourse || 'Unknown Watercourse'}`;
+    const startTime = feature.attributes.latestEventStart ? new Date(feature.attributes.latestEventStart).toISOString() : null;
+    const endTime = feature.attributes.latestEventEnd ? new Date(feature.attributes.latestEventEnd).toISOString() : null;
+    
+    // Calculate duration if both start and end times exist
+    let duration = null;
+    if (feature.attributes.latestEventStart && feature.attributes.latestEventEnd) {
+      duration = Math.round((feature.attributes.latestEventEnd - feature.attributes.latestEventStart) / 60000); // Convert to minutes
+    }
+    
+    const status = feature.attributes.status === 1 ? 'active' : 'ended';
     
     if (startTime) {
       const event = {
@@ -192,11 +225,11 @@ function processOverflowData(features: StormOverflowFeature[], startDate: Date, 
       };
       
       // Add distance if coordinates are available
-      if (feature.attributes.Latitude && feature.attributes.Longitude) {
+      if (feature.attributes.latitude && feature.attributes.longitude) {
         event.distanceKm = Math.round(
           calculateDistance(
             CALSTOCK_LAT, CALSTOCK_LON,
-            feature.attributes.Latitude, feature.attributes.Longitude
+            feature.attributes.latitude, feature.attributes.longitude
           ) * 10
         ) / 10;
       }
