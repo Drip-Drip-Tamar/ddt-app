@@ -14,9 +14,11 @@
     },
     "dependencies": {
         "@astrojs/netlify": "^6.5.9",
+        "@astrojs/react": "^4.3.0",
         "@sanity/astro": "^3.1.6",
         "@sanity/client": "^7.10.0",
         "@sanity/validation": "^3.14.4",
+        "@sanity/visual-editing": "^3.0.3",
         "@tailwindcss/vite": "^4.0.9",
         "astro": "^5.1.1",
         "astro-icon": "^1.1.0",

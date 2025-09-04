@@ -4,6 +4,7 @@ import Footer from '@components/Footer.astro';
 import Header from '@components/Header.astro';
 import ChartLoader from '@components/ChartLoader.astro';
 import LeafletLoader from '@components/LeafletLoader.astro';
+import { SanityVisualEditing } from '@components/SanityVisualEditing';
 import { fetchData } from '@data/siteConfig';
 
 import '../styles/globals.css';
@@ -79,6 +80,7 @@ function formatCanonicalURL(url: string | URL) {
         <Header {...configData.header} data-sb-field-path={`${configData._id}:header`} />
         <slot />
         <Footer {...configData.footer} data-sb-field-path={`${configData._id}:footer`} />
+        <SanityVisualEditing client:only="react" token={import.meta.env.SANITY_TOKEN} />
         <script is:inline>
             window.addEventListener('stackbitObjectsChanged', () => {
                 window.location.reload();
