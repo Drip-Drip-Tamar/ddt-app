@@ -120,3 +120,6 @@ The project is configured for Netlify Visual Editor via `stackbit.config.ts`:
 - HMR passthrough for development
 - Automatic studio deployment support
 - Add a note about checking the @AI-REFERENCE.md file for important information
+## Sessions System Behaviors
+
+@CLAUDE.sessions.md
