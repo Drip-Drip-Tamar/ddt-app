@@ -18,7 +18,12 @@ export const sanityConfig: ClientConfig = {
     useCdn: false,
     apiVersion: '2024-01-31',
     token: SANITY_TOKEN,
-    perspective: isDev || isDeployPreview || previewDrafts ? 'previewDrafts' : 'published'
+    perspective: isDev || isDeployPreview || previewDrafts ? 'previewDrafts' : 'published',
+    // Enable stega encoding for visual editing when in preview mode
+    stega: isDev || isDeployPreview || previewDrafts ? {
+        enabled: true,
+        studioUrl: isDev ? 'http://localhost:3333' : '/studio'
+    } : undefined
 };
 
 export const client = createClient(sanityConfig);
