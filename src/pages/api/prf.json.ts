@@ -1,11 +1,5 @@
 import type { APIRoute } from 'astro';
-
-// Bathing water IDs for Plymouth area (proxy for Tamar)
-const BATHING_WATERS = [
-  { id: 'ukk4100-26400', label: 'Plymouth Hoe East' },
-  { id: 'ukk4100-26500', label: 'Plymouth Hoe West' },
-  { id: 'ukk4100-26510', label: 'Plymouth Firestone Bay' }
-];
+import { getBathingWaters } from '../../data/locationConfig.js';
 
 const EA_API_BASE = 'https://environment.data.gov.uk';
 
@@ -22,7 +16,7 @@ interface RiskPrediction {
   label?: Array<{ _value: string }>;
 }
 
-async function fetchBathingWaterRisk(eubwid: string): Promise<{
+async function fetchBathingWaterRisk(eubwid: string, bathingWaters: Array<{id: string, label: string}>): Promise<{
   id: string;
   label: string;
   risk: 'normal' | 'increased' | 'not-available';
@@ -37,7 +31,7 @@ async function fetchBathingWaterRisk(eubwid: string): Promise<{
       console.warn(`Failed to fetch data for ${eubwid}: ${response.status}`);
       return {
         id: eubwid,
-        label: BATHING_WATERS.find(bw => bw.id === eubwid)?.label || eubwid,
+        label: bathingWaters.find(bw => bw.id === eubwid)?.label || eubwid,
         risk: 'not-available',
         expiresAt: null,
         season: false
@@ -48,7 +42,7 @@ async function fetchBathingWaterRisk(eubwid: string): Promise<{
     
     // Extract the label from the response or use fallback
     const label = data.label?.[0]?._value || 
-                  BATHING_WATERS.find(bw => bw.id === eubwid)?.label || 
+                  bathingWaters.find(bw => bw.id === eubwid)?.label || 
                   eubwid;
     
     // Check if we have risk prediction data (indicates in-season)
@@ -85,7 +79,7 @@ async function fetchBathingWaterRisk(eubwid: string): Promise<{
     console.error(`Error fetching risk for ${eubwid}:`, error);
     return {
       id: eubwid,
-      label: BATHING_WATERS.find(bw => bw.id === eubwid)?.label || eubwid,
+      label: bathingWaters.find(bw => bw.id === eubwid)?.label || eubwid,
       risk: 'not-available',
       expiresAt: null,
       season: false
@@ -95,9 +89,12 @@ async function fetchBathingWaterRisk(eubwid: string): Promise<{
 
 export const GET: APIRoute = async () => {
   try {
-    // Fetch data for all three bathing waters in parallel
+    // Get bathing water configuration
+    const bathingWaters = await getBathingWaters();
+    
+    // Fetch data for all bathing waters in parallel
     const results = await Promise.all(
-      BATHING_WATERS.map(bw => fetchBathingWaterRisk(bw.id))
+      bathingWaters.map(bw => fetchBathingWaterRisk(bw.id, bathingWaters))
     );
 
     // Add metadata

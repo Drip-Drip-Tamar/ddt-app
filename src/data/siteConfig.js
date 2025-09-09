@@ -11,7 +11,26 @@ const CONFIG_QUERY_OBJ = `{
     logo ${IMAGE}
   },
   footer,
-  titleSuffix
+  titleSuffix,
+  monitoringConfiguration {
+    primaryLocation {
+      name,
+      center {
+        lat,
+        lng
+      },
+      defaultRadius,
+      description
+    },
+    riverStations {
+      freshwaterStationId,
+      tidalStationId
+    },
+    bathingWaters[] {
+      id,
+      label
+    }
+  }
 }`;
 
 export async function fetchData() {

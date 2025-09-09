@@ -1,7 +1,6 @@
 import type { APIRoute } from 'astro';
+import { getRiverStations } from '../../data/locationConfig.js';
 
-const GUNNISLAKE_STATION = '47117'; // Freshwater flow at Gunnislake
-const PLYMOUTH_STATION = 'E72139'; // Tidal station at Plymouth/Devonport
 const EA_API_BASE = 'https://environment.data.gov.uk/flood-monitoring';
 const GUNNISLAKE_TYPICAL_LOW = 0.297; // meters
 const GUNNISLAKE_TYPICAL_HIGH = 3.000; // meters
@@ -145,6 +144,11 @@ function processPlymouthData(readings: Reading[]) {
 
 export const GET: APIRoute = async () => {
   try {
+    // Get river station IDs from configuration
+    const riverStations = await getRiverStations();
+    const GUNNISLAKE_STATION = riverStations.freshwaterStationId;
+    const PLYMOUTH_STATION = riverStations.tidalStationId;
+    
     // Calculate date 5 days ago
     const fiveDaysAgo = new Date();
     fiveDaysAgo.setDate(fiveDaysAgo.getDate() - 5);

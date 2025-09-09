@@ -1,5 +1,6 @@
 ---
 import Section from '@components/Section.astro';
+import { getPrimaryLocation } from '@data/locationConfig.js';
 
 export interface Props {
   centre?: { lat: number; lon: number };
@@ -12,9 +13,13 @@ export interface Props {
   'data-sb-field-path'?: string;
 }
 
+// Get location configuration from Sanity
+const location = await getPrimaryLocation();
+const defaultCentre = { lat: location.center.lat, lon: location.center.lng };
+
 const { 
-  centre = { lat: 50.497, lon: -4.202 }, // Calstock default
-  radiusKm = 10,
+  centre = defaultCentre,
+  radiusKm = location.defaultRadius,
   days = 5,
   api = '/api/cso-map.json',
   class: className,

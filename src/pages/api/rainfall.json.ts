@@ -1,8 +1,6 @@
 import type { APIRoute } from 'astro';
+import { getPrimaryLocation, calculateDistance } from '../../data/locationConfig.js';
 
-const CALSTOCK_LAT = 50.497;
-const CALSTOCK_LON = -4.202;
-const RADIUS_KM = 10;
 const EA_API_BASE = 'https://environment.data.gov.uk/flood-monitoring';
 
 interface RainfallReading {
@@ -23,20 +21,10 @@ interface RainfallStation {
   }>;
 }
 
-function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
-  const R = 6371; // Earth's radius in km
-  const dLat = (lat2 - lat1) * Math.PI / 180;
-  const dLon = (lon2 - lon1) * Math.PI / 180;
-  const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-            Math.sin(dLon/2) * Math.sin(dLon/2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-  return R * c;
-}
-
 async function findNearbyRainfallStations(): Promise<RainfallStation[]> {
   try {
-    const url = `${EA_API_BASE}/id/stations?parameter=rainfall&lat=${CALSTOCK_LAT}&long=${CALSTOCK_LON}&dist=${RADIUS_KM}`;
+    const location = await getPrimaryLocation();
+    const url = `${EA_API_BASE}/id/stations?parameter=rainfall&lat=${location.center.lat}&long=${location.center.lng}&dist=${location.defaultRadius}`;
     const response = await fetch(url);
     
     if (!response.ok) {
@@ -50,7 +38,7 @@ async function findNearbyRainfallStations(): Promise<RainfallStation[]> {
     return stations
       .map(station => ({
         ...station,
-        distance: calculateDistance(CALSTOCK_LAT, CALSTOCK_LON, station.lat, station.long)
+        distance: calculateDistance(location.center.lat, location.center.lng, station.lat, station.long)
       }))
       .sort((a, b) => a.distance - b.distance)
       .slice(0, 3);
@@ -131,6 +119,9 @@ function calculateRolling24h(hourlyData: Array<{t: string, mm: number}>): Array<
 
 export const GET: APIRoute = async () => {
   try {
+    // Get location configuration
+    const location = await getPrimaryLocation();
+    
     // Calculate date 5 days ago
     const fiveDaysAgo = new Date();
     fiveDaysAgo.setDate(fiveDaysAgo.getDate() - 5);
@@ -141,7 +132,7 @@ export const GET: APIRoute = async () => {
     
     if (stations.length === 0) {
       return new Response(JSON.stringify({
-        error: 'No rainfall stations found within 10km',
+        error: `No rainfall stations found within ${location.defaultRadius}km`,
         generatedAt: new Date().toISOString(),
         stations: [],
         hourly: [],
@@ -167,7 +158,7 @@ export const GET: APIRoute = async () => {
         id: station.stationReference,
         name: station.label,
         distanceKm: Math.round(calculateDistance(
-          CALSTOCK_LAT, CALSTOCK_LON, 
+          location.center.lat, location.center.lng, 
           station.lat, station.long
         ) * 10) / 10
       });

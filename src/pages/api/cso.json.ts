@@ -1,4 +1,5 @@
 import type { APIRoute } from 'astro';
+import { getPrimaryLocation, calculateDistance } from '../../data/locationConfig.js';
 
 // Data source endpoints - Using the same reliable source as cso-live.json
 const SWW_ARCGIS_BASE = 'https://services-eu1.arcgis.com/OMdMOtfhATJPcHe3/arcgis/rest/services/NEH_outlets_PROD/FeatureServer';
@@ -53,16 +54,7 @@ interface ArcGISResponse<T> {
   }>;
 }
 
-function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
-  const R = 6371; // Earth's radius in km
-  const dLat = (lat2 - lat1) * Math.PI / 180;
-  const dLon = (lon2 - lon1) * Math.PI / 180;
-  const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-            Math.sin(dLon/2) * Math.sin(dLon/2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-  return R * c;
-}
+// calculateDistance is now imported from locationConfig.js
 
 // Query base CSO locations from Rivers Trust EDM 2023 dataset
 async function queryBaseCSOs(
@@ -320,10 +312,13 @@ function getMockFeatures(centerLat: number, centerLon: number, radiusKm: number)
 
 export const GET: APIRoute = async ({ url }) => {
   try {
-    // Parse query parameters with defaults
-    const lat = parseFloat(url.searchParams.get('lat') || '50.497'); // Calstock default
-    const lon = parseFloat(url.searchParams.get('lon') || '-4.202');
-    const radiusKm = parseFloat(url.searchParams.get('radiusKm') || '10');
+    // Get location configuration
+    const location = await getPrimaryLocation();
+    
+    // Parse query parameters with defaults from Sanity config
+    const lat = parseFloat(url.searchParams.get('lat') || location.center.lat.toString());
+    const lon = parseFloat(url.searchParams.get('lon') || location.center.lng.toString());
+    const radiusKm = parseFloat(url.searchParams.get('radiusKm') || location.defaultRadius.toString());
     const days = parseFloat(url.searchParams.get('days') || '5');
     const useMockData = url.searchParams.get('mock') === 'true';
     

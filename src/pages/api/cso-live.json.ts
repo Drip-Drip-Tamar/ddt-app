@@ -1,8 +1,6 @@
 import type { APIRoute } from 'astro';
+import { getPrimaryLocation, calculateDistance } from '../../data/locationConfig.js';
 
-const CALSTOCK_LAT = 50.497;
-const CALSTOCK_LON = -4.202;
-const RADIUS_METERS = 10000; // 10km in meters
 const SWW_ARCGIS_BASE = 'https://services-eu1.arcgis.com/OMdMOtfhATJPcHe3/arcgis/rest/services/NEH_outlets_PROD/FeatureServer';
 
 interface StormOverflowFeature {
@@ -61,7 +59,7 @@ async function discoverLayers(): Promise<number> {
   }
 }
 
-async function queryStormOverflows(layerId: number, sinceDate: Date): Promise<StormOverflowFeature[]> {
+async function queryStormOverflows(layerId: number, sinceDate: Date, centerLat: number, centerLng: number, radiusKm: number): Promise<StormOverflowFeature[]> {
   try {
     const epochMs = sinceDate.getTime();
     
@@ -110,8 +108,8 @@ async function queryStormOverflows(layerId: number, sinceDate: Date): Promise<St
         if (!lat || !lon) return false;
         
         // Check distance
-        const distance = calculateDistance(CALSTOCK_LAT, CALSTOCK_LON, lat, lon) * 1000; // Convert to meters
-        if (distance > RADIUS_METERS) return false;
+        const distance = calculateDistance(centerLat, centerLng, lat, lon);
+        if (distance > radiusKm) return false;
         
         // Check date
         if (eventStart && eventStart >= epochMs) return true;
@@ -133,8 +131,8 @@ async function queryStormOverflows(layerId: number, sinceDate: Date): Promise<St
       if (!lat || !lon) return false;
       
       // Check distance
-      const distance = calculateDistance(CALSTOCK_LAT, CALSTOCK_LON, lat, lon) * 1000; // Convert to meters
-      if (distance > RADIUS_METERS) return false;
+      const distance = calculateDistance(centerLat, centerLng, lat, lon);
+      if (distance > radiusKm) return false;
       
       // Check date
       if (eventStart && eventStart >= sinceDate.getTime()) return true;
@@ -152,18 +150,9 @@ async function queryStormOverflows(layerId: number, sinceDate: Date): Promise<St
   }
 }
 
-function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
-  const R = 6371; // Earth's radius in km
-  const dLat = (lat2 - lat1) * Math.PI / 180;
-  const dLon = (lon2 - lon1) * Math.PI / 180;
-  const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-            Math.sin(dLon/2) * Math.sin(dLon/2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-  return R * c;
-}
+// calculateDistance is now imported from locationConfig.js
 
-function processOverflowData(features: StormOverflowFeature[], startDate: Date, endDate: Date) {
+function processOverflowData(features: StormOverflowFeature[], startDate: Date, endDate: Date, centerLat: number, centerLng: number) {
   // Create time buckets (hourly)
   const activeSeries: Array<{t: string, count: number}> = [];
   const events: Array<{
@@ -228,7 +217,7 @@ function processOverflowData(features: StormOverflowFeature[], startDate: Date, 
       if (feature.attributes.latitude && feature.attributes.longitude) {
         event.distanceKm = Math.round(
           calculateDistance(
-            CALSTOCK_LAT, CALSTOCK_LON,
+            centerLat, centerLng,
             feature.attributes.latitude, feature.attributes.longitude
           ) * 10
         ) / 10;
@@ -250,6 +239,9 @@ function processOverflowData(features: StormOverflowFeature[], startDate: Date, 
 
 export const GET: APIRoute = async () => {
   try {
+    // Get location configuration
+    const location = await getPrimaryLocation();
+    
     // Calculate date range
     const endDate = new Date();
     const startDate = new Date();
@@ -259,10 +251,10 @@ export const GET: APIRoute = async () => {
     const layerId = await discoverLayers();
     
     // Query storm overflow data
-    const features = await queryStormOverflows(layerId, startDate);
+    const features = await queryStormOverflows(layerId, startDate, location.center.lat, location.center.lng, location.defaultRadius);
     
     // Process the data
-    const { activeSeries, events } = processOverflowData(features, startDate, endDate);
+    const { activeSeries, events } = processOverflowData(features, startDate, endDate, location.center.lat, location.center.lng);
     
     return new Response(JSON.stringify({
       generatedAt: new Date().toISOString(),
