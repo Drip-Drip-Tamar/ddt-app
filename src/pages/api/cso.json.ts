@@ -1,7 +1,7 @@
 import type { APIRoute } from 'astro';
 
-// Data source endpoints
-const SWW_ARCGIS_BASE = 'https://services-eu1.arcgis.com/XxS6FebPX29TRGDJ/arcgis/rest/services/EDM_Schema/FeatureServer';
+// Data source endpoints - Using the same reliable source as cso-live.json
+const SWW_ARCGIS_BASE = 'https://services-eu1.arcgis.com/OMdMOtfhATJPcHe3/arcgis/rest/services/NEH_outlets_PROD/FeatureServer';
 const RIVERS_TRUST_EDM_2023 = 'https://services3.arcgis.com/Bb8lfThdhugyc4G3/arcgis/rest/services/edm_2023_tidy_final/FeatureServer';
 
 // Base CSO locations from Rivers Trust EDM 2023 dataset
@@ -27,24 +27,20 @@ interface EDM2023Feature {
   };
 }
 
-// Live storm overflow data from SWW
+// Live storm overflow data from SWW - Updated to match NEH_outlets_PROD structure
 interface StormOverflowFeature {
   attributes: {
-    OBJECTID: number;
-    Site_Name?: string;
-    Outfall_Name?: string;
-    Watercourse?: string;
-    Start_Time?: number;
-    End_Time?: number | null;
-    Duration_mins?: number;
-    Status?: string;
-    Last_Update?: number;
-    Active?: boolean;
-    IsActive?: boolean;
-  };
-  geometry?: {
-    x: number;
-    y: number;
+    ObjectId: number;
+    ID?: string; // Site ID like 'SWW0906'
+    receivingWaterCourse?: string; // e.g., 'RIVER TAMAR'
+    latestEventStart?: number; // Epoch milliseconds
+    latestEventEnd?: number | null; // Epoch milliseconds
+    statusStart?: number; // When current status began
+    status?: number; // -1=Offline, 0=Stop, 1=Start
+    lastUpdated?: number;
+    latitude?: number;
+    longitude?: number;
+    company?: string;
   };
 }
 
@@ -121,18 +117,13 @@ async function queryLiveOverflows(
     sinceDate.setDate(sinceDate.getDate() - daysAgo);
     const epochMs = sinceDate.getTime();
     
-    // Try spatial query first
+    // Use simplified query - get all records and filter manually for better compatibility
     const params = new URLSearchParams({
       f: 'json',
-      where: `Start_Time >= ${epochMs} OR Last_Update >= ${epochMs} OR Status = 'Active'`,
-      geometry: `${lon},${lat}`,
-      geometryType: 'esriGeometryPoint',
-      inSR: '4326',
-      distance: (radiusKm * 1000).toString(),
-      units: 'esriSRUnit_Meter',
+      where: '1=1', // Get all records, will filter manually
       outFields: '*',
-      returnGeometry: 'true',
-      outSR: '4326'
+      returnGeometry: 'false',
+      resultRecordCount: '500' // Get more records to ensure we capture all in area
     });
     
     const url = `${SWW_ARCGIS_BASE}/0/query`;
@@ -150,7 +141,28 @@ async function queryLiveOverflows(
     }
     
     const data = await response.json() as ArcGISResponse<StormOverflowFeature>;
-    return data.features || [];
+    
+    // Filter by distance and date manually
+    const filteredFeatures = (data.features || []).filter(feature => {
+      const featLat = feature.attributes.latitude;
+      const featLon = feature.attributes.longitude;
+      const eventStart = feature.attributes.latestEventStart;
+      
+      if (!featLat || !featLon) return false;
+      
+      // Check distance
+      const distance = calculateDistance(lat, lon, featLat, featLon);
+      if (distance > radiusKm) return false;
+      
+      // Check date or active status
+      if (eventStart && eventStart >= epochMs) return true;
+      // Include active events (status === 1) even if they started before our date range
+      if (feature.attributes.status === 1) return true;
+      
+      return false;
+    });
+    
+    return filteredFeatures;
     
   } catch (error) {
     console.error('Error querying live overflows:', error);
@@ -188,14 +200,14 @@ function mergeCSOwithLiveData(
     // Find matching live event (within 100m or by name)
     const matchingLive = liveOverflows.find(live => {
       // Check by distance (within 100m)
-      if (live.geometry) {
-        const distance = calculateDistance(baseLat, baseLon, live.geometry.y, live.geometry.x);
+      if (live.attributes.latitude && live.attributes.longitude) {
+        const distance = calculateDistance(baseLat, baseLon, live.attributes.latitude, live.attributes.longitude);
         if (distance < 0.1) return true; // 100m = 0.1km
       }
       
       // Check by name similarity
-      if (live.attributes.Site_Name) {
-        const normalizedLiveName = normalizeSiteName(live.attributes.Site_Name);
+      if (live.attributes.ID) {
+        const normalizedLiveName = normalizeSiteName(live.attributes.ID);
         if (normalizedLiveName.includes(normalizedBaseName) || 
             normalizedBaseName.includes(normalizedLiveName)) {
           return true;
@@ -212,26 +224,29 @@ function mergeCSOwithLiveData(
     let duration: number | null = null;
     
     if (matchingLive) {
-      const isActive = matchingLive.attributes.Active || 
-                      matchingLive.attributes.IsActive || 
-                      matchingLive.attributes.Status === 'Active' ||
-                      (matchingLive.attributes.Start_Time && !matchingLive.attributes.End_Time);
+      // status === 1 means active overflow
+      const isActive = matchingLive.attributes.status === 1 ||
+                      (matchingLive.attributes.latestEventStart && !matchingLive.attributes.latestEventEnd);
       
       if (isActive) {
         status = 'active';
-      } else if (matchingLive.attributes.End_Time && matchingLive.attributes.End_Time >= cutoffTime) {
+      } else if (matchingLive.attributes.latestEventEnd && matchingLive.attributes.latestEventEnd >= cutoffTime) {
         status = 'recent';
-      } else if (matchingLive.attributes.Last_Update && matchingLive.attributes.Last_Update >= cutoffTime) {
+      } else if (matchingLive.attributes.lastUpdated && matchingLive.attributes.lastUpdated >= cutoffTime) {
         status = 'recent';
       }
       
-      startedAt = matchingLive.attributes.Start_Time 
-        ? new Date(matchingLive.attributes.Start_Time).toISOString() 
+      startedAt = matchingLive.attributes.latestEventStart 
+        ? new Date(matchingLive.attributes.latestEventStart).toISOString() 
         : null;
-      endedAt = matchingLive.attributes.End_Time 
-        ? new Date(matchingLive.attributes.End_Time).toISOString() 
+      endedAt = matchingLive.attributes.latestEventEnd 
+        ? new Date(matchingLive.attributes.latestEventEnd).toISOString() 
         : null;
-      duration = matchingLive.attributes.Duration_mins || null;
+      
+      // Calculate duration if both start and end times exist
+      if (matchingLive.attributes.latestEventStart && matchingLive.attributes.latestEventEnd) {
+        duration = Math.round((matchingLive.attributes.latestEventEnd - matchingLive.attributes.latestEventStart) / 60000); // Convert to minutes
+      }
     }
     
     return {

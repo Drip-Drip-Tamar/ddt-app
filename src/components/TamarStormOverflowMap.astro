@@ -16,7 +16,7 @@ const {
   centre = { lat: 50.497, lon: -4.202 }, // Calstock default
   radiusKm = 10,
   days = 5,
-  api = '/api/cso.json',
+  api = '/api/cso-map.json',
   class: className,
   ...sectionProps 
 } = Astro.props;
@@ -45,17 +45,17 @@ const mapId = `cso-map-${Math.random().toString(36).substr(2, 9)}`;
         
         <!-- Legend -->
         <div class="flex flex-wrap gap-3 mb-3 text-xs">
-          <div class="flex items-center gap-1">
-            <span class="w-3 h-3 rounded-full bg-red-500"></span>
-            <span>Active</span>
+          <div class="flex items-center gap-1.5 px-2 py-1 bg-red-50 rounded-full">
+            <span class="w-3 h-3 rounded-full bg-red-500 shadow-sm"></span>
+            <span class="font-medium text-red-900">⚠️ Active</span>
           </div>
-          <div class="flex items-center gap-1">
-            <span class="w-3 h-3 rounded-full bg-amber-500"></span>
-            <span>Recent (≤{days} days)</span>
+          <div class="flex items-center gap-1.5 px-2 py-1 bg-amber-50 rounded-full">
+            <span class="w-3 h-3 rounded-full bg-amber-500 shadow-sm"></span>
+            <span class="font-medium text-amber-900">⚡ Recent (≤{days} days)</span>
           </div>
-          <div class="flex items-center gap-1">
-            <span class="w-3 h-3 rounded-full bg-gray-400"></span>
-            <span>Inactive</span>
+          <div class="flex items-center gap-1.5 px-2 py-1 bg-gray-50 rounded-full">
+            <span class="w-3 h-3 rounded-full bg-gray-500 shadow-sm"></span>
+            <span class="font-medium text-gray-700">✓ Inactive</span>
           </div>
         </div>
       </div>
