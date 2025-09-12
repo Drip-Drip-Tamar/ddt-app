@@ -78,6 +78,8 @@ export interface HeroSection extends Section {
     heading?: string;
     body?: string;
     cta?: Array<ActionButton | ActionLink>;
+    height?: 'small' | 'medium' | 'large' | 'full';
+    backgroundImageFit?: 'cover' | 'contain' | 'fill';
 }
 
 export interface LogosSection extends Section {

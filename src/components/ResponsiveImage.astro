@@ -49,9 +49,21 @@ const sanitySource = asset; // Always use asset for Sanity images
 // For non-Sanity images, ensure we have a valid src
 const hasValidSrc = !isSanity && src;
 
-// Get dimensions
-const imgWidth = width || dimensions?.width || 800;
-const imgHeight = height || dimensions?.height || 600;
+// Get dimensions - use appropriate defaults based on imageType
+const getDefaultDimensions = (type: string) => {
+    switch(type) {
+        case 'logo':
+            return { width: 200, height: 80 }; // Reasonable logo dimensions
+        case 'avatar':
+            return { width: 150, height: 150 };
+        default:
+            return { width: 800, height: 600 };
+    }
+};
+
+const defaults = getDefaultDimensions(imageType);
+const imgWidth = width || dimensions?.width || defaults.width;
+const imgHeight = height || dimensions?.height || defaults.height;
 
 // Prepare annotations for visual editing
 const annotations: { [key: string]: string } = {};

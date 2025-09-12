@@ -28,6 +28,37 @@ export default defineType({
       of: [{type: 'actionButton'}, {type: 'actionLink'}],
       group: 'content',
     }),
+    defineField({
+      name: 'height',
+      title: 'Section Height',
+      description: 'Controls the height of the hero section',
+      type: 'string',
+      options: {
+        list: [
+          {title: 'Small', value: 'small'},
+          {title: 'Medium', value: 'medium'},
+          {title: 'Large', value: 'large'},
+          {title: 'Full Screen', value: 'full'},
+        ],
+      },
+      initialValue: 'medium',
+      group: 'styles',
+    }),
+    defineField({
+      name: 'backgroundImageFit',
+      title: 'Background Image Fit',
+      description: 'How the background image should fit within the hero section',
+      type: 'string',
+      options: {
+        list: [
+          {title: 'Cover (fills container, may crop)', value: 'cover'},
+          {title: 'Contain (fits entirely, may show space)', value: 'contain'},
+          {title: 'Fill (stretches to fill)', value: 'fill'},
+        ],
+      },
+      initialValue: 'cover',
+      group: 'styles',
+    }),
     ...SECTION_BASE_FIELDS,
   ],
   preview: {

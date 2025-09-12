@@ -5,24 +5,34 @@ import BackgroundImage from '@components/BackgroundImage.astro';
 interface Props extends Section {
     class?: string;
     'data-sb-field-path'?: string;
+    height?: 'small' | 'medium' | 'large' | 'full';
+    backgroundImageFit?: 'cover' | 'contain' | 'fill';
 }
 
-const { backgroundImage, theme, width, class: className, 'data-sb-field-path': fieldPath } = Astro.props;
+const { backgroundImage, theme, width, class: className, 'data-sb-field-path': fieldPath, height = 'medium', backgroundImageFit = 'cover' } = Astro.props;
+
+// Define height classes based on the height prop
+const heightClasses = {
+    small: 'py-8 sm:py-12',
+    medium: 'py-16 sm:py-24',
+    large: 'py-24 sm:py-32',
+    full: 'min-h-screen py-16'
+};
 ---
 
 {
     width === 'inset' ? (
         <section class="w-full px-3 sm:px-6" data-width="inset" data-sb-field-path={fieldPath}>
-            <div class:list={['relative py-16 mx-auto overflow-hidden max-w-7xl rounded-box sm:py-24', className]} data-theme={theme || 'light'}>
-                {backgroundImage && <BackgroundImage {...backgroundImage} data-sb-field-path=".backgroundImage" />}
+            <div class:list={['relative mx-auto overflow-hidden max-w-7xl rounded-box', heightClasses[height], className]} data-theme={theme || 'light'}>
+                {backgroundImage && <BackgroundImage {...backgroundImage} fit={backgroundImageFit} data-sb-field-path=".backgroundImage" />}
                 <div class="relative w-10/12 mx-auto">
                     <slot />
                 </div>
             </div>
         </section>
     ) : (
-        <section class:list={['relative w-full px-3 py-16 sm:px-6 sm:py-24', className]} data-theme={theme || 'light'} data-sb-field-path={fieldPath}>
-            {backgroundImage && <BackgroundImage {...backgroundImage} data-sb-field-path=".backgroundImage" />}
+        <section class:list={['relative w-full px-3 sm:px-6', heightClasses[height], className]} data-theme={theme || 'light'} data-sb-field-path={fieldPath}>
+            {backgroundImage && <BackgroundImage {...backgroundImage} fit={backgroundImageFit} data-sb-field-path=".backgroundImage" />}
             <div class="relative mx-auto max-w-7xl">
                 <slot />
             </div>

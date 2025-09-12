@@ -4,9 +4,17 @@ import { getImageUrl, isSanityImage } from '@utils/sanity-image';
 
 interface Props extends BackgroundImage {
     'data-sb-field-path'?: string;
+    fit?: 'cover' | 'contain' | 'fill';
 }
 
-const { image, opacity, 'data-sb-field-path': fieldPath } = Astro.props;
+const { image, opacity, 'data-sb-field-path': fieldPath, fit = 'cover' } = Astro.props;
+
+// Map fit values to CSS background-size values
+const fitClasses = {
+    cover: 'bg-cover',
+    contain: 'bg-contain',
+    fill: 'bg-auto'
+};
 
 // Generate optimized URL for background image
 let backgroundUrl: string | undefined;
@@ -25,7 +33,7 @@ if (image) {
 {
     backgroundUrl && (
         <div
-            class="absolute inset-0 bg-center bg-no-repeat bg-cover"
+            class={`absolute inset-0 bg-center bg-no-repeat ${fitClasses[fit]}`}
             style={{
                 backgroundImage: `url('${backgroundUrl}')`,
                 opacity: (opacity ?? 100) * 0.01

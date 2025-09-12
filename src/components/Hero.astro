@@ -8,10 +8,10 @@ interface Props extends HeroSection {
     'data-sb-field-path'?: string;
 }
 
-const { heading, body, cta, ...rest } = Astro.props;
+const { heading, body, cta, height, backgroundImageFit, ...rest } = Astro.props;
 ---
 
-<Section {...rest} class="text-center">
+<Section {...rest} height={height} backgroundImageFit={backgroundImageFit} class="text-center">
     {
         heading && (
             <h1 class="text-4xl font-black sm:text-6xl text-balance" data-sb-field-path=".heading">
