@@ -1,25 +1,103 @@
 ---
 import { Image } from 'astro:assets';
+import { 
+    urlFor, 
+    generateSrcSet, 
+    defaultSizes, 
+    isSanityImage,
+    getImageUrl 
+} from '@utils/sanity-image';
 
 interface Props {
     _id?: string;
-    src: string;
-    width: number;
-    height: number;
+    src?: string;
+    asset?: any;
+    width?: number;
+    height?: number;
+    dimensions?: {
+        width: number;
+        height: number;
+    };
     alt?: string;
     class?: string;
+    sizes?: string;
+    loading?: 'lazy' | 'eager';
+    fetchpriority?: 'high' | 'low' | 'auto';
+    imageType?: 'card' | 'hero' | 'logo' | 'avatar' | 'custom';
     'data-sb-field-path'?: string;
 }
 
-const { _id, src, width, height, alt, class: className, 'data-sb-field-path': fieldPath } = Astro.props;
+const { 
+    _id, 
+    src, 
+    asset,
+    width, 
+    height, 
+    dimensions,
+    alt, 
+    class: className, 
+    sizes,
+    loading = 'lazy',
+    fetchpriority = 'auto',
+    imageType = 'custom',
+    'data-sb-field-path': fieldPath 
+} = Astro.props;
 
-const format = src?.includes('.svg') ? 'svg' : 'webp';
+// Determine if this is a Sanity image - prioritize asset over src
+const isSanity = asset ? isSanityImage(asset) : false;
+const sanitySource = asset; // Always use asset for Sanity images
+
+// For non-Sanity images, ensure we have a valid src
+const hasValidSrc = !isSanity && src;
+
+// Get dimensions
+const imgWidth = width || dimensions?.width || 800;
+const imgHeight = height || dimensions?.height || 600;
+
+// Prepare annotations for visual editing
 const annotations: { [key: string]: string } = {};
 if (_id) {
     annotations['data-sb-object-id'] = _id;
 } else if (fieldPath) {
     annotations['data-sb-field-path'] = fieldPath;
 }
+
+// Generate responsive image props for Sanity images
+const responsiveSizes = isSanity ? (sizes || defaultSizes[imageType] || defaultSizes.custom || '100vw') : undefined;
+const srcSet = isSanity ? generateSrcSet(sanitySource) : undefined;
+const defaultSrc = isSanity ? getImageUrl(sanitySource, 800) : undefined;
+
+// Format for non-Sanity images
+const format = hasValidSrc && src?.includes('.svg') ? 'svg' : 'webp';
+
+// Only render if we have a valid source
+const shouldRender = isSanity ? (sanitySource && defaultSrc) : hasValidSrc;
 ---
 
-<Image src={src} width={width} height={height} alt={alt || ''} format={format} class:list={className} {...annotations} />
+{shouldRender ? (
+    !isSanity ? (
+        <Image 
+            src={src} 
+            width={imgWidth} 
+            height={imgHeight} 
+            alt={alt || ''} 
+            format={format} 
+            class:list={className}
+            loading={loading}
+            {...annotations} 
+        />
+    ) : (
+        <img
+            src={defaultSrc}
+            srcSet={srcSet}
+            sizes={responsiveSizes}
+            width={imgWidth}
+            height={imgHeight}
+            alt={alt || ''}
+            className={className}
+            loading={loading}
+            fetchpriority={fetchpriority}
+            {...annotations}
+        />
+    )
+) : null}

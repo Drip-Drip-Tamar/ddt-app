@@ -14,8 +14,15 @@ const { items, class: className, 'data-sb-field-path': fieldPath } = Astro.props
 <div class:list={['flex flex-wrap items-center justify-center gap-8', className]} data-sb-field-path={fieldPath}>
     {
         items.map((logo) => {
-            return logo.src ? (
-                <ResponsiveImage _id={logo._id} src={logo.src} width={logo.dimensions?.width} height={logo.dimensions?.height} alt={logo.alt} />
+            return (logo.asset || logo.src) ? (
+                <ResponsiveImage 
+                    _id={logo._id} 
+                    src={logo.src} 
+                    asset={logo.asset}
+                    dimensions={logo.dimensions}
+                    alt={logo.alt} 
+                    imageType="logo"
+                />
             ) : null;
         })
     }

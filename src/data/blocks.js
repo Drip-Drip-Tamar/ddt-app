@@ -1,9 +1,11 @@
 export const IMAGE = `
   {
     "_id": image.asset->_id,
-    "src": image.asset->url,
+    "asset": image.asset,
     "dimensions": image.asset->metadata.dimensions,
     "alt": alt,
+    "hotspot": image.hotspot,
+    "crop": image.crop
   }
 `;
 
@@ -13,7 +15,10 @@ export const SECTIONS = `{
     ...,
     "image": {
       "_id": image.asset->_id,
-      "src": image.asset->url
+      "asset": image.asset,
+      "dimensions": image.asset->metadata.dimensions,
+      "hotspot": image.hotspot,
+      "crop": image.crop
     }
   },
   _type == "cardsSection" => {

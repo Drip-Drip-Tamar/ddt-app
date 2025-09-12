@@ -28,9 +28,16 @@ const { items, motion, class: className, 'data-sb-field-path': fieldPath } = Ast
             <div class="flex justify-around logo-strip-items" data-sb-field-path={fieldPath}>
                 {
                     items.map((logo) => {
-                        return logo.src ? (
+                        return (logo.asset || logo.src) ? (
                             <div class="inline-flex items-center justify-center p-4">
-                                <ResponsiveImage _id={logo._id} src={logo.src} width={logo.dimensions?.width} height={logo.dimensions?.height} alt={logo.alt} />
+                                <ResponsiveImage 
+                                    _id={logo._id} 
+                                    src={logo.src} 
+                                    asset={logo.asset}
+                                    dimensions={logo.dimensions}
+                                    alt={logo.alt} 
+                                    imageType="logo"
+                                />
                             </div>
                         ) : null;
                     })
@@ -39,9 +46,16 @@ const { items, motion, class: className, 'data-sb-field-path': fieldPath } = Ast
             <div class="flex justify-around logo-strip-items" data-sb-field-path={fieldPath}>
                 {
                     items.map((logo) => {
-                        return logo.src ? (
+                        return (logo.asset || logo.src) ? (
                             <div class="inline-flex items-center justify-center p-4">
-                                <ResponsiveImage _id={logo._id} src={logo.src} width={logo.dimensions?.width} height={logo.dimensions?.height} alt={logo.alt} />
+                                <ResponsiveImage 
+                                    _id={logo._id} 
+                                    src={logo.src} 
+                                    asset={logo.asset}
+                                    dimensions={logo.dimensions}
+                                    alt={logo.alt} 
+                                    imageType="logo"
+                                />
                             </div>
                         ) : null;
                     })

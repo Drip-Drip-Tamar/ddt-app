@@ -1,19 +1,33 @@
 ---
 import { type BackgroundImage } from 'types';
+import { getImageUrl, isSanityImage } from '@utils/sanity-image';
 
 interface Props extends BackgroundImage {
     'data-sb-field-path'?: string;
 }
 
 const { image, opacity, 'data-sb-field-path': fieldPath } = Astro.props;
+
+// Generate optimized URL for background image
+let backgroundUrl: string | undefined;
+if (image) {
+    const sanitySource = image.asset || image.src;
+    if (isSanityImage(sanitySource)) {
+        // Use optimized Sanity URL at 1920px width for backgrounds
+        backgroundUrl = getImageUrl(sanitySource, 1920, { quality: 85 });
+    } else if (image.src) {
+        // Fallback for non-Sanity images
+        backgroundUrl = image.src;
+    }
+}
 ---
 
 {
-    image?.src && (
+    backgroundUrl && (
         <div
             class="absolute inset-0 bg-center bg-no-repeat bg-cover"
             style={{
-                backgroundImage: `url('${image.src}')`,
+                backgroundImage: `url('${backgroundUrl}')`,
                 opacity: (opacity ?? 100) * 0.01
             }}
             data-sb-field-path={fieldPath}

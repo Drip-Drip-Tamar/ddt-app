@@ -20,14 +20,15 @@ const { quote, author, theme, hasBorder, class: className, 'data-sb-field-path':
         {
             author?.company && (
                 <div class="mb-4 font-bold" data-sb-field-path=".author.company">
-                    {author.company?.logo?.src ? (
+                    {(author.company?.logo?.asset || author.company?.logo?.src) ? (
                         <ResponsiveImage
                             _id={author.company.logo._id}
                             src={author.company.logo.src}
-                            width={author.company.logo.dimensions?.width}
-                            height={author.company.logo.dimensions?.height}
+                            asset={author.company.logo.asset}
+                            dimensions={author.company.logo.dimensions}
                             alt={author.company.logo.alt}
                             class="max-w-24"
+                            imageType="logo"
                         />
                     ) : (
                         <span data-sb-field-path=".name">{author.company.name}</span>
@@ -44,15 +45,16 @@ const { quote, author, theme, hasBorder, class: className, 'data-sb-field-path':
                         <span data-sb-field-path=".name">{author.name}</span>{author.title && (<>{', '}<span data-sb-field-path=".title">{author.title}</span></>)}
                     </div>
 
-                    {author.image?.src && (
+                    {(author.image?.asset || author.image?.src) && (
                         <div class="w-20 overflow-hidden rounded-full aspect-square">
                             <ResponsiveImage
                                 _id={author.image._id}
                                 src={author.image.src}
-                                width={80}
-                                height={80}
+                                asset={author.image.asset}
+                                dimensions={author.image.dimensions}
                                 alt={author.image.alt}
                                 class="object-cover w-full h-full"
+                                imageType="avatar"
                             />
                         </div>
                     )}

@@ -6,6 +6,7 @@ import ChartLoader from '@components/ChartLoader.astro';
 import LeafletLoader from '@components/LeafletLoader.astro';
 import { SanityVisualEditing } from '@components/SanityVisualEditing';
 import { fetchData } from '@data/siteConfig';
+import { getImageUrl, isSanityImage } from '@utils/sanity-image';
 
 import '../styles/globals.css';
 
@@ -21,7 +22,18 @@ const { addTitleSuffix, description, image } = Astro.props;
 const configData: SiteConfig = (await fetchData()) || {};
 const titleSuffix = configData.titleSuffix && addTitleSuffix !== false ? configData.titleSuffix : undefined;
 const title = [Astro.props.title, titleSuffix].filter(Boolean).join(' | ');
-const resolvedImage = image?.src ? { src: new URL(image.src, Astro.site).toString() } : undefined;
+
+// Generate optimized URL for social sharing (1200x630 is standard OG image size)
+let resolvedImage: { src: string } | undefined;
+if (image) {
+    const sanitySource = image.asset || image.src;
+    if (isSanityImage(sanitySource)) {
+        const optimizedUrl = getImageUrl(sanitySource, 1200, { height: 630, quality: 90 });
+        resolvedImage = { src: new URL(optimizedUrl, Astro.site).toString() };
+    } else if (image.src) {
+        resolvedImage = { src: new URL(image.src, Astro.site).toString() };
+    }
+}
 const canonicalURL = new URL(Astro.request.url, Astro.site);
 
 /**
