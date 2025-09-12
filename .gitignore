@@ -28,3 +28,6 @@ pnpm-debug.log*
 .stackbit/cache
 # Local Netlify folder
 .netlify
+
+# Tests
+/coverage/
