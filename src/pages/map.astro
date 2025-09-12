@@ -14,11 +14,7 @@ const heroSection = {
   _type: 'heroSection',
   heading: 'Storm Overflow Map',
   body: 'Monitor real-time Combined Sewer Overflow (CSO) activity within 10km of Calstock. Storm overflows discharge untreated sewage during heavy rainfall. Check this map before swimming, paddling, or other water activities.',
-  backgroundImage: {
-    _type: 'backgroundImage',
-    type: 'color',
-    color: '#0066CC'
-  }
+  theme: 'dark' as const
 };
 
 const infoSection = {
@@ -50,7 +46,7 @@ The 2023 data in each popup shows:
 - **Receiving water**: The river or water body receiving any discharge
 
 This historical data helps identify CSOs that activate frequently versus those that rarely discharge.`,
-  theme: 'light'
+  theme: 'light' as const
 };
 
 const dataAttributionSection = {
@@ -72,7 +68,7 @@ const dataAttributionSection = {
 - The absence of live data doesn't mean overflows aren't occurring - always check recent rainfall
 - 2023 statistics provide historical context but may not reflect current year activity
 - For official real-time updates, visit [WaterFit Live](https://www.southwestwater.co.uk/environment/waterfit/waterfit-live/)`,
-  theme: 'dark'
+  theme: 'dark' as const
 };
 
 const ctaSection = {

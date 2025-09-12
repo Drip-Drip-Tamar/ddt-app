@@ -47,9 +47,15 @@ export interface Company {
 
 export interface CustomImage {
     _id?: string;
-    src: string;
+    src?: string;
     alt?: string;
     dimensions?: { height: number; width: number };
+    asset?: {
+        _ref?: string;
+        _type?: 'reference';
+        _id?: string;
+    };
+    _type?: 'image';
 }
 
 export interface CtaSection extends Section {

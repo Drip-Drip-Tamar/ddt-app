@@ -1,18 +1,17 @@
 ---
 import Section from '@components/Section.astro';
+import type { Section as SectionType } from 'types';
 
-export interface Props {
+export interface Props extends SectionType {
   class?: string;
-  theme?: string;
-  width?: 'full' | 'inset';
   'data-sb-field-path'?: string;
 }
 
 const { class: className, ...sectionProps } = Astro.props;
 
 // Generate unique IDs for both charts
-const gunnislakeChartId = `gunnislake-chart-${Math.random().toString(36).substr(2, 9)}`;
-const plymouthChartId = `plymouth-chart-${Math.random().toString(36).substr(2, 9)}`;
+const gunnislakeChartId = `gunnislake-chart-${Math.random().toString(36).substring(2, 11)}`;
+const plymouthChartId = `plymouth-chart-${Math.random().toString(36).substring(2, 11)}`;
 ---
 
 <Section {...sectionProps} class={className}>
@@ -122,7 +121,7 @@ const plymouthChartId = `plymouth-chart-${Math.random().toString(36).substr(2, 9
   </div>
 </Section>
 
-<script define:vars={{ gunnislakeChartId, plymouthChartId }}>
+<script is:inline define:vars={{ gunnislakeChartId, plymouthChartId }}>
   // Fetch river level data and render charts
   async function loadRiverLevels() {
     try {

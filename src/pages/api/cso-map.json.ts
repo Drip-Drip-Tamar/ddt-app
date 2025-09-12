@@ -35,7 +35,6 @@ async function queryStormOverflows(lat: number, lon: number, radiusKm: number, d
   try {
     const sinceDate = new Date();
     sinceDate.setDate(sinceDate.getDate() - daysAgo);
-    const epochMs = sinceDate.getTime();
     
     // Use simplified query - get all records and filter manually for better compatibility
     const params = new URLSearchParams({

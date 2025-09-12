@@ -1,6 +1,6 @@
 ---
 import type { SanityDocument } from '@sanity/client';
-import { sanityClient } from 'sanity:client';
+import { client as sanityClient } from '@utils/sanity-client';
 
 const POSTS_QUERY = `*[
   _type == "post"

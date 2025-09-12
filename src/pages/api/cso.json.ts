@@ -128,7 +128,7 @@ async function queryLiveOverflows(
     });
     
     if (!response.ok) {
-      console.log('SWW live endpoint returned status:', response.status);
+      // SWW live endpoint returned non-OK status
       return [];
     }
     
@@ -340,7 +340,6 @@ export const GET: APIRoute = async ({ url }) => {
     
     if (useMockData) {
       // Use mock data if explicitly requested
-      console.log('Using mock data as requested');
       features = getMockFeatures(lat, lon, radiusKm);
       dataSource = 'mock';
     } else {
@@ -354,11 +353,8 @@ export const GET: APIRoute = async ({ url }) => {
         // Merge base data with live events
         features = mergeCSOwithLiveData(baseCSOs, liveOverflows, days);
         dataSource = liveOverflows.length > 0 ? 'combined' : 'base-only';
-        
-        console.log(`Found ${baseCSOs.length} base CSOs, ${liveOverflows.length} live events`);
       } else {
         // Fallback to mock data if no base data available
-        console.log('No base CSO data available, using mock data');
         features = getMockFeatures(lat, lon, radiusKm);
         dataSource = 'mock';
       }

@@ -31,7 +31,7 @@ const sortedSamples = [...samples].sort((a, b) =>
 );
 
 // Generate unique ID for this chart instance
-const chartId = `water-chart-${Math.random().toString(36).substr(2, 9)}`;
+const chartId = `water-chart-${Math.random().toString(36).substring(2, 11)}`;
 ---
 
 <Section {...sectionProps}>
@@ -95,7 +95,7 @@ const chartId = `water-chart-${Math.random().toString(36).substr(2, 9)}`;
                   <th>Site</th>
                   <th>E. coli (cfu/100ml)</th>
                   <th>Enterococci (cfu/100ml)</th>
-                  {samples.some(s => s.rainfall !== null) && <th>Rainfall (mm)</th>}
+                  {samples.some((s: { rainfall: number | null }) => s.rainfall !== null) && <th>Rainfall (mm)</th>}
                 </tr>
               </thead>
               <tbody>
@@ -117,7 +117,7 @@ const chartId = `water-chart-${Math.random().toString(36).substr(2, 9)}`;
                     ]}>
                       {sample.enterococci ?? '—'}
                     </td>
-                    {samples.some(s => s.rainfall !== null) && (
+                    {samples.some((s: { rainfall: number | null }) => s.rainfall !== null) && (
                       <td>{sample.rainfall ?? '—'}</td>
                     )}
                   </tr>
@@ -138,7 +138,7 @@ const chartId = `water-chart-${Math.random().toString(36).substr(2, 9)}`;
       <div class="flex flex-wrap gap-4 justify-center mt-8">
         {cta.map((action, idx) => (
           <Action 
-            {...action} 
+            action={action} 
             data-sb-field-path={`.cta.${idx}`}
           />
         ))}
@@ -149,7 +149,7 @@ const chartId = `water-chart-${Math.random().toString(36).substr(2, 9)}`;
 
 {/* Table toggle functionality */}
 {showTable && (
-  <script define:vars={{ chartId }}>
+  <script is:inline define:vars={{ chartId }}>
     document.addEventListener('DOMContentLoaded', () => {
       const toggleBtn = document.querySelector(`.table-toggle[aria-controls="table-${chartId}"]`);
       const tableContainer = document.getElementById(`table-${chartId}`);
@@ -181,7 +181,7 @@ const chartId = `water-chart-${Math.random().toString(36).substr(2, 9)}`;
 
 {/* Only load Chart.js when the chart is visible */}
 {showChart && (
-  <script define:vars={{ chartId, chartData, chartConfig, chartType }}>
+  <script is:inline define:vars={{ chartId, chartData, chartConfig, chartType }}>
     // Intersection Observer to load chart when visible
     const observer = new IntersectionObserver((entries) => {
       entries.forEach(async entry => {

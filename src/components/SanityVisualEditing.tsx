@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { enableVisualEditing } from '@sanity/visual-editing';
 
 interface Props {
@@ -22,7 +22,7 @@ export function SanityVisualEditing({ token }: Props) {
       const cleanup = enableVisualEditing({
         history: {
           subscribe: (navigate) => {
-            const handleRouteChange = (event: PopStateEvent) => {
+            const handleRouteChange = (_event: PopStateEvent) => {
               navigate({
                 type: 'push',
                 url: window.location.href,

@@ -182,7 +182,7 @@ describe('Page Rendering', () => {
   describe('Error Handling', () => {
     it('should handle missing pages gracefully', async () => {
       const { getPageBySlug } = await import('../../src/data/page');
-      vi.mocked(getPageBySlug).mockResolvedValueOnce(null as any);
+      vi.mocked(getPageBySlug).mockResolvedValueOnce(null);
       
       const page = await getPageBySlug('non-existent-page');
       

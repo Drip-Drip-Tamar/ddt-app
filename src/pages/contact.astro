@@ -188,7 +188,7 @@ import { SOCIAL_LINKS, FACEBOOK_GROUP_NAME } from '@config/social';
 
 <script>
   // Set form start time for anti-spam
-  document.getElementById('form_started_at').value = Date.now().toString();
+  (document.getElementById('form_started_at') as HTMLInputElement).value = Date.now().toString();
   
   // Handle form submission
   const form = document.getElementById('contactForm') as HTMLFormElement;
@@ -221,7 +221,7 @@ import { SOCIAL_LINKS, FACEBOOK_GROUP_NAME } from '@config/social';
       if (result.ok) {
         // Success
         form.reset();
-        document.getElementById('form_started_at').value = Date.now().toString();
+        (document.getElementById('form_started_at') as HTMLInputElement).value = Date.now().toString();
         
         // Replace form with success message
         const formContainer = form.parentElement;

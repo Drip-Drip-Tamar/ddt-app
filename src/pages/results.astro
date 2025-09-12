@@ -15,21 +15,17 @@ const heroSection = {
   _type: 'heroSection',
   heading: 'Water Quality Results',
   body: 'We test the River Tamar weekly at two locations near Calstock. Our laboratory analysis measures E. coli and Intestinal Enterococci levels to help you understand water quality and make informed decisions about river use.',
-  backgroundImage: {
-    _type: 'backgroundImage',
-    type: 'color',
-    color: '#0066CC'
-  }
+  theme: 'dark' as const
 };
 
 const chartSection = {
-  _type: 'waterQualitySection',
+  _type: 'waterQualitySection' as const,
   heading: 'Latest Test Results',
   body: 'The chart below shows bacteria levels over time at our sampling sites. Green lines indicate excellent water quality thresholds, while yellow lines show good quality limits according to EU Bathing Water standards.',
   showChart: true,
   showTable: true,
   showThresholds: true,
-  chartType: 'line'
+  chartType: 'line' as const
 };
 
 const infoSection = {
@@ -43,7 +39,7 @@ const infoSection = {
 - **Sufficient**: E. coli < 1800, Enterococci < 660 (cfu/100ml)
 
 **Important:** These are single-point measurements. Official bathing water classifications use multiple samples over four years. Always check recent rainfall and storm overflow status before entering the water.`,
-  theme: 'light'
+  theme: 'light' as const
 };
 
 const ctaSection = {

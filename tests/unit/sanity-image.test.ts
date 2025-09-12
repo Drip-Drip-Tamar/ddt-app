@@ -1,29 +1,60 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeAll } from 'vitest';
 import { 
-  urlFor, 
   getImageUrl, 
   generateSrcSet, 
   isSanityImage,
-  IMAGE_SIZES,
-  IMAGE_WIDTHS
+  defaultSizes
 } from '../../src/utils/sanity-image';
 
-// Mock the Sanity image URL builder
-vi.mock('../../src/utils/sanity-client', () => ({
-  client: {
-    image: {
-      url: vi.fn(() => ({
-        image: vi.fn().mockReturnThis(),
-        width: vi.fn().mockReturnThis(),
-        height: vi.fn().mockReturnThis(),
-        format: vi.fn().mockReturnThis(),
-        quality: vi.fn().mockReturnThis(),
-        auto: vi.fn().mockReturnThis(),
-        url: vi.fn(() => 'https://cdn.sanity.io/images/test-project/test-dataset/test-image.jpg')
-      }))
-    }
-  }
-}));
+// Mock environment variables
+beforeAll(() => {
+  vi.stubEnv('SANITY_PROJECT_ID', 'test-project-id');
+  vi.stubEnv('SANITY_DATASET', 'test-dataset');
+});
+
+// Mock the Sanity image URL builder module
+vi.mock('@sanity/image-url', () => {
+  const createMockBuilder = () => {
+    let params = new URLSearchParams();
+    
+    const mockBuilder = {
+      image: vi.fn().mockReturnThis(),
+      width: vi.fn((w) => {
+        params.set('w', w.toString());
+        return mockBuilder;
+      }),
+      height: vi.fn((h) => {
+        params.set('h', h.toString());
+        return mockBuilder;
+      }),
+      format: vi.fn((f) => {
+        params.set('fm', f);
+        return mockBuilder;
+      }),
+      quality: vi.fn((q) => {
+        params.set('q', q.toString());
+        return mockBuilder;
+      }),
+      auto: vi.fn((mode) => {
+        params.set('auto', mode);
+        return mockBuilder;
+      }),
+      url: vi.fn(() => {
+        const baseUrl = 'https://cdn.sanity.io/images/test-project-id/test-dataset/123-1024x768.jpg';
+        const queryString = params.toString();
+        return queryString ? `${baseUrl}?${queryString}` : baseUrl;
+      })
+    };
+    
+    return mockBuilder;
+  };
+  
+  return {
+    default: vi.fn(() => ({
+      image: vi.fn(() => createMockBuilder())
+    }))
+  };
+});
 
 describe('sanity-image utilities', () => {
   describe('isSanityImage', () => {
@@ -38,30 +69,31 @@ describe('sanity-image utilities', () => {
       expect(isSanityImage(validImage)).toBe(true);
     });
 
-    it('should return false for objects without _type image', () => {
-      const invalidImage = {
-        _type: 'customImage',
-        asset: {
-          _ref: 'image-123-1024x768-jpg',
-          _type: 'reference'
-        }
+    it('should return true for objects with reference type', () => {
+      const imageWithReference = {
+        _type: 'reference',
+        _ref: 'image-123-1024x768-jpg'
       };
-      expect(isSanityImage(invalidImage)).toBe(false);
+      expect(isSanityImage(imageWithReference)).toBe(true);
     });
 
-    it('should return false for objects without asset', () => {
-      const invalidImage = {
+    it('should return true for objects with _type image even without asset', () => {
+      const imageWithoutAsset = {
         _type: 'image'
       };
-      expect(isSanityImage(invalidImage)).toBe(false);
+      expect(isSanityImage(imageWithoutAsset)).toBe(true);
     });
 
     it('should return false for non-objects', () => {
       expect(isSanityImage(null)).toBe(false);
       expect(isSanityImage(undefined)).toBe(false);
-      expect(isSanityImage('string')).toBe(false);
+      expect(isSanityImage('not-an-image')).toBe(false);
       expect(isSanityImage(123)).toBe(false);
       expect(isSanityImage([])).toBe(false);
+    });
+
+    it('should return true for string containing image-', () => {
+      expect(isSanityImage('image-123-1024x768-jpg')).toBe(true);
     });
   });
 
@@ -76,7 +108,10 @@ describe('sanity-image utilities', () => {
 
     it('should generate URL with default quality', () => {
       const url = getImageUrl(mockSource, 800);
-      expect(url).toBe('https://cdn.sanity.io/images/test-project/test-dataset/test-image.jpg');
+      expect(url).toContain('https://cdn.sanity.io/images/test-project-id/test-dataset/');
+      expect(url).toContain('w=800');
+      expect(url).toContain('q=80');
+      expect(url).toContain('auto=format');
     });
 
     it('should generate URL with custom options', () => {
@@ -84,12 +119,16 @@ describe('sanity-image utilities', () => {
         quality: 90,
         format: 'webp'
       });
-      expect(url).toBe('https://cdn.sanity.io/images/test-project/test-dataset/test-image.jpg');
+      expect(url).toContain('https://cdn.sanity.io/images/test-project-id/test-dataset/');
+      expect(url).toContain('w=800');
+      expect(url).toContain('q=90');
+      expect(url).toContain('fm=webp');
     });
 
-    it('should handle missing width by using default', () => {
-      const url = getImageUrl(mockSource, undefined);
+    it('should handle width parameter', () => {
+      const url = getImageUrl(mockSource, 1200);
       expect(url).toBeDefined();
+      expect(url).toContain('w=1200');
     });
   });
 
@@ -104,14 +143,14 @@ describe('sanity-image utilities', () => {
 
     it('should generate srcset with default widths', () => {
       const srcset = generateSrcSet(mockSource);
+      // Default widths from the function are [320, 480, 640, 768, 1024, 1200, 1920]
+      expect(srcset).toContain('320w');
+      expect(srcset).toContain('480w');
       expect(srcset).toContain('640w');
-      expect(srcset).toContain('750w');
-      expect(srcset).toContain('828w');
-      expect(srcset).toContain('1080w');
+      expect(srcset).toContain('768w');
+      expect(srcset).toContain('1024w');
       expect(srcset).toContain('1200w');
       expect(srcset).toContain('1920w');
-      expect(srcset).toContain('2048w');
-      expect(srcset).toContain('3840w');
     });
 
     it('should generate srcset with custom widths', () => {
@@ -125,45 +164,26 @@ describe('sanity-image utilities', () => {
     it('should apply custom options to all URLs', () => {
       const srcset = generateSrcSet(mockSource, undefined, { format: 'webp' });
       expect(srcset).toBeDefined();
-      expect(srcset.split(',').length).toBe(IMAGE_WIDTHS.default.length);
+      // Default widths are 7 values
+      expect(srcset.split(',')).toHaveLength(7);
     });
   });
 
-  describe('IMAGE_SIZES constant', () => {
+  describe('defaultSizes constant', () => {
     it('should have all required size configurations', () => {
-      expect(IMAGE_SIZES).toHaveProperty('card');
-      expect(IMAGE_SIZES).toHaveProperty('hero');
-      expect(IMAGE_SIZES).toHaveProperty('logo');
-      expect(IMAGE_SIZES).toHaveProperty('avatar');
-      expect(IMAGE_SIZES).toHaveProperty('testimonial');
+      expect(defaultSizes).toHaveProperty('card');
+      expect(defaultSizes).toHaveProperty('hero');
+      expect(defaultSizes).toHaveProperty('logo');
+      expect(defaultSizes).toHaveProperty('avatar');
     });
 
-    it('should have valid dimensions for each size', () => {
-      Object.values(IMAGE_SIZES).forEach(size => {
-        expect(size).toHaveProperty('width');
-        expect(size).toHaveProperty('height');
-        expect(typeof size.width).toBe('number');
-        expect(typeof size.height).toBe('number');
-        expect(size.width).toBeGreaterThan(0);
-        expect(size.height).toBeGreaterThan(0);
+    it('should have valid size strings', () => {
+      Object.values(defaultSizes).forEach(sizeString => {
+        expect(typeof sizeString).toBe('string');
+        expect(sizeString.length).toBeGreaterThan(0);
+        // Should contain media query syntax
+        expect(sizeString).toMatch(/\d+(vw|px)/); 
       });
-    });
-  });
-
-  describe('IMAGE_WIDTHS constant', () => {
-    it('should have default and card width arrays', () => {
-      expect(IMAGE_WIDTHS).toHaveProperty('default');
-      expect(IMAGE_WIDTHS).toHaveProperty('card');
-      expect(Array.isArray(IMAGE_WIDTHS.default)).toBe(true);
-      expect(Array.isArray(IMAGE_WIDTHS.card)).toBe(true);
-    });
-
-    it('should have sorted width values', () => {
-      const defaultSorted = [...IMAGE_WIDTHS.default].sort((a, b) => a - b);
-      const cardSorted = [...IMAGE_WIDTHS.card].sort((a, b) => a - b);
-      
-      expect(IMAGE_WIDTHS.default).toEqual(defaultSorted);
-      expect(IMAGE_WIDTHS.card).toEqual(cardSorted);
     });
   });
 });

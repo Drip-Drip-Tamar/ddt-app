@@ -34,9 +34,9 @@ export const client = createClient(sanityConfig);
  * Creating Sanity listener to subscribe to whenever a new document is created or deleted to refresh the list in Create
  */
 [{ client: client, types: ['page'] }].forEach(({ client, types }: { client: SanityClient; types: Array<String> }) =>
-    client.listen(`*[_type in ${JSON.stringify(types)}]`, {}, { visibility: 'query' }).subscribe(async (event: any) => {
+    client.listen(`*[_type in ${JSON.stringify(types)}]`, {}, { visibility: 'query' }).subscribe(async (event) => {
         // only refresh when pages are deleted or created
-        if (event.transition === 'appear' || event.transition === 'disappear') {
+        if ('transition' in event && (event.transition === 'appear' || event.transition === 'disappear')) {
             const filePath = path.join(__dirname, '../layouts/Layout.astro');
             const time = new Date();
 

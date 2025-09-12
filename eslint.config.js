@@ -41,11 +41,13 @@ export default [
       'dist/',
       'node_modules/',
       '.astro/',
+      'studio/.sanity/',
       'studio/dist/',
       'studio/node_modules/',
       '.netlify/',
       'coverage/',
-      '*.min.js'
+      '*.min.js',
+      'sanity-export/**/*.js'  // These are utility scripts, console.log is fine
     ]
   }
 ];

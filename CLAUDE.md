@@ -26,6 +26,19 @@ npm run import {projectId}  # Import content to Sanity
 npm run export            # Export Sanity content
 ```
 
+### Testing and Quality Assurance
+```bash
+npm run test          # Run all tests once
+npm run test:unit     # Run unit tests only
+npm run test:integration # Run integration tests only
+npm run test:watch    # Run tests in watch mode
+npm run test:coverage # Run tests with coverage report
+npm run test:ui       # Open Vitest UI
+npm run test:all      # Run linting, type checking, build validation, and tests
+npm run lint          # Run ESLint
+npm run typecheck     # Run TypeScript checking
+```
+
 ### Visual Editing Options
 ```bash
 # Option 1: Sanity Presentation Tool (Native)
@@ -78,6 +91,12 @@ const componentMap = {
 - `src/data/page.js`: Page data fetching utilities
 - `src/data/blocks.js`: Block content utilities
 - `src/data/siteConfig.js`: Global site configuration
+
+### Image Optimization System
+- `src/utils/sanity-image.ts`: Centralized image URL generation and optimization
+- Responsive image support with automatic srcset generation
+- WebP format conversion and quality optimization
+- Predefined size configurations for common use cases (card, hero, logo, avatar)
 
 ### TypeScript Path Aliases
 ```json
@@ -162,7 +181,43 @@ External visual editing service with extensive annotation system:
 ### Dependencies Added
 - **Studio**: `@sanity/presentation: ^2.0.0`
 - **Frontend**: `@sanity/visual-editing: ^3.0.3`
+- **Testing**: `vitest: ^3.2.4`, `@vitest/ui: ^3.2.4`, `@vitest/coverage-v8: ^3.2.4`
+- **Testing Libraries**: `@testing-library/jest-dom: ^6.8.0`, `@testing-library/react: ^16.3.0`, `jsdom: ^26.1.0`
+- **Code Quality**: `eslint: ^9.35.0`, `@typescript-eslint/*: ^8.43.0`
 - **Compatibility**: Fixed `easymde: ^2.20.0` dependency issue post-upgrade
+
+## Testing Architecture
+
+### Test Suite Structure
+```
+tests/
+├── setup/
+│   └── setup.ts           # Global test configuration and mocks
+├── unit/
+│   ├── sanity-image.test.ts  # Image utility unit tests
+│   └── sanity-client.test.ts # Sanity client configuration tests
+└── integration/
+    └── page-rendering.test.ts # Page routing and rendering tests
+```
+
+### Test Coverage Areas
+- **Unit Tests**: Sanity image utilities, client configuration validation
+- **Integration Tests**: Page data fetching, routing, component mapping
+- **Static Analysis**: TypeScript checking, ESLint validation, build verification
+- **Coverage Reports**: HTML and JSON coverage reports with v8 provider
+
+### Test Configuration
+- **Framework**: Vitest with JSDOM environment
+- **Setup**: Global mocks for Sanity environment variables
+- **Coverage**: Excludes `node_modules/`, `dist/`, `.astro/`, `studio/`, config files
+- **CI/CD Ready**: Designed for automated pipeline integration
+
+### Key Testing Features
+- Mocked Sanity client for consistent test environments
+- Image optimization validation with URL generation testing
+- Page routing simulation with data structure validation
+- Component section mapping verification
+- Error handling and edge case coverage
 ## Sessions System Behaviors
 
 @CLAUDE.sessions.md

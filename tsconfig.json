@@ -1,7 +1,7 @@
 {
   "extends": "astro/tsconfigs/base",
   "include": [".astro/types.d.ts", "**/*"],
-  "exclude": ["dist"],
+  "exclude": ["dist", "studio/dist", "studio/node_modules", "node_modules", "coverage", "sanity-export"],
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {

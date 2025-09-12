@@ -105,13 +105,25 @@ export const defaultSizes = {
 };
 
 // Check if source is a Sanity image reference
-export function isSanityImage(source: any): boolean {
-    return source && (
-        source._type === 'image' ||
-        source._type === 'reference' || // The source itself is a reference
-        source._ref || // The source itself is an asset reference
-        source.asset?._ref || // The source contains an asset reference
-        source.asset?._id ||
-        (typeof source === 'string' && source.includes('image-'))
+export function isSanityImage(source: unknown): boolean {
+    if (!source) return false;
+    
+    if (typeof source === 'string') {
+        return source.includes('image-');
+    }
+    
+    if (typeof source !== 'object') {
+        return false;
+    }
+    
+    const obj = source as Record<string, unknown>;
+    return !!(
+        obj._type === 'image' ||
+        obj._type === 'reference' ||
+        obj._ref ||
+        (obj.asset && typeof obj.asset === 'object' && (
+            (obj.asset as Record<string, unknown>)._ref ||
+            (obj.asset as Record<string, unknown>)._id
+        ))
     );
 }

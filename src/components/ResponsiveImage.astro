@@ -1,7 +1,6 @@
 ---
 import { Image } from 'astro:assets';
 import { 
-    urlFor, 
     generateSrcSet, 
     defaultSizes, 
     isSanityImage,
@@ -63,7 +62,7 @@ if (_id) {
 }
 
 // Generate responsive image props for Sanity images
-const responsiveSizes = isSanity ? (sizes || defaultSizes[imageType] || defaultSizes.custom || '100vw') : undefined;
+const responsiveSizes = isSanity ? (sizes || defaultSizes[imageType] || '100vw') : undefined;
 const srcSet = isSanity ? generateSrcSet(sanitySource) : undefined;
 const defaultSrc = isSanity ? getImageUrl(sanitySource, 800) : undefined;
 
@@ -89,12 +88,12 @@ const shouldRender = isSanity ? (sanitySource && defaultSrc) : hasValidSrc;
     ) : (
         <img
             src={defaultSrc}
-            srcSet={srcSet}
+            srcset={srcSet}
             sizes={responsiveSizes}
             width={imgWidth}
             height={imgHeight}
             alt={alt || ''}
-            className={className}
+            class={className}
             loading={loading}
             fetchpriority={fetchpriority}
             {...annotations}

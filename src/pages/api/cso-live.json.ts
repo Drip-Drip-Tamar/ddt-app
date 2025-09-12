@@ -205,7 +205,14 @@ function processOverflowData(features: StormOverflowFeature[], startDate: Date, 
     const status = feature.attributes.status === 1 ? 'active' : 'ended';
     
     if (startTime) {
-      const event = {
+      const event: {
+        site: string;
+        start: string;
+        end: string;
+        durationMin: number | null;
+        status: 'active' | 'ended';
+        distanceKm?: number;
+      } = {
         site,
         start: startTime,
         end: endTime,
