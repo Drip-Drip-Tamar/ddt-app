@@ -1,0 +1,72 @@
+---
+import Badge from '@components/Badge.astro';
+import ResponsiveImage from '@components/ResponsiveImage.astro';
+
+interface Props {
+  title: string;
+  body: string;
+  image?: any;
+  author?: string;
+  date?: string;
+  slug: string;
+  class?: string;
+}
+
+const { title, body, image, author, date, slug, class: className } = Astro.props;
+---
+
+<article class:list={['group', className]}>
+  <a href={`/news/${slug}`} class="block">
+    <div class="card card-border w-full hover:shadow-lg transition-shadow duration-200">
+      <div class="flex flex-row">
+        {/* Fixed width image on the left - fills height */}
+        {image && (image.asset || image.src) && (
+          <figure class="w-32 sm:w-48 md:w-64 flex-shrink-0 self-stretch">
+            <ResponsiveImage 
+              _id={image._id} 
+              src={image.src} 
+              asset={image.asset}
+              dimensions={image.dimensions}
+              alt={image.alt || title} 
+              imageType="card"
+              class="w-full h-full object-cover transition-transform duration-200 group-hover:scale-105"
+            />
+          </figure>
+        )}
+        
+        {/* Content on the right - always left-aligned */}
+        <div class="card-body gap-2 sm:gap-3 flex-1 text-left">
+          <div class="flex flex-wrap gap-2 items-center">
+            {author && (
+              <Badge 
+                label={`By ${author}`}
+                theme="neutral"
+              />
+            )}
+            {date && (
+              <span class="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
+                {date}
+              </span>
+            )}
+          </div>
+          
+          <h3 class="font-black text-lg sm:text-xl md:text-2xl group-hover:text-primary transition-colors text-left">
+            {title}
+          </h3>
+          
+          {body && (
+            <p class="text-sm sm:text-base text-gray-600 dark:text-gray-400 line-clamp-2 text-left">
+              {body}
+            </p>
+          )}
+          
+          <div class="card-actions justify-start">
+            <span class="text-sm sm:text-base font-bold text-primary group-hover:underline">
+              Read More →
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </a>
+</article>

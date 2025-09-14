@@ -24,6 +24,7 @@ sanity dev          # Run studio locally on port 3333
 npm run create-project    # Create new Sanity project
 npm run import {projectId}  # Import content to Sanity
 npm run export            # Export Sanity content
+node scripts/migrate-post-images.js  # Migrate old post image structure
 ```
 
 ### Testing and Quality Assurance
@@ -55,6 +56,7 @@ This is an **Astro + Sanity CMS** starter with **dual visual editing** integrati
 
 - **Frontend**: Astro static site generator with TypeScript
 - **CMS**: Sanity.io headless CMS with structured content
+- **News System**: Blog/news functionality with posts and author management
 - **Visual Editing**: Dual system supporting both Sanity Presentation tool and Netlify Visual Editor (Stackbit)
 - **Styling**: Tailwind CSS with DaisyUI components
 - **Deployment**: Optimized for Netlify
@@ -62,10 +64,17 @@ This is an **Astro + Sanity CMS** starter with **dual visual editing** integrati
 ## Key Architectural Patterns
 
 ### Dynamic Page Routing
-Pages are dynamically generated through `src/pages/[...slug].astro`:
+Pages are dynamically generated through multiple routing systems:
+
+**Main Site Pages** (`src/pages/[...slug].astro`):
 - Fetches all pages from Sanity at build time
 - Maps slug to route params
 - Component-based rendering using section mapping
+
+**News System** (`src/pages/news/`):
+- `src/pages/news.astro` - News listing page displaying all published posts
+- `src/pages/news/[slug].astro` - Individual post pages with static generation
+- SEO-optimized with meta tags and featured images
 
 ### Component Section Mapping
 The site uses a modular section system where Sanity content types map to Astro components:
@@ -91,6 +100,27 @@ const componentMap = {
 - `src/data/page.js`: Page data fetching utilities
 - `src/data/blocks.js`: Block content utilities
 - `src/data/siteConfig.js`: Global site configuration
+- News posts: Direct Sanity queries in page components with GROQ
+
+### News System Architecture
+The news system provides blog functionality with the following components:
+
+**Content Structure**:
+- Posts managed through Sanity Studio with rich text editing
+- Author information linked via person references
+- Featured images with responsive optimization
+- SEO metadata fields with fallback to content fields
+
+**Display Components**:
+- `src/components/PostCard.astro` - Card layout for featured posts
+- `src/components/PostListItem.astro` - Horizontal list item layout for news feed
+- Both components support responsive images and author attribution
+
+**Data Transformation**:
+- Portable text to HTML conversion for rich content
+- Automatic excerpt generation from post body when not provided
+- Date formatting and localization
+- Image optimization through sanity-image utility
 
 ### Image Optimization System
 - `src/utils/sanity-image.ts`: Centralized image URL generation and optimization

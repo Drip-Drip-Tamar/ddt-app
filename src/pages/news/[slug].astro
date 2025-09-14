@@ -1,0 +1,211 @@
+---
+import type { SanityDocument } from '@sanity/client';
+import { PortableText } from '@portabletext/react';
+import Layout from '@layouts/Layout.astro';
+import Section from '@components/Section.astro';
+import ResponsiveImage from '@components/ResponsiveImage.astro';
+import { client as sanityClient } from '@utils/sanity-client';
+
+export async function getStaticPaths() {
+  const POSTS_QUERY = `*[_type == "post" && defined(slug.current)]{
+    "slug": slug.current
+  }`;
+  
+  const posts = await sanityClient.fetch<{ slug: string }[]>(POSTS_QUERY);
+  
+  return posts.map(post => ({
+    params: { slug: post.slug }
+  }));
+}
+
+const { slug } = Astro.params;
+
+const POST_QUERY = `*[_type == "post" && slug.current == $slug][0]{
+  _id,
+  title,
+  excerpt,
+  body,
+  publishedAt,
+  "author": author->{
+    name,
+    title,
+    image {
+      _id,
+      "asset": image.asset,
+      "dimensions": image.asset->metadata.dimensions,
+      alt
+    }
+  },
+  featuredImage {
+    image {
+      _id,
+      asset,
+      "dimensions": asset->metadata.dimensions
+    },
+    alt
+  },
+  seoTitle,
+  seoDescription,
+  seoKeywords
+}`;
+
+const post = await sanityClient.fetch<SanityDocument>(POST_QUERY, { slug });
+
+if (!post) {
+  return Astro.redirect('/404');
+}
+
+const publishedDate = post.publishedAt 
+  ? new Date(post.publishedAt).toLocaleDateString('en-GB', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric'
+    })
+  : null;
+
+// Use SEO fields if available, otherwise fall back to title and excerpt
+const seoTitle = post.seoTitle || post.title;
+const seoDescription = post.seoDescription || post.excerpt || '';
+---
+
+<Layout 
+  title={seoTitle} 
+  addTitleSuffix={true} 
+  description={seoDescription}
+  image={post.featuredImage?.image ? {
+    ...post.featuredImage.image,
+    alt: post.featuredImage.alt
+  } : undefined}
+>
+  <main class="min-h-screen">
+    <article>
+      {/* Hero section with featured image */}
+      {post.featuredImage?.image && (post.featuredImage.image.asset || post.featuredImage.image.src) && (
+        <div class="w-full h-[400px] md:h-[500px] relative overflow-hidden bg-gray-100 dark:bg-gray-800">
+          <ResponsiveImage
+            _id={post.featuredImage.image._id}
+            src={post.featuredImage.image.src}
+            asset={post.featuredImage.image.asset}
+            dimensions={post.featuredImage.image.dimensions}
+            alt={post.featuredImage.alt || post.title}
+            imageType="hero"
+            class="w-full h-full object-cover"
+          />
+        </div>
+      )}
+
+      <Section class="max-w-4xl mx-auto">
+        {/* Post header */}
+        <header class="text-center mb-8">
+          <h1 class="text-4xl md:text-5xl font-black mb-4 text-balance">
+            {post.title}
+          </h1>
+          
+          {post.excerpt && (
+            <p class="text-lg text-gray-600 dark:text-gray-400 mb-6 max-w-2xl mx-auto">
+              {post.excerpt}
+            </p>
+          )}
+          
+          <div class="flex items-center justify-center gap-4 text-sm text-gray-500 dark:text-gray-400">
+            {post.author && (
+              <div class="flex items-center gap-2">
+                {post.author.image && (post.author.image.asset || post.author.image.src) && (
+                  <ResponsiveImage
+                    _id={post.author.image._id}
+                    src={post.author.image.src}
+                    asset={post.author.image.asset}
+                    dimensions={post.author.image.dimensions}
+                    alt={post.author.name}
+                    imageType="avatar"
+                    class="w-10 h-10 rounded-full object-cover"
+                  />
+                )}
+                <div class="text-left">
+                  <p class="font-semibold text-gray-700 dark:text-gray-300">
+                    {post.author.name}
+                  </p>
+                  {post.author.title && (
+                    <p class="text-xs">{post.author.title}</p>
+                  )}
+                </div>
+              </div>
+            )}
+            
+            {publishedDate && (
+              <time datetime={post.publishedAt} class="border-l pl-4 border-gray-300 dark:border-gray-600">
+                {publishedDate}
+              </time>
+            )}
+          </div>
+        </header>
+
+        {/* Post content */}
+        <div class="prose prose-lg dark:prose-invert max-w-none">
+          {post.body && (
+            <div class="portable-text" set:html={
+              post.body.map((block: any) => {
+                if (block._type === 'block') {
+                  const children = block.children.map((child: any) => {
+                    if (child._type === 'span') {
+                      let text = child.text;
+                      if (child.marks && child.marks.length > 0) {
+                        child.marks.forEach((mark: string) => {
+                          switch(mark) {
+                            case 'strong':
+                              text = `<strong>${text}</strong>`;
+                              break;
+                            case 'em':
+                              text = `<em>${text}</em>`;
+                              break;
+                            case 'underline':
+                              text = `<u>${text}</u>`;
+                              break;
+                            case 'code':
+                              text = `<code>${text}</code>`;
+                              break;
+                          }
+                        });
+                      }
+                      return text;
+                    }
+                    return '';
+                  }).join('');
+                  
+                  switch(block.style) {
+                    case 'h1':
+                      return `<h1>${children}</h1>`;
+                    case 'h2':
+                      return `<h2>${children}</h2>`;
+                    case 'h3':
+                      return `<h3>${children}</h3>`;
+                    case 'h4':
+                      return `<h4>${children}</h4>`;
+                    case 'blockquote':
+                      return `<blockquote>${children}</blockquote>`;
+                    default:
+                      return `<p>${children}</p>`;
+                  }
+                }
+                return '';
+              }).join('')
+            } />
+          )}
+        </div>
+
+        {/* Back to news link */}
+        <div class="mt-12 pt-8 border-t border-gray-200 dark:border-gray-700">
+          <a 
+            href="/news" 
+            class="inline-flex items-center gap-2 text-primary hover:underline"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+            </svg>
+            Back to News
+          </a>
+        </div>
+      </Section>
+    </article>
+  </main>
+</Layout>
