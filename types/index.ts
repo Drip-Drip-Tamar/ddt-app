@@ -37,6 +37,7 @@ export interface CardsSection extends Section {
     body?: string;
     items?: Array<Card>;
     columns?: 'one' | 'two' | 'three';
+    fixedImageHeight?: boolean;
 }
 
 export interface Company {

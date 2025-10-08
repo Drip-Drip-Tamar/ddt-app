@@ -8,7 +8,7 @@ interface Props extends CardsSection {
     'data-sb-field-path'?: string;
 }
 
-const { heading, body, items, columns, ...rest } = Astro.props;
+const { heading, body, items, columns, fixedImageHeight, ...rest } = Astro.props;
 ---
 
 <Section {...rest} class="text-center">
@@ -31,7 +31,7 @@ const { heading, body, items, columns, ...rest } = Astro.props;
                 data-sb-field-path=".items"
             >
                 {items?.map((item, idx) => (
-                    <Card {...item} data-sb-field-path={`.${idx}`} class="flex-1" />
+                    <Card {...item} fixedImageHeight={fixedImageHeight} data-sb-field-path={`.${idx}`} class="flex-1" />
                 ))}
             </div>
         )

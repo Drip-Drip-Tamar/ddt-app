@@ -43,6 +43,14 @@ export default defineType({
       initialValue: 'three',
       group: 'styles',
     }),
+    defineField({
+      name: 'fixedImageHeight',
+      title: 'Fixed Image Height',
+      description: 'Enable to make all card images the same height for better alignment',
+      type: 'boolean',
+      initialValue: false,
+      group: 'styles',
+    }),
   ],
   preview: {
     select: {

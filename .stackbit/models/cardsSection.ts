@@ -8,6 +8,10 @@ export const cardsSection: ModelExtension = {
         {
             name: 'columns',
             controlType: 'button-group'
+        },
+        {
+            name: 'fixedImageHeight',
+            controlType: 'switch'
         }
     ]
 };

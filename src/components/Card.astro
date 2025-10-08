@@ -8,9 +8,10 @@ import ResponsiveImage from '@components/ResponsiveImage.astro';
 interface Props extends Card {
     class?: string;
     'data-sb-field-path'?: string;
+    fixedImageHeight?: boolean;
 }
 
-const { badge, heading, body, cta, image, theme, textAlign, hasBorder, class: className, 'data-sb-field-path': fieldPath } = Astro.props;
+const { badge, heading, body, cta, image, theme, textAlign, hasBorder, fixedImageHeight, class: className, 'data-sb-field-path': fieldPath } = Astro.props;
 ---
 
 <div
@@ -20,14 +21,15 @@ const { badge, heading, body, cta, image, theme, textAlign, hasBorder, class: cl
 >
     {
         image && (image.asset || image.src) && (
-            <figure>
-                <ResponsiveImage 
-                    _id={image._id} 
-                    src={image.src} 
+            <figure class={fixedImageHeight ? 'h-100 overflow-hidden' : ''}>
+                <ResponsiveImage
+                    _id={image._id}
+                    src={image.src}
                     asset={image.asset}
                     dimensions={image.dimensions}
-                    alt={image.alt} 
+                    alt={image.alt}
                     imageType="card"
+                    class={fixedImageHeight ? 'h-full w-full object-cover' : ''}
                 />
             </figure>
         )
