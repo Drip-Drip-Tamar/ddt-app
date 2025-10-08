@@ -4,7 +4,7 @@
 export const SOCIAL_LINKS = {
   facebook: 'https://www.facebook.com/people/Drip-Drip-friends-of-the-Tamar-River/61564869366844/',
   email: 'dripdriptamar@gmail.com',
-  waterfitLive: 'https://www.southwestwater.co.uk/environment/waterfit/waterfit-live/'
+  waterfitLive: 'https://www.southwestwater.co.uk/environment/rivers-and-bathing-waters/waterfitlive/'
 };
 
 export const FACEBOOK_GROUP_NAME = 'Drip Drip – friends of the Tamar River';

@@ -35,7 +35,7 @@ async function queryStormOverflows(lat: number, lon: number, radiusKm: number, d
   try {
     const sinceDate = new Date();
     sinceDate.setDate(sinceDate.getDate() - daysAgo);
-    
+
     // Use simplified query - get all records and filter manually for better compatibility
     const params = new URLSearchParams({
       f: 'json',
@@ -44,7 +44,7 @@ async function queryStormOverflows(lat: number, lon: number, radiusKm: number, d
       returnGeometry: 'false',
       resultRecordCount: '500' // Get more records to ensure we capture all in area
     });
-    
+
     const url = `${SWW_ARCGIS_BASE}/0/query`;
     const response = await fetch(url, {
       method: 'POST',
@@ -53,28 +53,28 @@ async function queryStormOverflows(lat: number, lon: number, radiusKm: number, d
       },
       body: params.toString()
     });
-    
+
     if (!response.ok) {
       throw new Error(`ArcGIS query failed: ${response.status}`);
     }
-    
+
     const data = await response.json() as ArcGISResponse;
-    
+
     // Filter by distance and include all sites within radius
     // We'll show their current status regardless of when last event was
     const filteredFeatures = (data.features || []).filter(feature => {
       const featLat = feature.attributes.latitude;
       const featLon = feature.attributes.longitude;
-      
+
       if (!featLat || !featLon) return false;
-      
+
       // Check distance
       const distance = calculateDistance(lat, lon, featLat, featLon);
       return distance <= radiusKm;
     });
-    
+
     return filteredFeatures;
-    
+
   } catch (error) {
     console.error('Error querying storm overflows:', error);
     return [];
@@ -84,17 +84,17 @@ async function queryStormOverflows(lat: number, lon: number, radiusKm: number, d
 function transformToMapFeatures(features: StormOverflowFeature[], daysAgo: number) {
   const now = Date.now();
   const cutoffTime = now - (daysAgo * 24 * 60 * 60 * 1000);
-  
+
   return features.map(feature => {
     const siteName = feature.attributes.ID || `CSO ${feature.attributes.ObjectId}`;
     const waterCourse = feature.attributes.receivingWaterCourse || 'Unknown watercourse';
-    
+
     // Determine status based on the status field and event times
     let status: 'active' | 'recent' | 'inactive' = 'inactive';
     let startedAt: string | null = null;
     let endedAt: string | null = null;
     let duration: number | null = null;
-    
+
     // status === 1 means currently active
     if (feature.attributes.status === 1) {
       status = 'active';
@@ -103,20 +103,20 @@ function transformToMapFeatures(features: StormOverflowFeature[], daysAgo: numbe
     } else if (feature.attributes.latestEventStart && feature.attributes.latestEventStart >= cutoffTime) {
       status = 'recent';
     }
-    
+
     if (feature.attributes.latestEventStart) {
       startedAt = new Date(feature.attributes.latestEventStart).toISOString();
     }
-    
+
     if (feature.attributes.latestEventEnd) {
       endedAt = new Date(feature.attributes.latestEventEnd).toISOString();
     }
-    
+
     // Calculate duration if both start and end times exist
     if (feature.attributes.latestEventStart && feature.attributes.latestEventEnd) {
       duration = Math.round((feature.attributes.latestEventEnd - feature.attributes.latestEventStart) / 60000); // Convert to minutes
     }
-    
+
     return {
       id: `cso-${feature.attributes.ObjectId}`,
       name: `${siteName} - ${waterCourse}`,
@@ -136,13 +136,13 @@ export const GET: APIRoute = async ({ url }) => {
   try {
     // Get location configuration
     const location = await getPrimaryLocation();
-    
+
     // Parse query parameters with defaults from Sanity config
     const lat = parseFloat(url.searchParams.get('lat') || location.center.lat.toString());
     const lon = parseFloat(url.searchParams.get('lon') || location.center.lng.toString());
     const radiusKm = parseFloat(url.searchParams.get('radiusKm') || location.defaultRadius.toString());
     const days = parseFloat(url.searchParams.get('days') || '5');
-    
+
     // Validate parameters
     if (isNaN(lat) || isNaN(lon) || isNaN(radiusKm) || isNaN(days)) {
       return new Response(JSON.stringify({
@@ -155,28 +155,28 @@ export const GET: APIRoute = async ({ url }) => {
         }
       });
     }
-    
+
     // Query storm overflow data from the reliable source
     const liveFeatures = await queryStormOverflows(lat, lon, radiusKm, days);
-    
+
     // Transform to map-friendly format
     const features = transformToMapFeatures(liveFeatures, days);
-    
+
     // Sort features by status priority and distance
     features.sort((a, b) => {
       // Sort by status priority: active > recent > inactive
       const statusOrder = { active: 0, recent: 1, inactive: 2 };
       const statusDiff = statusOrder[a.status] - statusOrder[b.status];
       if (statusDiff !== 0) return statusDiff;
-      
+
       // Then by distance from center
       const distA = calculateDistance(lat, lon, a.lat, a.lon);
       const distB = calculateDistance(lat, lon, b.lat, b.lon);
       return distA - distB;
     });
-    
+
     const dataSource = liveFeatures.length > 0 ? 'live' : 'no-data';
-    
+
     return new Response(JSON.stringify({
       ok: true,
       centre: { lat, lon },
@@ -190,7 +190,7 @@ export const GET: APIRoute = async ({ url }) => {
       dataSource: dataSource,
       attribution: 'South West Water Storm Overflows – Event Duration Monitoring (Stream), CC BY 4.0',
       sources: [
-        'https://www.southwestwater.co.uk/environment/waterfit/waterfit-live/'
+        'https://www.southwestwater.co.uk/environment/rivers-and-bathing-waters/waterfitlive/'
       ],
       refreshHintMinutes: 10,
       generatedAt: new Date().toISOString()
@@ -201,10 +201,10 @@ export const GET: APIRoute = async ({ url }) => {
         'Cache-Control': 's-maxage=300, stale-while-revalidate=1800'
       }
     });
-    
+
   } catch (error) {
     console.error('Error in CSO map API:', error);
-    
+
     return new Response(JSON.stringify({
       ok: false,
       error: 'Failed to fetch storm overflow data',
@@ -213,7 +213,7 @@ export const GET: APIRoute = async ({ url }) => {
       features: [],
       attribution: 'South West Water',
       sources: [
-        'https://www.southwestwater.co.uk/environment/waterfit/waterfit-live/'
+        'https://www.southwestwater.co.uk/environment/rivers-and-bathing-waters/waterfitlive/'
       ]
     }), {
       status: 500,

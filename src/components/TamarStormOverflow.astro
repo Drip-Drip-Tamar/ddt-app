@@ -3,8 +3,8 @@ import Section from '@components/Section.astro';
 import type { Section as SectionType } from 'types';
 
 export interface Props extends SectionType {
-  class?: string;
-  'data-sb-field-path'?: string;
+    class?: string;
+    'data-sb-field-path'?: string;
 }
 
 const { class: className, ...sectionProps } = Astro.props;
@@ -14,180 +14,193 @@ const chartId = `cso-chart-${Math.random().toString(36).substring(2, 11)}`;
 ---
 
 <Section {...sectionProps} class={className}>
-  <div class="cso-container">
-    <div class="mb-6">
-      <h3 class="text-2xl font-bold mb-2">
-        Storm Overflows — Calstock Area
-      </h3>
-      <p class="text-sm text-base-content/70">
-        Combined Sewer Overflow (CSO) activity within 10km radius. Storm overflows discharge untreated sewage during heavy rainfall.
-        Check current status before water activities.
-      </p>
-    </div>
-    
-    <div class="bg-base-100 rounded-lg shadow-lg p-4 md:p-6">
-      <div class="mb-3">
-        <h4 class="text-lg font-semibold mb-1">5-Day CSO Activity</h4>
-        <p class="text-xs text-base-content/60">
-          Real-time monitoring from South West Water
-        </p>
-      </div>
-      
-      <!-- Current Status Display -->
-      <div id={`${chartId}-current`} class="flex items-center justify-between mb-3 p-2 bg-base-200 rounded">
-        <div>
-          <div class="text-xs text-base-content/70">Active Overflows</div>
-          <div class="text-xl font-bold">
-            <span id={`${chartId}-value`}>—</span>
-          </div>
-          <div class="text-xs text-base-content/60 mt-1" id={`${chartId}-time`}>Loading...</div>
+    <div class="cso-container">
+        <div class="mb-6">
+            <h3 class="text-2xl font-bold mb-2">Storm Overflows — Calstock Area</h3>
+            <p class="text-sm text-base-content/70">
+                Combined Sewer Overflow (CSO) activity within 10km radius. Storm overflows discharge untreated sewage during heavy rainfall. Check current
+                status before water activities.
+            </p>
         </div>
-        <div id={`${chartId}-badge`} class="badge badge-lg">Loading</div>
-      </div>
-      
-      <!-- Chart Canvas -->
-      <div class="chart-wrapper mb-6">
-        <canvas 
-          id={chartId}
-          class="cso-chart"
-          style="height: 250px; max-height: 300px;"
-        ></canvas>
-      </div>
-      
-      <!-- Recent Events Table -->
-      <div class="overflow-x-auto">
-        <h5 class="text-sm font-semibold mb-2">Recent Events (within 10km)</h5>
-        <table class="table table-xs">
-          <thead>
-            <tr>
-              <th>Location</th>
-              <th>Started</th>
-              <th>Duration</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-          <tbody id={`${chartId}-events`}>
-            <tr>
-              <td colspan="4" class="text-center text-base-content/60">Loading events...</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-      
-      <!-- Link to live map -->
-      <div class="mt-4 pt-3 border-t border-base-300">
-        <a href="https://www.southwestwater.co.uk/environment/waterfit/waterfit-live/" 
-           target="_blank" 
-           rel="noopener noreferrer"
-           class="btn btn-sm btn-primary">
-          Check WaterFit Live Map
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-          </svg>
-        </a>
-      </div>
+
+        <div class="bg-base-100 rounded-lg shadow-lg p-4 md:p-6">
+            <div class="mb-3">
+                <h4 class="text-lg font-semibold mb-1">5-Day CSO Activity</h4>
+                <p class="text-xs text-base-content/60">Real-time monitoring from South West Water</p>
+            </div>
+
+            <!-- Current Status Display -->
+            <div id={`${chartId}-current`} class="flex items-center justify-between mb-3 p-2 bg-base-200 rounded">
+                <div>
+                    <div class="text-xs text-base-content/70">Active Overflows</div>
+                    <div class="text-xl font-bold">
+                        <span id={`${chartId}-value`}>—</span>
+                    </div>
+                    <div class="text-xs text-base-content/60 mt-1" id={`${chartId}-time`}>Loading...</div>
+                </div>
+                <div id={`${chartId}-badge`} class="badge badge-lg">Loading</div>
+            </div>
+
+            <!-- Chart Canvas -->
+            <div class="chart-wrapper mb-6">
+                <canvas id={chartId} class="cso-chart" style="height: 250px; max-height: 300px;"></canvas>
+            </div>
+
+            <!-- Recent Events Table -->
+            <div class="overflow-x-auto">
+                <h5 class="text-sm font-semibold mb-2">Recent Events (within 10km)</h5>
+                <table class="table table-xs">
+                    <thead>
+                        <tr>
+                            <th>Location</th>
+                            <th>Started</th>
+                            <th>Duration</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id={`${chartId}-events`}>
+                        <tr>
+                            <td colspan="4" class="text-center text-base-content/60">Loading events...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Link to live map -->
+            <div class="mt-4 pt-3 border-t border-base-300">
+                <a
+                    href="https://www.southwestwater.co.uk/environment/rivers-and-bathing-waters/waterfitlive/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="btn btn-sm btn-primary"
+                >
+                    Check WaterFit Live Map
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                    </svg>
+                </a>
+            </div>
+        </div>
+
+        <!-- Attribution -->
+        <div class="mt-6 pt-3 border-t border-base-300">
+            <p class="text-xs text-base-content/60">
+                Data: <a
+                    href="https://www.southwestwater.co.uk/environment/rivers-and-bathing-waters/waterfitlive/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="link link-hover"
+                >
+                    South West Water Storm Overflows – Event Duration Monitoring (Stream)
+                </a> • CC BY 4.0 • Updated ~10 min
+            </p>
+        </div>
+
+        <!-- Error message (hidden by default) -->
+        <div id="cso-error" class="alert alert-warning mt-4 hidden">
+            <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+                <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                ></path>
+            </svg>
+            <span>Unable to load storm overflow data. Please try again later.</span>
+        </div>
+
+        <noscript>
+            <div class="alert alert-warning mt-4">
+                <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                    ></path>
+                </svg>
+                <span>JavaScript is required to view the live storm overflow data.</span>
+            </div>
+        </noscript>
     </div>
-    
-    <!-- Attribution -->
-    <div class="mt-6 pt-3 border-t border-base-300">
-      <p class="text-xs text-base-content/60">
-        Data: <a href="https://www.southwestwater.co.uk/environment/waterfit/waterfit-live/" 
-                 target="_blank" 
-                 rel="noopener noreferrer"
-                 class="link link-hover">
-          South West Water Storm Overflows – Event Duration Monitoring (Stream)
-        </a> • CC BY 4.0 • Updated ~10 min
-      </p>
-    </div>
-    
-    <!-- Error message (hidden by default) -->
-    <div id="cso-error" class="alert alert-warning mt-4 hidden">
-      <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-      </svg>
-      <span>Unable to load storm overflow data. Please try again later.</span>
-    </div>
-    
-    <noscript>
-      <div class="alert alert-warning mt-4">
-        <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-        </svg>
-        <span>JavaScript is required to view the live storm overflow data.</span>
-      </div>
-    </noscript>
-  </div>
 </Section>
 
 <script is:inline define:vars={{ chartId }}>
-  // Fetch CSO data and render chart
-  async function loadCSOData() {
-    try {
-      const response = await fetch('/api/cso-live.json');
-      if (!response.ok) throw new Error('Failed to fetch data');
-      
-      const data = await response.json();
-      
-      // Update current status display
-      const valueEl = document.getElementById(`${chartId}-value`);
-      const timeEl = document.getElementById(`${chartId}-time`);
-      const badgeEl = document.getElementById(`${chartId}-badge`);
-      const eventsEl = document.getElementById(`${chartId}-events`);
-      
-      // Count currently active overflows
-      const activeCount = data.events ? data.events.filter(e => e.status === 'active').length : 0;
-      valueEl.textContent = activeCount.toString();
-      
-      const now = new Date();
-      timeEl.textContent = `As of ${now.toLocaleString('en-GB', {
-        day: 'numeric',
-        month: 'short',
-        hour: '2-digit',
-        minute: '2-digit'
-      })}`;
-      
-      // Determine status
-      let status = 'Clear';
-      let statusColor = 'success';
-      
-      if (activeCount > 2) {
-        status = 'Multiple Active';
-        statusColor = 'error';
-      } else if (activeCount > 0) {
-        status = 'Active';
-        statusColor = 'warning';
-      }
-      
-      badgeEl.textContent = status;
-      badgeEl.className = `badge badge-lg badge-${statusColor}`;
-      
-      // Update events table
-      if (data.events && data.events.length > 0) {
-        const eventsHtml = data.events.slice(0, 10).map(event => {
-          const startDate = new Date(event.start);
-          const startStr = startDate.toLocaleString('en-GB', {
-            day: 'numeric',
-            month: 'short',
-            hour: '2-digit',
-            minute: '2-digit'
-          });
-          
-          let durationStr = '—';
-          if (event.durationMin) {
-            const hours = Math.floor(event.durationMin / 60);
-            const mins = event.durationMin % 60;
-            durationStr = hours > 0 ? `${hours}h ${mins}m` : `${mins}m`;
-          } else if (event.status === 'active') {
-            durationStr = 'Ongoing';
-          }
-          
-          const statusBadge = event.status === 'active' 
-            ? '<span class="badge badge-error badge-xs">Active</span>'
-            : '<span class="badge badge-ghost badge-xs">Ended</span>';
-          
-          const distance = event.distanceKm ? ` (${event.distanceKm}km)` : '';
-          
-          return `
+    // Fetch CSO data and render chart
+    async function loadCSOData() {
+        try {
+            const response = await fetch('/api/cso-live.json');
+            if (!response.ok) throw new Error('Failed to fetch data');
+
+            const data = await response.json();
+
+            // Update current status display
+            const valueEl = document.getElementById(`${chartId}-value`);
+            const timeEl = document.getElementById(`${chartId}-time`);
+            const badgeEl = document.getElementById(`${chartId}-badge`);
+            const eventsEl = document.getElementById(`${chartId}-events`);
+
+            // Count currently active overflows
+            const activeCount = data.events ? data.events.filter((e) => e.status === 'active').length : 0;
+            valueEl.textContent = activeCount.toString();
+
+            const now = new Date();
+            timeEl.textContent = `As of ${now.toLocaleString('en-GB', {
+                day: 'numeric',
+                month: 'short',
+                hour: '2-digit',
+                minute: '2-digit'
+            })}`;
+
+            // Determine status
+            let status = 'Clear';
+            let statusColor = 'success';
+
+            if (activeCount > 2) {
+                status = 'Multiple Active';
+                statusColor = 'error';
+            } else if (activeCount > 0) {
+                status = 'Active';
+                statusColor = 'warning';
+            }
+
+            badgeEl.textContent = status;
+            badgeEl.className = `badge badge-lg badge-${statusColor}`;
+
+            // Update events table
+            if (data.events && data.events.length > 0) {
+                const eventsHtml = data.events
+                    .slice(0, 10)
+                    .map((event) => {
+                        const startDate = new Date(event.start);
+                        const startStr = startDate.toLocaleString('en-GB', {
+                            day: 'numeric',
+                            month: 'short',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                        });
+
+                        let durationStr = '—';
+                        if (event.durationMin) {
+                            const hours = Math.floor(event.durationMin / 60);
+                            const mins = event.durationMin % 60;
+                            durationStr = hours > 0 ? `${hours}h ${mins}m` : `${mins}m`;
+                        } else if (event.status === 'active') {
+                            durationStr = 'Ongoing';
+                        }
+
+                        const statusBadge =
+                            event.status === 'active'
+                                ? '<span class="badge badge-error badge-xs">Active</span>'
+                                : '<span class="badge badge-ghost badge-xs">Ended</span>';
+
+                        const distance = event.distanceKm ? ` (${event.distanceKm}km)` : '';
+
+                        return `
             <tr>
               <td class="truncate max-w-[150px]" title="${event.site}">
                 ${event.site}${distance}
@@ -197,147 +210,150 @@ const chartId = `cso-chart-${Math.random().toString(36).substring(2, 11)}`;
               <td>${statusBadge}</td>
             </tr>
           `;
-        }).join('');
-        
-        eventsEl.innerHTML = eventsHtml || '<tr><td colspan="4" class="text-center text-base-content/60">No recent events</td></tr>';
-      } else {
-        eventsEl.innerHTML = '<tr><td colspan="4" class="text-center text-base-content/60">No recent events</td></tr>';
-      }
-      
-      // Load Chart.js and render chart
-      const observer = new IntersectionObserver((entries) => {
-        entries.forEach(async entry => {
-          if (entry.isIntersecting) {
-            observer.disconnect();
-            
-            try {
-              // Load Chart.js from CDN
-              const Chart = await window.loadChart();
-              
-              // Prepare chart data
-              const labels = data.activeSeries.map(point => {
-                const date = new Date(point.t);
-                return date.toLocaleString('en-GB', {
-                  day: 'numeric',
-                  month: 'short',
-                  hour: '2-digit'
-                });
-              });
-              
-              const ctx = document.getElementById(chartId);
-              if (ctx) {
-                new Chart(ctx, {
-                  type: 'line',
-                  data: {
-                    labels: labels,
-                    datasets: [{
-                      label: 'Active Overflows',
-                      data: data.activeSeries.map(point => point.count),
-                      borderColor: 'rgb(239, 68, 68)',
-                      backgroundColor: 'rgba(239, 68, 68, 0.2)',
-                      borderWidth: 2,
-                      tension: 0.1,
-                      fill: true,
-                      stepped: 'before',
-                      pointRadius: 0,
-                      pointHoverRadius: 3
-                    }]
-                  },
-                  options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    interaction: {
-                      mode: 'index',
-                      intersect: false
-                    },
-                    plugins: {
-                      legend: {
-                        display: false
-                      },
-                      tooltip: {
-                        callbacks: {
-                          label: function(context) {
-                            const count = context.parsed.y;
-                            return count === 1 
-                              ? '1 active overflow' 
-                              : `${count} active overflows`;
-                          }
-                        }
-                      }
-                    },
-                    scales: {
-                      x: {
-                        display: true,
-                        ticks: {
-                          maxRotation: 45,
-                          minRotation: 45,
-                          autoSkip: true,
-                          maxTicksLimit: 10,
-                          font: { size: 9 }
-                        }
-                      },
-                      y: {
-                        display: true,
-                        title: {
-                          display: true,
-                          text: 'Active Count',
-                          font: { size: 10 }
-                        },
-                        ticks: {
-                          stepSize: 1,
-                          font: { size: 10 }
-                        },
-                        beginAtZero: true
-                      }
-                    }
-                  }
-                });
-              }
-            } catch (error) {
-              console.error('Failed to load Chart.js:', error);
-              document.getElementById('cso-error').classList.remove('hidden');
+                    })
+                    .join('');
+
+                eventsEl.innerHTML = eventsHtml || '<tr><td colspan="4" class="text-center text-base-content/60">No recent events</td></tr>';
+            } else {
+                eventsEl.innerHTML = '<tr><td colspan="4" class="text-center text-base-content/60">No recent events</td></tr>';
             }
-          }
-        });
-      }, { rootMargin: '50px' });
-      
-      // Observe the chart container
-      const chartContainer = document.getElementById(chartId);
-      if (chartContainer) {
-        observer.observe(chartContainer);
-      }
-      
-    } catch (error) {
-      console.error('Error loading CSO data:', error);
-      document.getElementById('cso-error').classList.remove('hidden');
-      document.getElementById(`${chartId}-current`).classList.add('hidden');
+
+            // Load Chart.js and render chart
+            const observer = new IntersectionObserver(
+                (entries) => {
+                    entries.forEach(async (entry) => {
+                        if (entry.isIntersecting) {
+                            observer.disconnect();
+
+                            try {
+                                // Load Chart.js from CDN
+                                const Chart = await window.loadChart();
+
+                                // Prepare chart data
+                                const labels = data.activeSeries.map((point) => {
+                                    const date = new Date(point.t);
+                                    return date.toLocaleString('en-GB', {
+                                        day: 'numeric',
+                                        month: 'short',
+                                        hour: '2-digit'
+                                    });
+                                });
+
+                                const ctx = document.getElementById(chartId);
+                                if (ctx) {
+                                    new Chart(ctx, {
+                                        type: 'line',
+                                        data: {
+                                            labels: labels,
+                                            datasets: [
+                                                {
+                                                    label: 'Active Overflows',
+                                                    data: data.activeSeries.map((point) => point.count),
+                                                    borderColor: 'rgb(239, 68, 68)',
+                                                    backgroundColor: 'rgba(239, 68, 68, 0.2)',
+                                                    borderWidth: 2,
+                                                    tension: 0.1,
+                                                    fill: true,
+                                                    stepped: 'before',
+                                                    pointRadius: 0,
+                                                    pointHoverRadius: 3
+                                                }
+                                            ]
+                                        },
+                                        options: {
+                                            responsive: true,
+                                            maintainAspectRatio: false,
+                                            interaction: {
+                                                mode: 'index',
+                                                intersect: false
+                                            },
+                                            plugins: {
+                                                legend: {
+                                                    display: false
+                                                },
+                                                tooltip: {
+                                                    callbacks: {
+                                                        label: function (context) {
+                                                            const count = context.parsed.y;
+                                                            return count === 1 ? '1 active overflow' : `${count} active overflows`;
+                                                        }
+                                                    }
+                                                }
+                                            },
+                                            scales: {
+                                                x: {
+                                                    display: true,
+                                                    ticks: {
+                                                        maxRotation: 45,
+                                                        minRotation: 45,
+                                                        autoSkip: true,
+                                                        maxTicksLimit: 10,
+                                                        font: { size: 9 }
+                                                    }
+                                                },
+                                                y: {
+                                                    display: true,
+                                                    title: {
+                                                        display: true,
+                                                        text: 'Active Count',
+                                                        font: { size: 10 }
+                                                    },
+                                                    ticks: {
+                                                        stepSize: 1,
+                                                        font: { size: 10 }
+                                                    },
+                                                    beginAtZero: true
+                                                }
+                                            }
+                                        }
+                                    });
+                                }
+                            } catch (error) {
+                                console.error('Failed to load Chart.js:', error);
+                                document.getElementById('cso-error').classList.remove('hidden');
+                            }
+                        }
+                    });
+                },
+                { rootMargin: '50px' }
+            );
+
+            // Observe the chart container
+            const chartContainer = document.getElementById(chartId);
+            if (chartContainer) {
+                observer.observe(chartContainer);
+            }
+        } catch (error) {
+            console.error('Error loading CSO data:', error);
+            document.getElementById('cso-error').classList.remove('hidden');
+            document.getElementById(`${chartId}-current`).classList.add('hidden');
+        }
     }
-  }
-  
-  // Load data when DOM is ready
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', loadCSOData);
-  } else {
-    loadCSOData();
-  }
+
+    // Load data when DOM is ready
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', loadCSOData);
+    } else {
+        loadCSOData();
+    }
 </script>
 
 <style>
-  .cso-container {
-    max-width: 100%;
-  }
-  
-  .chart-wrapper {
-    width: 100%;
-  }
-  
-  .table {
-    font-size: 0.75rem;
-  }
-  
-  @media (max-width: 640px) {
-    .cso-chart {
-      max-height: 200px !important;
+    .cso-container {
+        max-width: 100%;
     }
-  }
+
+    .chart-wrapper {
+        width: 100%;
+    }
+
+    .table {
+        font-size: 0.75rem;
+    }
+
+    @media (max-width: 640px) {
+        .cso-chart {
+            max-height: 200px !important;
+        }
+    }
 </style>

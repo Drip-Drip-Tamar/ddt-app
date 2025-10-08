@@ -7,20 +7,21 @@ import Cta from '@components/Cta.astro';
 import { SOCIAL_LINKS } from '@config/social';
 
 const pageTitle = 'Storm Overflow Map';
-const pageDescription = 'Interactive map showing real-time storm overflow activity near Calstock on the River Tamar. Monitor CSO discharges to make informed decisions about water activities.';
+const pageDescription =
+    'Interactive map showing real-time storm overflow activity near Calstock on the River Tamar. Monitor CSO discharges to make informed decisions about water activities.';
 
 // Define the page sections
 const heroSection = {
-  _type: 'heroSection',
-  heading: 'Storm Overflow Map',
-  body: 'Monitor real-time Combined Sewer Overflow (CSO) activity within 10km of Calstock. Storm overflows discharge untreated sewage during heavy rainfall. Check this map before swimming, paddling, or other water activities.',
-  theme: 'dark' as const
+    _type: 'heroSection',
+    heading: 'Storm Overflow Map',
+    body: 'Monitor real-time Combined Sewer Overflow (CSO) activity within 10km of Calstock. Storm overflows discharge untreated sewage during heavy rainfall. Check this map before swimming, paddling, or other water activities.',
+    theme: 'dark' as const
 };
 
 const infoSection = {
-  _type: 'heroSection',
-  heading: 'Understanding the Map',
-  body: `**Map Indicators:**
+    _type: 'heroSection',
+    heading: 'Understanding the Map',
+    body: `**Map Indicators:**
 - **⚠️ Red markers**: Currently active overflows discharging into watercourses
 - **⚡ Amber markers**: Recent activity (ended within last 5 days)
 - **✓ Grey markers**: Inactive or no recent discharge activity
@@ -46,17 +47,17 @@ The 2023 data in each popup shows:
 - **Receiving water**: The river or water body receiving any discharge
 
 This historical data helps identify CSOs that activate frequently versus those that rarely discharge.`,
-  theme: 'light' as const
+    theme: 'light' as const
 };
 
 const dataAttributionSection = {
-  _type: 'heroSection',
-  heading: 'Data Sources & Attribution',
-  body: `This map combines multiple open data sources to provide comprehensive storm overflow information:
+    _type: 'heroSection',
+    heading: 'Data Sources & Attribution',
+    body: `This map combines multiple open data sources to provide comprehensive storm overflow information:
 
 **Primary Data Sources:**
 - [Rivers Trust EDM Annual Returns 2023](https://theriverstrust.org/key-issues/sewage-in-rivers) - Licensed under CC BY 4.0
-- [South West Water Event Duration Monitoring](https://www.southwestwater.co.uk/environment/waterfit/waterfit-live/) - Live data when available
+- [South West Water Event Duration Monitoring](https://www.southwestwater.co.uk/environment/rivers-and-bathing-waters/waterfitlive/) - Live data when available
 - [Environment Agency Catchment Data Explorer](https://environment.data.gov.uk/catchment-planning/) - Water body classifications
 
 **Data Currency:**
@@ -67,49 +68,43 @@ const dataAttributionSection = {
 **Important Notes:**
 - The absence of live data doesn't mean overflows aren't occurring - always check recent rainfall
 - 2023 statistics provide historical context but may not reflect current year activity
-- For official real-time updates, visit [WaterFit Live](https://www.southwestwater.co.uk/environment/waterfit/waterfit-live/)`,
-  theme: 'dark' as const
+- For official real-time updates, visit [WaterFit Live](https://www.southwestwater.co.uk/environment/rivers-and-bathing-waters/waterfitlive/)`,
+    theme: 'dark' as const
 };
 
 const ctaSection = {
-  _type: 'ctaSection',
-  heading: 'Stay Informed',
-  body: 'Check multiple sources before water activities',
-  cta: [
-    {
-      _type: 'actionButton',
-      label: 'View Water Quality Results',
-      url: '/results',
-      theme: 'primary'
-    },
-    {
-      _type: 'actionButton',
-      label: 'WaterFit Live Map',
-      url: SOCIAL_LINKS.waterfitLive,
-      theme: 'secondary'
-    }
-  ]
+    _type: 'ctaSection',
+    heading: 'Stay Informed',
+    body: 'Check multiple sources before water activities',
+    cta: [
+        {
+            _type: 'actionButton',
+            label: 'View Water Quality Results',
+            url: '/results',
+            theme: 'primary'
+        },
+        {
+            _type: 'actionButton',
+            label: 'WaterFit Live Map',
+            url: SOCIAL_LINKS.waterfitLive,
+            theme: 'secondary'
+        }
+    ]
 };
 ---
 
 <Layout title={pageTitle} description={pageDescription}>
-  <Hero {...heroSection} />
-  
-  <!-- Interactive Map Section -->
-  <TamarStormOverflowMap 
-    theme="light" 
-    width="full"
-  />
-  
-  <Hero {...infoSection} />
-  
-  <!-- Activity Chart Section -->
-  <TamarStormOverflow 
-    theme="light" 
-    width="inset"
-  />
-  
-  <Hero {...dataAttributionSection} />
-  
-  <Cta {...ctaSection} />
+    <Hero {...heroSection} />
+
+    <!-- Interactive Map Section -->
+    <TamarStormOverflowMap theme="light" width="full" />
+
+    <Hero {...infoSection} />
+
+    <!-- Activity Chart Section -->
+    <TamarStormOverflow theme="light" width="inset" />
+
+    <Hero {...dataAttributionSection} />
+
+    <Cta {...ctaSection} />
 </Layout>

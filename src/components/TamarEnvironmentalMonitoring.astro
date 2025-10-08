@@ -3,8 +3,8 @@ import Section from '@components/Section.astro';
 import type { Section as SectionType } from 'types';
 
 export interface Props extends SectionType {
-  class?: string;
-  'data-sb-field-path'?: string;
+    class?: string;
+    'data-sb-field-path'?: string;
 }
 
 const { class: className, ...sectionProps } = Astro.props;
@@ -17,380 +17,387 @@ const csoChartId = `cso-chart-${Math.random().toString(36).substring(2, 11)}`;
 ---
 
 <Section {...sectionProps} class={className}>
-  <div class="env-monitoring-container">
-    <!-- Main Header -->
-    <div class="mb-8">
-      <h3 class="text-2xl font-bold mb-3">
-        Environmental Monitoring — Tamar
-      </h3>
-      <p class="text-sm text-base-content/70 leading-relaxed">
-        Real-time environmental conditions affecting water quality in the River Tamar near Calstock. 
-        These core indicators show river flow, tidal state, rainfall, and storm overflow activity. 
-        Note: Comprehensive contamination risk assessment requires additional metrics including wind conditions, 
-        sunlight/UV exposure, seasonal factors, water temperature, and turbidity measurements. 
-        Always consider multiple environmental factors before water activities.
-      </p>
-    </div>
-    
-    <!-- Stacked Chart Cards -->
-    <div class="space-y-6">
-      
-      <!-- River Flow Chart -->
-      <div class="bg-base-100 rounded-lg shadow-lg p-4 md:p-6">
-        <div class="mb-3">
-          <h4 class="text-lg font-semibold mb-1">River Flow — Gunnislake</h4>
-          <p class="text-xs text-base-content/60">
-            High flow indicates recent rainfall, increasing contamination from agricultural runoff and urban drainage.
-          </p>
+    <div class="env-monitoring-container">
+        <!-- Main Header -->
+        <div class="mb-8">
+            <h3 class="text-2xl font-bold mb-3">Environmental Monitoring — Tamar</h3>
+            <p class="text-sm text-base-content/70 leading-relaxed">
+                Real-time environmental conditions affecting water quality in the River Tamar near Calstock. These core indicators show river flow, tidal state,
+                rainfall, and storm overflow activity. Note: Comprehensive contamination risk assessment requires additional metrics including wind conditions,
+                sunlight/UV exposure, seasonal factors, water temperature, and turbidity measurements. Always consider multiple environmental factors before
+                water activities.
+            </p>
         </div>
-        
-        <div id={`${gunnislakeChartId}-current`} class="flex items-center justify-between mb-3 p-2 bg-base-200 rounded">
-          <div>
-            <div class="text-xs text-base-content/70">Current Level</div>
-            <div class="text-xl font-bold">
-              <span id={`${gunnislakeChartId}-value`}>—</span> m
-            </div>
-            <div class="text-xs text-base-content/60 mt-1" id={`${gunnislakeChartId}-time`}>Loading...</div>
-          </div>
-          <div id={`${gunnislakeChartId}-badge`} class="badge badge-lg">Loading</div>
-        </div>
-        
-        <div class="chart-wrapper">
-          <canvas 
-            id={gunnislakeChartId}
-            class="env-chart"
-            style="height: 250px; max-height: 250px;"
-          ></canvas>
-        </div>
-      </div>
-      
-      <!-- Tidal Level Chart -->
-      <div class="bg-base-100 rounded-lg shadow-lg p-4 md:p-6">
-        <div class="mb-3">
-          <h4 class="text-lg font-semibold mb-1">Tidal Level — Plymouth</h4>
-          <p class="text-xs text-base-content/60">
-            Low tide concentrates pollution, high tide provides dilution. Check tide state before water activities.
-          </p>
-        </div>
-        
-        <div id={`${plymouthChartId}-current`} class="flex items-center justify-between mb-3 p-2 bg-base-200 rounded">
-          <div>
-            <div class="text-xs text-base-content/70">Current Level</div>
-            <div class="text-xl font-bold">
-              <span id={`${plymouthChartId}-value`}>—</span> m
-            </div>
-            <div class="text-xs text-base-content/60 mt-1" id={`${plymouthChartId}-time`}>Loading...</div>
-          </div>
-          <div id={`${plymouthChartId}-badge`} class="badge badge-lg">Loading</div>
-        </div>
-        
-        <div class="chart-wrapper">
-          <canvas 
-            id={plymouthChartId}
-            class="env-chart"
-            style="height: 250px; max-height: 250px;"
-          ></canvas>
-        </div>
-      </div>
 
-      <!-- Rainfall Chart -->
-      <div class="bg-base-100 rounded-lg shadow-lg p-4 md:p-6">
-        <div class="mb-3">
-          <h4 class="text-lg font-semibold mb-1">Rainfall — Calstock Area (10km)</h4>
-          <p class="text-xs text-base-content/60">
-            Heavy rainfall triggers agricultural runoff and storm overflow discharges. Avoid water contact 48-72 hours after heavy rain.
-          </p>
-        </div>
-        
-        <div id={`${rainfallChartId}-current`} class="flex items-center justify-between mb-3 p-2 bg-base-200 rounded">
-          <div>
-            <div class="text-xs text-base-content/70">24h Total</div>
-            <div class="text-xl font-bold">
-              <span id={`${rainfallChartId}-value`}>—</span> mm
-            </div>
-            <div class="text-xs text-base-content/60 mt-1" id={`${rainfallChartId}-time`}>Loading...</div>
-          </div>
-          <div id={`${rainfallChartId}-badge`} class="badge badge-lg">Loading</div>
-        </div>
-        
-        <div id={`${rainfallChartId}-stations`} class="text-xs text-base-content/60 mb-3">
-          Loading station data...
-        </div>
-        
-        <div class="chart-wrapper">
-          <canvas 
-            id={rainfallChartId}
-            class="env-chart"
-            style="height: 250px; max-height: 250px;"
-          ></canvas>
-        </div>
-      </div>
+        <!-- Stacked Chart Cards -->
+        <div class="space-y-6">
+            <!-- River Flow Chart -->
+            <div class="bg-base-100 rounded-lg shadow-lg p-4 md:p-6">
+                <div class="mb-3">
+                    <h4 class="text-lg font-semibold mb-1">River Flow — Gunnislake</h4>
+                    <p class="text-xs text-base-content/60">
+                        High flow indicates recent rainfall, increasing contamination from agricultural runoff and urban drainage.
+                    </p>
+                </div>
 
-      <!-- Storm Overflow Chart -->
-      <div class="bg-base-100 rounded-lg shadow-lg p-4 md:p-6">
-        <div class="mb-3">
-          <h4 class="text-lg font-semibold mb-1">Storm Overflows — Calstock Area (10km)</h4>
-          <p class="text-xs text-base-content/60">
-            Active CSOs discharge untreated sewage. Always check current status before entering water.
-          </p>
-        </div>
-        
-        <div id={`${csoChartId}-current`} class="flex items-center justify-between mb-3 p-2 bg-base-200 rounded">
-          <div>
-            <div class="text-xs text-base-content/70">Active Overflows</div>
-            <div class="text-xl font-bold">
-              <span id={`${csoChartId}-value`}>—</span>
+                <div id={`${gunnislakeChartId}-current`} class="flex items-center justify-between mb-3 p-2 bg-base-200 rounded">
+                    <div>
+                        <div class="text-xs text-base-content/70">Current Level</div>
+                        <div class="text-xl font-bold">
+                            <span id={`${gunnislakeChartId}-value`}>—</span> m
+                        </div>
+                        <div class="text-xs text-base-content/60 mt-1" id={`${gunnislakeChartId}-time`}>Loading...</div>
+                    </div>
+                    <div id={`${gunnislakeChartId}-badge`} class="badge badge-lg">Loading</div>
+                </div>
+
+                <div class="chart-wrapper">
+                    <canvas id={gunnislakeChartId} class="env-chart" style="height: 250px; max-height: 250px;"></canvas>
+                </div>
             </div>
-            <div class="text-xs text-base-content/60 mt-1" id={`${csoChartId}-time`}>Loading...</div>
-          </div>
-          <div id={`${csoChartId}-badge`} class="badge badge-lg">Loading</div>
+
+            <!-- Tidal Level Chart -->
+            <div class="bg-base-100 rounded-lg shadow-lg p-4 md:p-6">
+                <div class="mb-3">
+                    <h4 class="text-lg font-semibold mb-1">Tidal Level — Plymouth</h4>
+                    <p class="text-xs text-base-content/60">
+                        Low tide concentrates pollution, high tide provides dilution. Check tide state before water activities.
+                    </p>
+                </div>
+
+                <div id={`${plymouthChartId}-current`} class="flex items-center justify-between mb-3 p-2 bg-base-200 rounded">
+                    <div>
+                        <div class="text-xs text-base-content/70">Current Level</div>
+                        <div class="text-xl font-bold">
+                            <span id={`${plymouthChartId}-value`}>—</span> m
+                        </div>
+                        <div class="text-xs text-base-content/60 mt-1" id={`${plymouthChartId}-time`}>Loading...</div>
+                    </div>
+                    <div id={`${plymouthChartId}-badge`} class="badge badge-lg">Loading</div>
+                </div>
+
+                <div class="chart-wrapper">
+                    <canvas id={plymouthChartId} class="env-chart" style="height: 250px; max-height: 250px;"></canvas>
+                </div>
+            </div>
+
+            <!-- Rainfall Chart -->
+            <div class="bg-base-100 rounded-lg shadow-lg p-4 md:p-6">
+                <div class="mb-3">
+                    <h4 class="text-lg font-semibold mb-1">Rainfall — Calstock Area (10km)</h4>
+                    <p class="text-xs text-base-content/60">
+                        Heavy rainfall triggers agricultural runoff and storm overflow discharges. Avoid water contact 48-72 hours after heavy rain.
+                    </p>
+                </div>
+
+                <div id={`${rainfallChartId}-current`} class="flex items-center justify-between mb-3 p-2 bg-base-200 rounded">
+                    <div>
+                        <div class="text-xs text-base-content/70">24h Total</div>
+                        <div class="text-xl font-bold">
+                            <span id={`${rainfallChartId}-value`}>—</span> mm
+                        </div>
+                        <div class="text-xs text-base-content/60 mt-1" id={`${rainfallChartId}-time`}>Loading...</div>
+                    </div>
+                    <div id={`${rainfallChartId}-badge`} class="badge badge-lg">Loading</div>
+                </div>
+
+                <div id={`${rainfallChartId}-stations`} class="text-xs text-base-content/60 mb-3">Loading station data...</div>
+
+                <div class="chart-wrapper">
+                    <canvas id={rainfallChartId} class="env-chart" style="height: 250px; max-height: 250px;"></canvas>
+                </div>
+            </div>
+
+            <!-- Storm Overflow Chart -->
+            <div class="bg-base-100 rounded-lg shadow-lg p-4 md:p-6">
+                <div class="mb-3">
+                    <h4 class="text-lg font-semibold mb-1">Storm Overflows — Calstock Area (10km)</h4>
+                    <p class="text-xs text-base-content/60">Active CSOs discharge untreated sewage. Always check current status before entering water.</p>
+                </div>
+
+                <div id={`${csoChartId}-current`} class="flex items-center justify-between mb-3 p-2 bg-base-200 rounded">
+                    <div>
+                        <div class="text-xs text-base-content/70">Active Overflows</div>
+                        <div class="text-xl font-bold">
+                            <span id={`${csoChartId}-value`}>—</span>
+                        </div>
+                        <div class="text-xs text-base-content/60 mt-1" id={`${csoChartId}-time`}>Loading...</div>
+                    </div>
+                    <div id={`${csoChartId}-badge`} class="badge badge-lg">Loading</div>
+                </div>
+
+                <div class="chart-wrapper mb-4">
+                    <canvas id={csoChartId} class="env-chart" style="height: 250px; max-height: 250px;"></canvas>
+                </div>
+
+                <!-- Recent Events Table -->
+                <div class="overflow-x-auto">
+                    <h5 class="text-sm font-semibold mb-2">Recent Events</h5>
+                    <table class="table table-xs">
+                        <thead>
+                            <tr>
+                                <th>Location</th>
+                                <th>Started</th>
+                                <th>Duration</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id={`${csoChartId}-events`}>
+                            <tr>
+                                <td colspan="4" class="text-center text-base-content/60">Loading events...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="mt-4 pt-3 border-t border-base-300">
+                    <a
+                        href="https://www.southwestwater.co.uk/environment/rivers-and-bathing-waters/waterfitlive/"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="btn btn-sm btn-primary"
+                    >
+                        Check WaterFit Live Map
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                        </svg>
+                    </a>
+                </div>
+            </div>
         </div>
-        
-        <div class="chart-wrapper mb-4">
-          <canvas 
-            id={csoChartId}
-            class="env-chart"
-            style="height: 250px; max-height: 250px;"
-          ></canvas>
+
+        <!-- Combined Attribution -->
+        <div class="mt-8 pt-4 border-t border-base-300">
+            <h5 class="text-sm font-semibold mb-2">Data Sources</h5>
+            <div class="space-y-1 text-xs text-base-content/60">
+                <p>
+                    • River & Tide Levels: <a
+                        href="https://environment.data.gov.uk/flood-monitoring/doc/reference"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="link link-hover"
+                    >
+                        Environment Agency real-time API
+                    </a> • Updated ~15 min
+                </p>
+                <p>
+                    • Rainfall: <a
+                        href="https://environment.data.gov.uk/flood-monitoring/doc/reference"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="link link-hover"
+                    >
+                        Environment Agency Rainfall API
+                    </a> • Open Government Licence v3.0
+                </p>
+                <p>
+                    • Storm Overflows: <a
+                        href="https://www.southwestwater.co.uk/environment/rivers-and-bathing-waters/waterfitlive/"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="link link-hover"
+                    >
+                        South West Water EDM (Stream)
+                    </a> • CC BY 4.0 • Updated ~10 min
+                </p>
+            </div>
         </div>
-        
-        <!-- Recent Events Table -->
-        <div class="overflow-x-auto">
-          <h5 class="text-sm font-semibold mb-2">Recent Events</h5>
-          <table class="table table-xs">
-            <thead>
-              <tr>
-                <th>Location</th>
-                <th>Started</th>
-                <th>Duration</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody id={`${csoChartId}-events`}>
-              <tr>
-                <td colspan="4" class="text-center text-base-content/60">Loading events...</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-        
-        <div class="mt-4 pt-3 border-t border-base-300">
-          <a href="https://www.southwestwater.co.uk/environment/waterfit/waterfit-live/" 
-             target="_blank" 
-             rel="noopener noreferrer"
-             class="btn btn-sm btn-primary">
-            Check WaterFit Live Map
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+
+        <!-- Error messages (hidden by default) -->
+        <div id="env-monitoring-error" class="alert alert-warning mt-4 hidden">
+            <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+                <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                ></path>
             </svg>
-          </a>
+            <span>Some environmental data could not be loaded. Please try again later.</span>
         </div>
-      </div>
+
+        <noscript>
+            <div class="alert alert-warning mt-4">
+                <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                    ></path>
+                </svg>
+                <span>JavaScript is required to view live environmental monitoring data.</span>
+            </div>
+        </noscript>
     </div>
-    
-    <!-- Combined Attribution -->
-    <div class="mt-8 pt-4 border-t border-base-300">
-      <h5 class="text-sm font-semibold mb-2">Data Sources</h5>
-      <div class="space-y-1 text-xs text-base-content/60">
-        <p>
-          • River & Tide Levels: <a href="https://environment.data.gov.uk/flood-monitoring/doc/reference" 
-                   target="_blank" rel="noopener noreferrer" class="link link-hover">
-            Environment Agency real-time API
-          </a> • Updated ~15 min
-        </p>
-        <p>
-          • Rainfall: <a href="https://environment.data.gov.uk/flood-monitoring/doc/reference" 
-                   target="_blank" rel="noopener noreferrer" class="link link-hover">
-            Environment Agency Rainfall API
-          </a> • Open Government Licence v3.0
-        </p>
-        <p>
-          • Storm Overflows: <a href="https://www.southwestwater.co.uk/environment/waterfit/waterfit-live/" 
-                   target="_blank" rel="noopener noreferrer" class="link link-hover">
-            South West Water EDM (Stream)
-          </a> • CC BY 4.0 • Updated ~10 min
-        </p>
-      </div>
-    </div>
-    
-    <!-- Error messages (hidden by default) -->
-    <div id="env-monitoring-error" class="alert alert-warning mt-4 hidden">
-      <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-      </svg>
-      <span>Some environmental data could not be loaded. Please try again later.</span>
-    </div>
-    
-    <noscript>
-      <div class="alert alert-warning mt-4">
-        <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-        </svg>
-        <span>JavaScript is required to view live environmental monitoring data.</span>
-      </div>
-    </noscript>
-  </div>
 </Section>
 
 <script is:inline define:vars={{ gunnislakeChartId, plymouthChartId, rainfallChartId, csoChartId }}>
-  // Load all environmental data
-  async function loadEnvironmentalData() {
-    try {
-      // Fetch all data in parallel
-      const [riverData, rainfallData, csoData] = await Promise.all([
-        fetch('/api/tamar-level.json').then(r => r.json()),
-        fetch('/api/rainfall.json').then(r => r.json()),
-        fetch('/api/cso-live.json').then(r => r.json())
-      ]);
-      
-      // Update River Flow (Gunnislake) display
-      if (riverData.gunnislake) {
-        const gunnislakeValue = document.getElementById(`${gunnislakeChartId}-value`);
-        const gunnislakeTime = document.getElementById(`${gunnislakeChartId}-time`);
-        const gunnislakeBadge = document.getElementById(`${gunnislakeChartId}-badge`);
-        
-        if (riverData.gunnislake.latest !== null) {
-          gunnislakeValue.textContent = riverData.gunnislake.latest.toFixed(3);
-          
-          if (riverData.gunnislake.lastUpdated) {
-            const date = new Date(riverData.gunnislake.lastUpdated);
-            gunnislakeTime.textContent = `${date.toLocaleString('en-GB', {
-              day: 'numeric',
-              month: 'short',
-              hour: '2-digit',
-              minute: '2-digit'
+    // Load all environmental data
+    async function loadEnvironmentalData() {
+        try {
+            // Fetch all data in parallel
+            const [riverData, rainfallData, csoData] = await Promise.all([
+                fetch('/api/tamar-level.json').then((r) => r.json()),
+                fetch('/api/rainfall.json').then((r) => r.json()),
+                fetch('/api/cso-live.json').then((r) => r.json())
+            ]);
+
+            // Update River Flow (Gunnislake) display
+            if (riverData.gunnislake) {
+                const gunnislakeValue = document.getElementById(`${gunnislakeChartId}-value`);
+                const gunnislakeTime = document.getElementById(`${gunnislakeChartId}-time`);
+                const gunnislakeBadge = document.getElementById(`${gunnislakeChartId}-badge`);
+
+                if (riverData.gunnislake.latest !== null) {
+                    gunnislakeValue.textContent = riverData.gunnislake.latest.toFixed(3);
+
+                    if (riverData.gunnislake.lastUpdated) {
+                        const date = new Date(riverData.gunnislake.lastUpdated);
+                        gunnislakeTime.textContent = `${date.toLocaleString('en-GB', {
+                            day: 'numeric',
+                            month: 'short',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                        })}`;
+                    }
+
+                    gunnislakeBadge.textContent = riverData.gunnislake.status;
+                    gunnislakeBadge.className = `badge badge-lg badge-${riverData.gunnislake.statusColor}`;
+                }
+            }
+
+            // Update Tidal (Plymouth) display
+            if (riverData.plymouth) {
+                const plymouthValue = document.getElementById(`${plymouthChartId}-value`);
+                const plymouthTime = document.getElementById(`${plymouthChartId}-time`);
+                const plymouthBadge = document.getElementById(`${plymouthChartId}-badge`);
+
+                if (riverData.plymouth.latest !== null) {
+                    plymouthValue.textContent = riverData.plymouth.latest.toFixed(2);
+
+                    if (riverData.plymouth.lastUpdated) {
+                        const date = new Date(riverData.plymouth.lastUpdated);
+                        plymouthTime.textContent = `${date.toLocaleString('en-GB', {
+                            day: 'numeric',
+                            month: 'short',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                        })}`;
+                    }
+
+                    plymouthBadge.textContent = riverData.plymouth.status;
+                    plymouthBadge.className = `badge badge-lg badge-${riverData.plymouth.statusColor}`;
+                }
+            }
+
+            // Update Rainfall display
+            const rainfallValue = document.getElementById(`${rainfallChartId}-value`);
+            const rainfallTime = document.getElementById(`${rainfallChartId}-time`);
+            const rainfallBadge = document.getElementById(`${rainfallChartId}-badge`);
+            const stationsEl = document.getElementById(`${rainfallChartId}-stations`);
+
+            if (rainfallData.rolling24h && rainfallData.rolling24h.length > 0) {
+                const latest24h = rainfallData.rolling24h[rainfallData.rolling24h.length - 1];
+                rainfallValue.textContent = latest24h.mm.toFixed(1);
+
+                const date = new Date(latest24h.t);
+                rainfallTime.textContent = `As of ${date.toLocaleString('en-GB', {
+                    day: 'numeric',
+                    month: 'short',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                })}`;
+
+                // Determine rainfall status
+                let status = 'Light';
+                let statusColor = 'success';
+
+                if (latest24h.mm > 25) {
+                    status = 'Heavy';
+                    statusColor = 'warning';
+                } else if (latest24h.mm > 10) {
+                    status = 'Moderate';
+                    statusColor = 'info';
+                } else if (latest24h.mm < 1) {
+                    status = 'Dry';
+                    statusColor = 'secondary';
+                }
+
+                rainfallBadge.textContent = status;
+                rainfallBadge.className = `badge badge-lg badge-${statusColor}`;
+            }
+
+            if (rainfallData.stations && rainfallData.stations.length > 0) {
+                const stationNames = rainfallData.stations.map((s) => `${s.name} (${s.distanceKm}km)`).join(', ');
+                stationsEl.textContent = `Stations: ${stationNames}`;
+            }
+
+            // Update CSO display
+            const csoValue = document.getElementById(`${csoChartId}-value`);
+            const csoTime = document.getElementById(`${csoChartId}-time`);
+            const csoBadge = document.getElementById(`${csoChartId}-badge`);
+            const eventsEl = document.getElementById(`${csoChartId}-events`);
+
+            const activeCount = csoData.events ? csoData.events.filter((e) => e.status === 'active').length : 0;
+            csoValue.textContent = activeCount.toString();
+
+            const now = new Date();
+            csoTime.textContent = `As of ${now.toLocaleString('en-GB', {
+                day: 'numeric',
+                month: 'short',
+                hour: '2-digit',
+                minute: '2-digit'
             })}`;
-          }
-          
-          gunnislakeBadge.textContent = riverData.gunnislake.status;
-          gunnislakeBadge.className = `badge badge-lg badge-${riverData.gunnislake.statusColor}`;
-        }
-      }
-      
-      // Update Tidal (Plymouth) display
-      if (riverData.plymouth) {
-        const plymouthValue = document.getElementById(`${plymouthChartId}-value`);
-        const plymouthTime = document.getElementById(`${plymouthChartId}-time`);
-        const plymouthBadge = document.getElementById(`${plymouthChartId}-badge`);
-        
-        if (riverData.plymouth.latest !== null) {
-          plymouthValue.textContent = riverData.plymouth.latest.toFixed(2);
-          
-          if (riverData.plymouth.lastUpdated) {
-            const date = new Date(riverData.plymouth.lastUpdated);
-            plymouthTime.textContent = `${date.toLocaleString('en-GB', {
-              day: 'numeric',
-              month: 'short',
-              hour: '2-digit',
-              minute: '2-digit'
-            })}`;
-          }
-          
-          plymouthBadge.textContent = riverData.plymouth.status;
-          plymouthBadge.className = `badge badge-lg badge-${riverData.plymouth.statusColor}`;
-        }
-      }
-      
-      // Update Rainfall display
-      const rainfallValue = document.getElementById(`${rainfallChartId}-value`);
-      const rainfallTime = document.getElementById(`${rainfallChartId}-time`);
-      const rainfallBadge = document.getElementById(`${rainfallChartId}-badge`);
-      const stationsEl = document.getElementById(`${rainfallChartId}-stations`);
-      
-      if (rainfallData.rolling24h && rainfallData.rolling24h.length > 0) {
-        const latest24h = rainfallData.rolling24h[rainfallData.rolling24h.length - 1];
-        rainfallValue.textContent = latest24h.mm.toFixed(1);
-        
-        const date = new Date(latest24h.t);
-        rainfallTime.textContent = `As of ${date.toLocaleString('en-GB', {
-          day: 'numeric',
-          month: 'short',
-          hour: '2-digit',
-          minute: '2-digit'
-        })}`;
-        
-        // Determine rainfall status
-        let status = 'Light';
-        let statusColor = 'success';
-        
-        if (latest24h.mm > 25) {
-          status = 'Heavy';
-          statusColor = 'warning';
-        } else if (latest24h.mm > 10) {
-          status = 'Moderate';
-          statusColor = 'info';
-        } else if (latest24h.mm < 1) {
-          status = 'Dry';
-          statusColor = 'secondary';
-        }
-        
-        rainfallBadge.textContent = status;
-        rainfallBadge.className = `badge badge-lg badge-${statusColor}`;
-      }
-      
-      if (rainfallData.stations && rainfallData.stations.length > 0) {
-        const stationNames = rainfallData.stations.map(s => `${s.name} (${s.distanceKm}km)`).join(', ');
-        stationsEl.textContent = `Stations: ${stationNames}`;
-      }
-      
-      // Update CSO display
-      const csoValue = document.getElementById(`${csoChartId}-value`);
-      const csoTime = document.getElementById(`${csoChartId}-time`);
-      const csoBadge = document.getElementById(`${csoChartId}-badge`);
-      const eventsEl = document.getElementById(`${csoChartId}-events`);
-      
-      const activeCount = csoData.events ? csoData.events.filter(e => e.status === 'active').length : 0;
-      csoValue.textContent = activeCount.toString();
-      
-      const now = new Date();
-      csoTime.textContent = `As of ${now.toLocaleString('en-GB', {
-        day: 'numeric',
-        month: 'short',
-        hour: '2-digit',
-        minute: '2-digit'
-      })}`;
-      
-      let status = 'Clear';
-      let statusColor = 'success';
-      
-      if (activeCount > 2) {
-        status = 'Multiple Active';
-        statusColor = 'error';
-      } else if (activeCount > 0) {
-        status = 'Active';
-        statusColor = 'warning';
-      }
-      
-      csoBadge.textContent = status;
-      csoBadge.className = `badge badge-lg badge-${statusColor}`;
-      
-      // Update CSO events table
-      if (csoData.events && csoData.events.length > 0) {
-        const eventsHtml = csoData.events.slice(0, 5).map(event => {
-          const startDate = new Date(event.start);
-          const startStr = startDate.toLocaleString('en-GB', {
-            day: 'numeric',
-            month: 'short',
-            hour: '2-digit',
-            minute: '2-digit'
-          });
-          
-          let durationStr = '—';
-          if (event.durationMin) {
-            const hours = Math.floor(event.durationMin / 60);
-            const mins = event.durationMin % 60;
-            durationStr = hours > 0 ? `${hours}h ${mins}m` : `${mins}m`;
-          } else if (event.status === 'active') {
-            durationStr = 'Ongoing';
-          }
-          
-          const statusBadge = event.status === 'active' 
-            ? '<span class="badge badge-error badge-xs">Active</span>'
-            : '<span class="badge badge-ghost badge-xs">Ended</span>';
-          
-          const distance = event.distanceKm ? ` (${event.distanceKm}km)` : '';
-          
-          return `
+
+            let status = 'Clear';
+            let statusColor = 'success';
+
+            if (activeCount > 2) {
+                status = 'Multiple Active';
+                statusColor = 'error';
+            } else if (activeCount > 0) {
+                status = 'Active';
+                statusColor = 'warning';
+            }
+
+            csoBadge.textContent = status;
+            csoBadge.className = `badge badge-lg badge-${statusColor}`;
+
+            // Update CSO events table
+            if (csoData.events && csoData.events.length > 0) {
+                const eventsHtml = csoData.events
+                    .slice(0, 5)
+                    .map((event) => {
+                        const startDate = new Date(event.start);
+                        const startStr = startDate.toLocaleString('en-GB', {
+                            day: 'numeric',
+                            month: 'short',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                        });
+
+                        let durationStr = '—';
+                        if (event.durationMin) {
+                            const hours = Math.floor(event.durationMin / 60);
+                            const mins = event.durationMin % 60;
+                            durationStr = hours > 0 ? `${hours}h ${mins}m` : `${mins}m`;
+                        } else if (event.status === 'active') {
+                            durationStr = 'Ongoing';
+                        }
+
+                        const statusBadge =
+                            event.status === 'active'
+                                ? '<span class="badge badge-error badge-xs">Active</span>'
+                                : '<span class="badge badge-ghost badge-xs">Ended</span>';
+
+                        const distance = event.distanceKm ? ` (${event.distanceKm}km)` : '';
+
+                        return `
             <tr>
               <td class="truncate max-w-[120px]" title="${event.site}">
                 ${event.site}${distance}
@@ -400,448 +407,454 @@ const csoChartId = `cso-chart-${Math.random().toString(36).substring(2, 11)}`;
               <td>${statusBadge}</td>
             </tr>
           `;
-        }).join('');
-        
-        eventsEl.innerHTML = eventsHtml || '<tr><td colspan="4" class="text-center text-base-content/60">No recent events</td></tr>';
-      } else {
-        eventsEl.innerHTML = '<tr><td colspan="4" class="text-center text-base-content/60">No recent events</td></tr>';
-      }
-      
-      // Load Chart.js and render all charts
-      const observer = new IntersectionObserver((entries) => {
-        entries.forEach(async entry => {
-          if (entry.isIntersecting) {
-            observer.disconnect();
-            
-            try {
-              // Load Chart.js from CDN
-              const Chart = await window.loadChart();
-              
-              // Common chart options
-              const commonOptions = {
-                responsive: true,
-                maintainAspectRatio: false,
-                interaction: {
-                  mode: 'index',
-                  intersect: false
-                },
-                plugins: {
-                  legend: {
-                    display: false
-                  }
-                }
-              };
-              
-              // Render Gunnislake chart
-              if (riverData.gunnislake) {
-                const ctx = document.getElementById(gunnislakeChartId);
-                if (ctx) {
-                  new Chart(ctx, {
-                    type: 'line',
-                    data: {
-                      labels: riverData.gunnislake.labels,
-                      datasets: [{
-                        label: 'River Level (m)',
-                        data: riverData.gunnislake.values,
-                        borderColor: 'rgb(59, 130, 246)',
-                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                        tension: 0.3,
-                        borderWidth: 2,
-                        pointRadius: 1,
-                        pointHoverRadius: 3,
-                        fill: true
-                      }]
-                    },
-                    options: {
-                      ...commonOptions,
-                      plugins: {
-                        ...commonOptions.plugins,
-                        tooltip: {
-                          callbacks: {
-                            label: function(context) {
-                              return `Level: ${context.parsed.y.toFixed(3)} m`;
-                            }
-                          }
-                        },
-                        annotation: {
-                          annotations: {
-                            typicalRange: {
-                              type: 'box',
-                              yMin: riverData.gunnislake.typicalRange.low,
-                              yMax: riverData.gunnislake.typicalRange.high,
-                              backgroundColor: 'rgba(34, 197, 94, 0.1)',
-                              borderColor: 'rgba(34, 197, 94, 0.3)',
-                              borderWidth: 1,
-                              borderDash: [5, 5]
-                            },
-                            typicalLow: {
-                              type: 'line',
-                              yMin: riverData.gunnislake.typicalRange.low,
-                              yMax: riverData.gunnislake.typicalRange.low,
-                              borderColor: 'rgba(34, 197, 94, 0.5)',
-                              borderWidth: 1,
-                              borderDash: [2, 2],
-                              label: {
-                                display: true,
-                                content: 'Typical Low',
-                                position: 'start',
-                                font: { size: 9 }
-                              }
-                            }
-                          }
-                        }
-                      },
-                      scales: {
-                        x: {
-                          display: true,
-                          ticks: {
-                            maxRotation: 45,
-                            minRotation: 45,
-                            autoSkip: true,
-                            maxTicksLimit: 8,
-                            font: { size: 10 }
-                          }
-                        },
-                        y: {
-                          display: true,
-                          title: {
-                            display: true,
-                            text: 'Level (m)',
-                            font: { size: 10 }
-                          },
-                          ticks: {
-                            callback: function(value) {
-                              return value.toFixed(1);
-                            },
-                            font: { size: 10 }
-                          }
-                        }
-                      }
-                    }
-                  });
-                }
-              }
-              
-              // Render Plymouth chart
-              if (riverData.plymouth) {
-                const ctx = document.getElementById(plymouthChartId);
-                if (ctx) {
-                  new Chart(ctx, {
-                    type: 'line',
-                    data: {
-                      labels: riverData.plymouth.labels,
-                      datasets: [{
-                        label: 'Tidal Level (mAOD)',
-                        data: riverData.plymouth.values,
-                        borderColor: 'rgb(139, 92, 246)',
-                        backgroundColor: 'rgba(139, 92, 246, 0.1)',
-                        tension: 0.3,
-                        borderWidth: 2,
-                        pointRadius: 1,
-                        pointHoverRadius: 3,
-                        fill: true
-                      }]
-                    },
-                    options: {
-                      ...commonOptions,
-                      plugins: {
-                        ...commonOptions.plugins,
-                        tooltip: {
-                          callbacks: {
-                            label: function(context) {
-                              return `Level: ${context.parsed.y.toFixed(2)} mAOD`;
-                            }
-                          }
-                        },
-                        annotation: {
-                          annotations: {
-                            meanSeaLevel: {
-                              type: 'line',
-                              yMin: 0,
-                              yMax: 0,
-                              borderColor: 'rgba(107, 114, 128, 0.5)',
-                              borderWidth: 1,
-                              borderDash: [5, 5],
-                              label: {
-                                display: true,
-                                content: 'Mean Sea Level',
-                                position: 'end',
-                                font: { size: 9 }
-                              }
-                            }
-                          }
-                        }
-                      },
-                      scales: {
-                        x: {
-                          display: true,
-                          ticks: {
-                            maxRotation: 45,
-                            minRotation: 45,
-                            autoSkip: true,
-                            maxTicksLimit: 8,
-                            font: { size: 10 }
-                          }
-                        },
-                        y: {
-                          display: true,
-                          title: {
-                            display: true,
-                            text: 'Level (mAOD)',
-                            font: { size: 10 }
-                          },
-                          ticks: {
-                            callback: function(value) {
-                              return value.toFixed(1);
-                            },
-                            font: { size: 10 }
-                          }
-                        }
-                      }
-                    }
-                  });
-                }
-              }
-              
-              // Render Rainfall chart
-              const rainfallCtx = document.getElementById(rainfallChartId);
-              if (rainfallCtx && rainfallData.hourly) {
-                const labels = rainfallData.hourly.map(h => {
-                  const date = new Date(h.t);
-                  return date.toLocaleString('en-GB', {
-                    day: 'numeric',
-                    month: 'short',
-                    hour: '2-digit'
-                  });
-                });
-                
-                new Chart(rainfallCtx, {
-                  type: 'bar',
-                  data: {
-                    labels: labels,
-                    datasets: [
-                      {
-                        label: 'Hourly Rainfall (mm)',
-                        data: rainfallData.hourly.map(h => h.mm),
-                        backgroundColor: 'rgba(59, 130, 246, 0.6)',
-                        borderColor: 'rgb(59, 130, 246)',
-                        borderWidth: 1,
-                        type: 'bar',
-                        yAxisID: 'y',
-                        order: 2
-                      },
-                      {
-                        label: '24h Rolling Total (mm)',
-                        data: rainfallData.rolling24h.map(h => h.mm),
-                        borderColor: 'rgb(239, 68, 68)',
-                        backgroundColor: 'rgba(239, 68, 68, 0.1)',
-                        borderWidth: 2,
-                        tension: 0.4,
-                        type: 'line',
-                        yAxisID: 'y1',
-                        pointRadius: 0,
-                        pointHoverRadius: 3,
-                        order: 1
-                      }
-                    ]
-                  },
-                  options: {
-                    ...commonOptions,
-                    plugins: {
-                      legend: {
-                        display: true,
-                        position: 'bottom',
-                        labels: {
-                          boxWidth: 12,
-                          font: { size: 10 }
-                        }
-                      },
-                      tooltip: {
-                        callbacks: {
-                          label: function(context) {
-                            if (context.dataset.type === 'bar') {
-                              return `Hourly: ${context.parsed.y.toFixed(1)} mm`;
-                            } else {
-                              return `24h Total: ${context.parsed.y.toFixed(1)} mm`;
-                            }
-                          }
-                        }
-                      }
-                    },
-                    scales: {
-                      x: {
-                        display: true,
-                        ticks: {
-                          maxRotation: 45,
-                          minRotation: 45,
-                          autoSkip: true,
-                          maxTicksLimit: 12,
-                          font: { size: 9 }
-                        }
-                      },
-                      y: {
-                        type: 'linear',
-                        display: true,
-                        position: 'left',
-                        title: {
-                          display: true,
-                          text: 'Hourly (mm)',
-                          font: { size: 10 }
-                        },
-                        ticks: {
-                          font: { size: 10 }
-                        }
-                      },
-                      y1: {
-                        type: 'linear',
-                        display: true,
-                        position: 'right',
-                        title: {
-                          display: true,
-                          text: '24h Total (mm)',
-                          font: { size: 10 }
-                        },
-                        ticks: {
-                          font: { size: 10 }
-                        },
-                        grid: {
-                          drawOnChartArea: false
-                        }
-                      }
-                    }
-                  }
-                });
-              }
-              
-              // Render CSO chart
-              const csoCtx = document.getElementById(csoChartId);
-              if (csoCtx && csoData.activeSeries) {
-                const labels = csoData.activeSeries.map(point => {
-                  const date = new Date(point.t);
-                  return date.toLocaleString('en-GB', {
-                    day: 'numeric',
-                    month: 'short',
-                    hour: '2-digit'
-                  });
-                });
-                
-                new Chart(csoCtx, {
-                  type: 'line',
-                  data: {
-                    labels: labels,
-                    datasets: [{
-                      label: 'Active Overflows',
-                      data: csoData.activeSeries.map(point => point.count),
-                      borderColor: 'rgb(239, 68, 68)',
-                      backgroundColor: 'rgba(239, 68, 68, 0.2)',
-                      borderWidth: 2,
-                      tension: 0.1,
-                      fill: true,
-                      stepped: 'before',
-                      pointRadius: 0,
-                      pointHoverRadius: 3
-                    }]
-                  },
-                  options: {
-                    ...commonOptions,
-                    plugins: {
-                      ...commonOptions.plugins,
-                      tooltip: {
-                        callbacks: {
-                          label: function(context) {
-                            const count = context.parsed.y;
-                            return count === 1 
-                              ? '1 active overflow' 
-                              : `${count} active overflows`;
-                          }
-                        }
-                      }
-                    },
-                    scales: {
-                      x: {
-                        display: true,
-                        ticks: {
-                          maxRotation: 45,
-                          minRotation: 45,
-                          autoSkip: true,
-                          maxTicksLimit: 10,
-                          font: { size: 9 }
-                        }
-                      },
-                      y: {
-                        display: true,
-                        title: {
-                          display: true,
-                          text: 'Active Count',
-                          font: { size: 10 }
-                        },
-                        ticks: {
-                          stepSize: 1,
-                          font: { size: 10 }
-                        },
-                        beginAtZero: true
-                      }
-                    }
-                  }
-                });
-              }
-              
-            } catch (error) {
-              console.error('Failed to load Chart.js:', error);
-              document.getElementById('env-monitoring-error').classList.remove('hidden');
+                    })
+                    .join('');
+
+                eventsEl.innerHTML = eventsHtml || '<tr><td colspan="4" class="text-center text-base-content/60">No recent events</td></tr>';
+            } else {
+                eventsEl.innerHTML = '<tr><td colspan="4" class="text-center text-base-content/60">No recent events</td></tr>';
             }
-          }
-        });
-      }, { rootMargin: '50px' });
-      
-      // Observe the first chart container
-      const chartContainer = document.getElementById(gunnislakeChartId);
-      if (chartContainer) {
-        observer.observe(chartContainer);
-      }
-      
-    } catch (error) {
-      console.error('Error loading environmental data:', error);
-      document.getElementById('env-monitoring-error').classList.remove('hidden');
+
+            // Load Chart.js and render all charts
+            const observer = new IntersectionObserver(
+                (entries) => {
+                    entries.forEach(async (entry) => {
+                        if (entry.isIntersecting) {
+                            observer.disconnect();
+
+                            try {
+                                // Load Chart.js from CDN
+                                const Chart = await window.loadChart();
+
+                                // Common chart options
+                                const commonOptions = {
+                                    responsive: true,
+                                    maintainAspectRatio: false,
+                                    interaction: {
+                                        mode: 'index',
+                                        intersect: false
+                                    },
+                                    plugins: {
+                                        legend: {
+                                            display: false
+                                        }
+                                    }
+                                };
+
+                                // Render Gunnislake chart
+                                if (riverData.gunnislake) {
+                                    const ctx = document.getElementById(gunnislakeChartId);
+                                    if (ctx) {
+                                        new Chart(ctx, {
+                                            type: 'line',
+                                            data: {
+                                                labels: riverData.gunnislake.labels,
+                                                datasets: [
+                                                    {
+                                                        label: 'River Level (m)',
+                                                        data: riverData.gunnislake.values,
+                                                        borderColor: 'rgb(59, 130, 246)',
+                                                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                                                        tension: 0.3,
+                                                        borderWidth: 2,
+                                                        pointRadius: 1,
+                                                        pointHoverRadius: 3,
+                                                        fill: true
+                                                    }
+                                                ]
+                                            },
+                                            options: {
+                                                ...commonOptions,
+                                                plugins: {
+                                                    ...commonOptions.plugins,
+                                                    tooltip: {
+                                                        callbacks: {
+                                                            label: function (context) {
+                                                                return `Level: ${context.parsed.y.toFixed(3)} m`;
+                                                            }
+                                                        }
+                                                    },
+                                                    annotation: {
+                                                        annotations: {
+                                                            typicalRange: {
+                                                                type: 'box',
+                                                                yMin: riverData.gunnislake.typicalRange.low,
+                                                                yMax: riverData.gunnislake.typicalRange.high,
+                                                                backgroundColor: 'rgba(34, 197, 94, 0.1)',
+                                                                borderColor: 'rgba(34, 197, 94, 0.3)',
+                                                                borderWidth: 1,
+                                                                borderDash: [5, 5]
+                                                            },
+                                                            typicalLow: {
+                                                                type: 'line',
+                                                                yMin: riverData.gunnislake.typicalRange.low,
+                                                                yMax: riverData.gunnislake.typicalRange.low,
+                                                                borderColor: 'rgba(34, 197, 94, 0.5)',
+                                                                borderWidth: 1,
+                                                                borderDash: [2, 2],
+                                                                label: {
+                                                                    display: true,
+                                                                    content: 'Typical Low',
+                                                                    position: 'start',
+                                                                    font: { size: 9 }
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                },
+                                                scales: {
+                                                    x: {
+                                                        display: true,
+                                                        ticks: {
+                                                            maxRotation: 45,
+                                                            minRotation: 45,
+                                                            autoSkip: true,
+                                                            maxTicksLimit: 8,
+                                                            font: { size: 10 }
+                                                        }
+                                                    },
+                                                    y: {
+                                                        display: true,
+                                                        title: {
+                                                            display: true,
+                                                            text: 'Level (m)',
+                                                            font: { size: 10 }
+                                                        },
+                                                        ticks: {
+                                                            callback: function (value) {
+                                                                return value.toFixed(1);
+                                                            },
+                                                            font: { size: 10 }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        });
+                                    }
+                                }
+
+                                // Render Plymouth chart
+                                if (riverData.plymouth) {
+                                    const ctx = document.getElementById(plymouthChartId);
+                                    if (ctx) {
+                                        new Chart(ctx, {
+                                            type: 'line',
+                                            data: {
+                                                labels: riverData.plymouth.labels,
+                                                datasets: [
+                                                    {
+                                                        label: 'Tidal Level (mAOD)',
+                                                        data: riverData.plymouth.values,
+                                                        borderColor: 'rgb(139, 92, 246)',
+                                                        backgroundColor: 'rgba(139, 92, 246, 0.1)',
+                                                        tension: 0.3,
+                                                        borderWidth: 2,
+                                                        pointRadius: 1,
+                                                        pointHoverRadius: 3,
+                                                        fill: true
+                                                    }
+                                                ]
+                                            },
+                                            options: {
+                                                ...commonOptions,
+                                                plugins: {
+                                                    ...commonOptions.plugins,
+                                                    tooltip: {
+                                                        callbacks: {
+                                                            label: function (context) {
+                                                                return `Level: ${context.parsed.y.toFixed(2)} mAOD`;
+                                                            }
+                                                        }
+                                                    },
+                                                    annotation: {
+                                                        annotations: {
+                                                            meanSeaLevel: {
+                                                                type: 'line',
+                                                                yMin: 0,
+                                                                yMax: 0,
+                                                                borderColor: 'rgba(107, 114, 128, 0.5)',
+                                                                borderWidth: 1,
+                                                                borderDash: [5, 5],
+                                                                label: {
+                                                                    display: true,
+                                                                    content: 'Mean Sea Level',
+                                                                    position: 'end',
+                                                                    font: { size: 9 }
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                },
+                                                scales: {
+                                                    x: {
+                                                        display: true,
+                                                        ticks: {
+                                                            maxRotation: 45,
+                                                            minRotation: 45,
+                                                            autoSkip: true,
+                                                            maxTicksLimit: 8,
+                                                            font: { size: 10 }
+                                                        }
+                                                    },
+                                                    y: {
+                                                        display: true,
+                                                        title: {
+                                                            display: true,
+                                                            text: 'Level (mAOD)',
+                                                            font: { size: 10 }
+                                                        },
+                                                        ticks: {
+                                                            callback: function (value) {
+                                                                return value.toFixed(1);
+                                                            },
+                                                            font: { size: 10 }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        });
+                                    }
+                                }
+
+                                // Render Rainfall chart
+                                const rainfallCtx = document.getElementById(rainfallChartId);
+                                if (rainfallCtx && rainfallData.hourly) {
+                                    const labels = rainfallData.hourly.map((h) => {
+                                        const date = new Date(h.t);
+                                        return date.toLocaleString('en-GB', {
+                                            day: 'numeric',
+                                            month: 'short',
+                                            hour: '2-digit'
+                                        });
+                                    });
+
+                                    new Chart(rainfallCtx, {
+                                        type: 'bar',
+                                        data: {
+                                            labels: labels,
+                                            datasets: [
+                                                {
+                                                    label: 'Hourly Rainfall (mm)',
+                                                    data: rainfallData.hourly.map((h) => h.mm),
+                                                    backgroundColor: 'rgba(59, 130, 246, 0.6)',
+                                                    borderColor: 'rgb(59, 130, 246)',
+                                                    borderWidth: 1,
+                                                    type: 'bar',
+                                                    yAxisID: 'y',
+                                                    order: 2
+                                                },
+                                                {
+                                                    label: '24h Rolling Total (mm)',
+                                                    data: rainfallData.rolling24h.map((h) => h.mm),
+                                                    borderColor: 'rgb(239, 68, 68)',
+                                                    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                                                    borderWidth: 2,
+                                                    tension: 0.4,
+                                                    type: 'line',
+                                                    yAxisID: 'y1',
+                                                    pointRadius: 0,
+                                                    pointHoverRadius: 3,
+                                                    order: 1
+                                                }
+                                            ]
+                                        },
+                                        options: {
+                                            ...commonOptions,
+                                            plugins: {
+                                                legend: {
+                                                    display: true,
+                                                    position: 'bottom',
+                                                    labels: {
+                                                        boxWidth: 12,
+                                                        font: { size: 10 }
+                                                    }
+                                                },
+                                                tooltip: {
+                                                    callbacks: {
+                                                        label: function (context) {
+                                                            if (context.dataset.type === 'bar') {
+                                                                return `Hourly: ${context.parsed.y.toFixed(1)} mm`;
+                                                            } else {
+                                                                return `24h Total: ${context.parsed.y.toFixed(1)} mm`;
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            },
+                                            scales: {
+                                                x: {
+                                                    display: true,
+                                                    ticks: {
+                                                        maxRotation: 45,
+                                                        minRotation: 45,
+                                                        autoSkip: true,
+                                                        maxTicksLimit: 12,
+                                                        font: { size: 9 }
+                                                    }
+                                                },
+                                                y: {
+                                                    type: 'linear',
+                                                    display: true,
+                                                    position: 'left',
+                                                    title: {
+                                                        display: true,
+                                                        text: 'Hourly (mm)',
+                                                        font: { size: 10 }
+                                                    },
+                                                    ticks: {
+                                                        font: { size: 10 }
+                                                    }
+                                                },
+                                                y1: {
+                                                    type: 'linear',
+                                                    display: true,
+                                                    position: 'right',
+                                                    title: {
+                                                        display: true,
+                                                        text: '24h Total (mm)',
+                                                        font: { size: 10 }
+                                                    },
+                                                    ticks: {
+                                                        font: { size: 10 }
+                                                    },
+                                                    grid: {
+                                                        drawOnChartArea: false
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    });
+                                }
+
+                                // Render CSO chart
+                                const csoCtx = document.getElementById(csoChartId);
+                                if (csoCtx && csoData.activeSeries) {
+                                    const labels = csoData.activeSeries.map((point) => {
+                                        const date = new Date(point.t);
+                                        return date.toLocaleString('en-GB', {
+                                            day: 'numeric',
+                                            month: 'short',
+                                            hour: '2-digit'
+                                        });
+                                    });
+
+                                    new Chart(csoCtx, {
+                                        type: 'line',
+                                        data: {
+                                            labels: labels,
+                                            datasets: [
+                                                {
+                                                    label: 'Active Overflows',
+                                                    data: csoData.activeSeries.map((point) => point.count),
+                                                    borderColor: 'rgb(239, 68, 68)',
+                                                    backgroundColor: 'rgba(239, 68, 68, 0.2)',
+                                                    borderWidth: 2,
+                                                    tension: 0.1,
+                                                    fill: true,
+                                                    stepped: 'before',
+                                                    pointRadius: 0,
+                                                    pointHoverRadius: 3
+                                                }
+                                            ]
+                                        },
+                                        options: {
+                                            ...commonOptions,
+                                            plugins: {
+                                                ...commonOptions.plugins,
+                                                tooltip: {
+                                                    callbacks: {
+                                                        label: function (context) {
+                                                            const count = context.parsed.y;
+                                                            return count === 1 ? '1 active overflow' : `${count} active overflows`;
+                                                        }
+                                                    }
+                                                }
+                                            },
+                                            scales: {
+                                                x: {
+                                                    display: true,
+                                                    ticks: {
+                                                        maxRotation: 45,
+                                                        minRotation: 45,
+                                                        autoSkip: true,
+                                                        maxTicksLimit: 10,
+                                                        font: { size: 9 }
+                                                    }
+                                                },
+                                                y: {
+                                                    display: true,
+                                                    title: {
+                                                        display: true,
+                                                        text: 'Active Count',
+                                                        font: { size: 10 }
+                                                    },
+                                                    ticks: {
+                                                        stepSize: 1,
+                                                        font: { size: 10 }
+                                                    },
+                                                    beginAtZero: true
+                                                }
+                                            }
+                                        }
+                                    });
+                                }
+                            } catch (error) {
+                                console.error('Failed to load Chart.js:', error);
+                                document.getElementById('env-monitoring-error').classList.remove('hidden');
+                            }
+                        }
+                    });
+                },
+                { rootMargin: '50px' }
+            );
+
+            // Observe the first chart container
+            const chartContainer = document.getElementById(gunnislakeChartId);
+            if (chartContainer) {
+                observer.observe(chartContainer);
+            }
+        } catch (error) {
+            console.error('Error loading environmental data:', error);
+            document.getElementById('env-monitoring-error').classList.remove('hidden');
+        }
     }
-  }
-  
-  // Load data when DOM is ready
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', loadEnvironmentalData);
-  } else {
-    loadEnvironmentalData();
-  }
+
+    // Load data when DOM is ready
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', loadEnvironmentalData);
+    } else {
+        loadEnvironmentalData();
+    }
 </script>
 
 <style>
-  .env-monitoring-container {
-    max-width: 100%;
-    overflow-x: hidden;
-  }
-  
-  .chart-wrapper {
-    width: 100%;
-    position: relative;
-    overflow: hidden;
-  }
-  
-  .env-chart {
-    max-width: 100%;
-  }
-  
-  .space-y-6 > * + * {
-    margin-top: 1.5rem;
-  }
-  
-  .table {
-    font-size: 0.75rem;
-  }
-  
-  @media (max-width: 640px) {
-    .env-chart {
-      height: 200px !important;
-      max-height: 200px !important;
+    .env-monitoring-container {
+        max-width: 100%;
+        overflow-x: hidden;
     }
-  }
+
+    .chart-wrapper {
+        width: 100%;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .env-chart {
+        max-width: 100%;
+    }
+
+    .space-y-6 > * + * {
+        margin-top: 1.5rem;
+    }
+
+    .table {
+        font-size: 0.75rem;
+    }
+
+    @media (max-width: 640px) {
+        .env-chart {
+            height: 200px !important;
+            max-height: 200px !important;
+        }
+    }
 </style>

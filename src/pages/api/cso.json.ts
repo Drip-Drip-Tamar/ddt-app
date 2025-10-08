@@ -58,8 +58,8 @@ interface ArcGISResponse<T> {
 
 // Query base CSO locations from Rivers Trust EDM 2023 dataset
 async function queryBaseCSOs(
-  lat: number, 
-  lon: number, 
+  lat: number,
+  lon: number,
   radiusKm: number
 ): Promise<EDM2023Feature[]> {
   try {
@@ -74,7 +74,7 @@ async function queryBaseCSOs(
       returnGeometry: 'true',
       outSR: '4326'
     });
-    
+
     const url = `${RIVERS_TRUST_EDM_2023}/0/query`;
     const response = await fetch(url, {
       method: 'POST',
@@ -83,14 +83,14 @@ async function queryBaseCSOs(
       },
       body: params.toString()
     });
-    
+
     if (!response.ok) {
       throw new Error(`Rivers Trust query failed: ${response.status}`);
     }
-    
+
     const data = await response.json() as ArcGISResponse<EDM2023Feature>;
     return data.features || [];
-    
+
   } catch (error) {
     console.error('Error querying base CSOs:', error);
     return [];
@@ -99,8 +99,8 @@ async function queryBaseCSOs(
 
 // Query live storm overflow events from SWW
 async function queryLiveOverflows(
-  lat: number, 
-  lon: number, 
+  lat: number,
+  lon: number,
   radiusKm: number,
   daysAgo: number
 ): Promise<StormOverflowFeature[]> {
@@ -108,7 +108,7 @@ async function queryLiveOverflows(
     const sinceDate = new Date();
     sinceDate.setDate(sinceDate.getDate() - daysAgo);
     const epochMs = sinceDate.getTime();
-    
+
     // Query only features within radius using spatial filter to avoid global caps
     const params = new URLSearchParams({
       f: 'json',
@@ -123,7 +123,7 @@ async function queryLiveOverflows(
       units: 'esriSRUnit_Meter',
       spatialRel: 'esriSpatialRelIntersects'
     });
-    
+
     const url = `${SWW_ARCGIS_BASE}/0/query`;
     const response = await fetch(url, {
       method: 'POST',
@@ -132,36 +132,36 @@ async function queryLiveOverflows(
       },
       body: params.toString()
     });
-    
+
     if (!response.ok) {
       // SWW live endpoint returned non-OK status
       return [];
     }
-    
+
     const data = await response.json() as ArcGISResponse<StormOverflowFeature>;
-    
+
     // Filter by distance and date manually
     const filteredFeatures = (data.features || []).filter(feature => {
       const featLat = feature.attributes.latitude;
       const featLon = feature.attributes.longitude;
       const eventStart = feature.attributes.latestEventStart;
-      
+
       if (!featLat || !featLon) return false;
-      
+
       // Check distance
       const distance = calculateDistance(lat, lon, featLat, featLon);
       if (distance > radiusKm) return false;
-      
+
       // Check date or active status
       if (eventStart && eventStart >= epochMs) return true;
       // Include active events (status === 1) even if they started before our date range
       if (feature.attributes.status === 1) return true;
-      
+
       return false;
     });
-    
+
     return filteredFeatures;
-    
+
   } catch (error) {
     console.error('Error querying live overflows:', error);
     return [];
@@ -188,13 +188,13 @@ function mergeCSOwithLiveData(
 ) {
   const now = Date.now();
   const cutoffTime = now - (daysAgo * 24 * 60 * 60 * 1000);
-  
+
   return baseCSOs.map(baseCso => {
     const baseLat = baseCso.attributes.Latitude || baseCso.geometry?.y || 0;
     const baseLon = baseCso.attributes.Longitude || baseCso.geometry?.x || 0;
     const baseName = baseCso.attributes.siteNameWASC || baseCso.attributes.siteNameEA || '';
     const normalizedBaseName = normalizeSiteName(baseName);
-    
+
     // Find matching live event (within 100m or by name)
     const matchingLive = liveOverflows.find(live => {
       // Check by distance (within 100m)
@@ -202,30 +202,30 @@ function mergeCSOwithLiveData(
         const distance = calculateDistance(baseLat, baseLon, live.attributes.latitude, live.attributes.longitude);
         if (distance < 0.1) return true; // 100m = 0.1km
       }
-      
+
       // Check by name similarity
       if (live.attributes.ID) {
         const normalizedLiveName = normalizeSiteName(live.attributes.ID);
-        if (normalizedLiveName.includes(normalizedBaseName) || 
+        if (normalizedLiveName.includes(normalizedBaseName) ||
             normalizedBaseName.includes(normalizedLiveName)) {
           return true;
         }
       }
-      
+
       return false;
     });
-    
+
     // Determine status based on live data or defaults
     let status: 'active' | 'recent' | 'inactive' = 'inactive';
     let startedAt: string | null = null;
     let endedAt: string | null = null;
     let duration: number | null = null;
-    
+
     if (matchingLive) {
       // status === 1 means active overflow
       const isActive = matchingLive.attributes.status === 1 ||
                       (matchingLive.attributes.latestEventStart && !matchingLive.attributes.latestEventEnd);
-      
+
       if (isActive) {
         status = 'active';
       } else if (matchingLive.attributes.latestEventEnd && matchingLive.attributes.latestEventEnd >= cutoffTime) {
@@ -233,20 +233,20 @@ function mergeCSOwithLiveData(
       } else if (matchingLive.attributes.lastUpdated && matchingLive.attributes.lastUpdated >= cutoffTime) {
         status = 'recent';
       }
-      
-      startedAt = matchingLive.attributes.latestEventStart 
-        ? new Date(matchingLive.attributes.latestEventStart).toISOString() 
+
+      startedAt = matchingLive.attributes.latestEventStart
+        ? new Date(matchingLive.attributes.latestEventStart).toISOString()
         : null;
-      endedAt = matchingLive.attributes.latestEventEnd 
-        ? new Date(matchingLive.attributes.latestEventEnd).toISOString() 
+      endedAt = matchingLive.attributes.latestEventEnd
+        ? new Date(matchingLive.attributes.latestEventEnd).toISOString()
         : null;
-      
+
       // Calculate duration if both start and end times exist
       if (matchingLive.attributes.latestEventStart && matchingLive.attributes.latestEventEnd) {
         duration = Math.round((matchingLive.attributes.latestEventEnd - matchingLive.attributes.latestEventStart) / 60000); // Convert to minutes
       }
     }
-    
+
     return {
       id: `cso-${baseCso.attributes.UID || baseCso.attributes.ObjectId}`,
       name: baseName || `CSO ${baseCso.attributes.ObjectId}`,
@@ -258,8 +258,8 @@ function mergeCSOwithLiveData(
       lon: Math.round(baseLon * 10000) / 10000,
       // Include 2023 statistics for context
       spillCount2023: baseCso.attributes.countedSpills || 0,
-      totalDuration2023: baseCso.attributes.totalDurationAllSpillsHrs 
-        ? Math.round(baseCso.attributes.totalDurationAllSpillsHrs * 10) / 10 
+      totalDuration2023: baseCso.attributes.totalDurationAllSpillsHrs
+        ? Math.round(baseCso.attributes.totalDurationAllSpillsHrs * 10) / 10
         : 0,
       waterCompany: baseCso.attributes.waterCompanyName || 'Unknown',
       receivingWater: baseCso.attributes.recievingWaterName || 'Unknown'
@@ -273,36 +273,36 @@ function getMockFeatures(centerLat: number, centerLon: number, radiusKm: number)
     // Calstock area
     { name: 'Calstock CSO', lat: 50.497, lon: -4.202, status: 'inactive', daysAgo: 7 },
     { name: 'Calstock Quay Overflow', lat: 50.495, lon: -4.205, status: 'recent', daysAgo: 3 },
-    
+
     // Gunnislake area
     { name: 'Gunnislake Bridge CSO', lat: 50.530, lon: -4.220, status: 'recent', daysAgo: 2 },
     { name: 'Gunnislake New Road', lat: 50.532, lon: -4.215, status: 'inactive', daysAgo: 15 },
-    
+
     // Tamar Valley
     { name: 'Morwellham Overflow', lat: 50.505, lon: -4.195, status: 'active', daysAgo: 0 },
     { name: 'Cotehele Quay CSO', lat: 50.495, lon: -4.225, status: 'inactive', daysAgo: 20 },
-    
+
     // Bere Alston area
     { name: 'Bere Alston Station', lat: 50.485, lon: -4.200, status: 'recent', daysAgo: 4 },
     { name: 'Bere Ferrers CSO', lat: 50.470, lon: -4.185, status: 'inactive', daysAgo: 10 },
-    
+
     // Plymouth direction
     { name: 'Weir Quay Overflow', lat: 50.455, lon: -4.195, status: 'recent', daysAgo: 1 },
     { name: 'Cargreen CSO', lat: 50.440, lon: -4.200, status: 'active', daysAgo: 0 }
   ];
-  
+
   // Filter by distance
   const filtered = mockPoints.filter(point => {
     const distance = calculateDistance(centerLat, centerLon, point.lat, point.lon);
     return distance <= radiusKm;
   });
-  
+
   // Generate mock data with proper timestamps
   const now = Date.now();
   return filtered.map((point, index) => {
     const startTime = now - (point.daysAgo * 24 * 60 * 60 * 1000) - (Math.random() * 4 * 60 * 60 * 1000);
     const duration = point.status === 'active' ? null : (2 + Math.random() * 6) * 60 * 60 * 1000; // 2-8 hours
-    
+
     return {
       id: `mock-${index + 1}`,
       name: point.name,
@@ -320,14 +320,14 @@ export const GET: APIRoute = async ({ url }) => {
   try {
     // Get location configuration
     const location = await getPrimaryLocation();
-    
+
     // Parse query parameters with defaults from Sanity config
     const lat = parseFloat(url.searchParams.get('lat') || location.center.lat.toString());
     const lon = parseFloat(url.searchParams.get('lon') || location.center.lng.toString());
     const radiusKm = parseFloat(url.searchParams.get('radiusKm') || location.defaultRadius.toString());
     const days = parseFloat(url.searchParams.get('days') || '5');
     const useMockData = url.searchParams.get('mock') === 'true';
-    
+
     // Validate parameters
     if (isNaN(lat) || isNaN(lon) || isNaN(radiusKm) || isNaN(days)) {
       return new Response(JSON.stringify({
@@ -340,10 +340,10 @@ export const GET: APIRoute = async ({ url }) => {
         }
       });
     }
-    
+
     let features = [];
     let dataSource = 'unknown';
-    
+
     if (useMockData) {
       // Use mock data if explicitly requested
       features = getMockFeatures(lat, lon, radiusKm);
@@ -351,11 +351,11 @@ export const GET: APIRoute = async ({ url }) => {
     } else {
       // Query base CSO locations from Rivers Trust EDM 2023
       const baseCSOs = await queryBaseCSOs(lat, lon, radiusKm);
-      
+
       if (baseCSOs.length > 0) {
         // Query live overflow events from SWW
         const liveOverflows = await queryLiveOverflows(lat, lon, radiusKm, days);
-        
+
         // Merge base data with live events
         features = mergeCSOwithLiveData(baseCSOs, liveOverflows, days);
         dataSource = liveOverflows.length > 0 ? 'combined' : 'base-only';
@@ -365,20 +365,20 @@ export const GET: APIRoute = async ({ url }) => {
         dataSource = 'mock';
       }
     }
-    
+
     // Sort features by status priority and distance
     features.sort((a, b) => {
       // Sort by status priority: active > recent > inactive
       const statusOrder = { active: 0, recent: 1, inactive: 2 };
       const statusDiff = statusOrder[a.status] - statusOrder[b.status];
       if (statusDiff !== 0) return statusDiff;
-      
+
       // Then by distance from center
       const distA = calculateDistance(lat, lon, a.lat, a.lon);
       const distB = calculateDistance(lat, lon, b.lat, b.lon);
       return distA - distB;
     });
-    
+
     return new Response(JSON.stringify({
       ok: true,
       centre: { lat, lon },
@@ -390,12 +390,12 @@ export const GET: APIRoute = async ({ url }) => {
       recentCount: features.filter(f => f.status === 'recent').length,
       inactiveCount: features.filter(f => f.status === 'inactive').length,
       dataSource: dataSource,
-      attribution: dataSource === 'mock' 
+      attribution: dataSource === 'mock'
         ? 'Mock data for demonstration'
         : 'Rivers Trust EDM Annual Returns 2023 (CC BY 4.0) + South West Water live data',
       sources: [
         'https://www.theriverstrust.org/key-issues/sewage-in-rivers',
-        'https://www.southwestwater.co.uk/environment/waterfit/waterfit-live/'
+        'https://www.southwestwater.co.uk/environment/rivers-and-bathing-waters/waterfitlive/'
       ],
       refreshHintMinutes: 5,
       generatedAt: new Date().toISOString()
@@ -406,10 +406,10 @@ export const GET: APIRoute = async ({ url }) => {
         'Cache-Control': 's-maxage=300, stale-while-revalidate=1800'
       }
     });
-    
+
   } catch (error) {
     console.error('Error in CSO map API:', error);
-    
+
     return new Response(JSON.stringify({
       ok: false,
       error: 'Failed to fetch storm overflow data',
@@ -419,7 +419,7 @@ export const GET: APIRoute = async ({ url }) => {
       attribution: 'Rivers Trust + South West Water',
       sources: [
         'https://www.theriverstrust.org/key-issues/sewage-in-rivers',
-        'https://www.southwestwater.co.uk/environment/waterfit/waterfit-live/'
+        'https://www.southwestwater.co.uk/environment/rivers-and-bathing-waters/waterfitlive/'
       ]
     }), {
       status: 500,
