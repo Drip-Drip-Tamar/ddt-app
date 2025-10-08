@@ -109,13 +109,19 @@ async function queryLiveOverflows(
     sinceDate.setDate(sinceDate.getDate() - daysAgo);
     const epochMs = sinceDate.getTime();
     
-    // Use simplified query - get all records and filter manually for better compatibility
+    // Query only features within radius using spatial filter to avoid global caps
     const params = new URLSearchParams({
       f: 'json',
-      where: '1=1', // Get all records, will filter manually
+      where: '1=1',
       outFields: '*',
       returnGeometry: 'false',
-      resultRecordCount: '500' // Get more records to ensure we capture all in area
+      inSR: '4326',
+      outSR: '4326',
+      geometry: `${lon},${lat}`,
+      geometryType: 'esriGeometryPoint',
+      distance: String(radiusKm * 1000),
+      units: 'esriSRUnit_Meter',
+      spatialRel: 'esriSpatialRelIntersects'
     });
     
     const url = `${SWW_ARCGIS_BASE}/0/query`;

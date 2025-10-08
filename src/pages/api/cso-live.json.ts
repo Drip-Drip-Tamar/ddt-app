@@ -63,13 +63,19 @@ async function queryStormOverflows(layerId: number, sinceDate: Date, centerLat: 
   try {
     const epochMs = sinceDate.getTime();
     
-    // Build query parameters - simplified query for new API
+    // Build query parameters with spatial filter to avoid global caps
     const params = new URLSearchParams({
       f: 'json',
-      where: '1=1', // Get all records, will filter manually
+      where: '1=1',
       outFields: '*',
       returnGeometry: 'false',
-      resultRecordCount: '500' // Get more records to ensure we capture all in area
+      inSR: '4326',
+      outSR: '4326',
+      geometry: `${centerLng},${centerLat}`,
+      geometryType: 'esriGeometryPoint',
+      distance: String(radiusKm * 1000),
+      units: 'esriSRUnit_Meter',
+      spatialRel: 'esriSpatialRelIntersects'
     });
     
     const url = `${SWW_ARCGIS_BASE}/${layerId}/query`;
