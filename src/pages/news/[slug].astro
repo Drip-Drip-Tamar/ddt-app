@@ -7,15 +7,15 @@ import ResponsiveImage from '@components/ResponsiveImage.astro';
 import { client as sanityClient } from '@utils/sanity-client';
 
 export async function getStaticPaths() {
-  const POSTS_QUERY = `*[_type == "post" && defined(slug.current)]{
+    const POSTS_QUERY = `*[_type == "post" && defined(slug.current)]{
     "slug": slug.current
   }`;
-  
-  const posts = await sanityClient.fetch<{ slug: string }[]>(POSTS_QUERY);
-  
-  return posts.map(post => ({
-    params: { slug: post.slug }
-  }));
+
+    const posts = await sanityClient.fetch<{ slug: string }[]>(POSTS_QUERY);
+
+    return posts.map((post) => ({
+        params: { slug: post.slug }
+    }));
 }
 
 const { slug } = Astro.params;
@@ -52,161 +52,168 @@ const POST_QUERY = `*[_type == "post" && slug.current == $slug][0]{
 const post = await sanityClient.fetch<SanityDocument>(POST_QUERY, { slug });
 
 if (!post) {
-  return Astro.redirect('/404');
+    return Astro.redirect('/404');
 }
 
-const publishedDate = post.publishedAt 
-  ? new Date(post.publishedAt).toLocaleDateString('en-GB', {
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric'
-    })
-  : null;
+const publishedDate = post.publishedAt
+    ? new Date(post.publishedAt).toLocaleDateString('en-GB', {
+          day: 'numeric',
+          month: 'long',
+          year: 'numeric'
+      })
+    : null;
 
 // Use SEO fields if available, otherwise fall back to title and excerpt
 const seoTitle = post.seoTitle || post.title;
 const seoDescription = post.seoDescription || post.excerpt || '';
 ---
 
-<Layout 
-  title={seoTitle} 
-  addTitleSuffix={true} 
-  description={seoDescription}
-  image={post.featuredImage?.image ? {
-    ...post.featuredImage.image,
-    alt: post.featuredImage.alt
-  } : undefined}
+<Layout
+    title={seoTitle}
+    addTitleSuffix={true}
+    description={seoDescription}
+    image={post.featuredImage?.image
+        ? {
+              ...post.featuredImage.image,
+              alt: post.featuredImage.alt
+          }
+        : undefined}
 >
-  <main class="min-h-screen">
-    <article>
-      <Section class="max-w-5xl mx-auto">
-        {/* Post header with image */}
-        <header class="mb-8">
-          <div class="flex flex-col md:flex-row gap-6 md:gap-8 items-start">
-            {/* Featured image - left side on desktop, top on mobile */}
-            {post.featuredImage?.image?.asset && (
-              <div class="w-full md:w-80 md:flex-shrink-0">
-                <ResponsiveImage
-                  asset={post.featuredImage.image.asset}
-                  dimensions={post.featuredImage.image.dimensions}
-                  alt={post.featuredImage.alt || post.title}
-                  imageType="card"
-                  class="w-full rounded-lg shadow-lg"
-                />
-              </div>
-            )}
-            
-            {/* Title and metadata - right side on desktop, below image on mobile */}
-            <div class="flex-1">
-              <h1 class="text-3xl md:text-4xl lg:text-5xl font-black mb-4 text-balance">
-                {post.title}
-              </h1>
-              
-              {post.excerpt && (
-                <p class="text-lg text-gray-600 dark:text-gray-400 mb-6">
-                  {post.excerpt}
-                </p>
-              )}
-              
-              <div class="flex flex-wrap items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
-                {post.author && (
-                  <div class="flex items-center gap-2">
-                    {post.author.image?.image?.asset && (
-                      <ResponsiveImage
-                        asset={post.author.image.image.asset}
-                        dimensions={post.author.image.image.dimensions}
-                        alt={post.author.image.alt || post.author.name}
-                        imageType="avatar"
-                        class="w-10 h-10 rounded-full object-cover"
-                      />
-                    )}
-                    <div class="text-left">
-                      <p class="font-semibold text-gray-700 dark:text-gray-300">
-                        {post.author.name}
-                      </p>
-                      {post.author.title && (
-                        <p class="text-xs">{post.author.title}</p>
-                      )}
-                    </div>
-                  </div>
-                )}
-                
-                {publishedDate && (
-                  <time datetime={post.publishedAt} class="border-l pl-4 border-gray-300 dark:border-gray-600">
-                    {publishedDate}
-                  </time>
-                )}
-              </div>
-            </div>
-          </div>
-        </header>
+    <main class="min-h-screen bg-gray-50">
+        <article class="bg-white">
+            <Section class="max-w-4xl mx-auto py-8 md:py-12">
+                {/* Post header */}
+                <header class="mb-8">
+                    {/* Title */}
+                    <h1 class="text-3xl md:text-4xl lg:text-5xl font-black mb-6 leading-tight">
+                        {post.title}
+                    </h1>
 
-        {/* Post content */}
-        <div class="prose prose-lg dark:prose-invert max-w-none">
-          {post.body && (
-            <div class="portable-text" set:html={
-              post.body.map((block: any) => {
-                if (block._type === 'block') {
-                  const children = block.children.map((child: any) => {
-                    if (child._type === 'span') {
-                      let text = child.text;
-                      if (child.marks && child.marks.length > 0) {
-                        child.marks.forEach((mark: string) => {
-                          switch(mark) {
-                            case 'strong':
-                              text = `<strong>${text}</strong>`;
-                              break;
-                            case 'em':
-                              text = `<em>${text}</em>`;
-                              break;
-                            case 'underline':
-                              text = `<u>${text}</u>`;
-                              break;
-                            case 'code':
-                              text = `<code>${text}</code>`;
-                              break;
-                          }
-                        });
-                      }
-                      return text;
+                    {/* Featured image UNDER the title, constrained height */}
+                    {
+                        post.featuredImage?.image?.asset && (
+                            <figure class="mb-8 overflow-hidden">
+                                <div class="max-h-96 md:max-h-[28rem] overflow-hidden rounded-xl shadow-lg">
+                                    <ResponsiveImage
+                                        asset={post.featuredImage.image.asset}
+                                        dimensions={post.featuredImage.image.dimensions}
+                                        alt={post.featuredImage.alt || post.title}
+                                        imageType="hero"
+                                        class="w-full h-64 md:h-[28rem] object-cover object-center bg-gray-200"
+                                    />
+                                </div>
+                                {post.featuredImage.alt && (
+                                    <figcaption class="text-sm text-gray-100 text-center mt-3 px-4">{post.featuredImage.alt}</figcaption>
+                                )}
+                            </figure>
+                        )
                     }
-                    return '';
-                  }).join('');
-                  
-                  switch(block.style) {
-                    case 'h1':
-                      return `<h1>${children}</h1>`;
-                    case 'h2':
-                      return `<h2>${children}</h2>`;
-                    case 'h3':
-                      return `<h3>${children}</h3>`;
-                    case 'h4':
-                      return `<h4>${children}</h4>`;
-                    case 'blockquote':
-                      return `<blockquote>${children}</blockquote>`;
-                    default:
-                      return `<p>${children}</p>`;
-                  }
-                }
-                return '';
-              }).join('')
-            } />
-          )}
-        </div>
 
-        {/* Back to news link */}
-        <div class="mt-12 pt-8 border-t border-gray-200 dark:border-gray-700">
-          <a 
-            href="/news" 
-            class="inline-flex items-center gap-2 text-primary hover:underline"
-          >
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-            </svg>
-            Back to News
-          </a>
-        </div>
-      </Section>
-    </article>
-  </main>
+                    {/* Meta information */}
+                    <div class="flex flex-wrap items-center gap-4 mb-8 pb-8 border-b border-gray-200">
+                        {
+                            post.author && (
+                                <div class="flex items-center gap-3">
+                                    {post.author.image?.image?.asset && (
+                                        <ResponsiveImage
+                                            asset={post.author.image.image.asset}
+                                            dimensions={post.author.image.image.dimensions}
+                                            alt={post.author.image.alt || post.author.name}
+                                            imageType="avatar"
+                                            class="w-12 h-12 rounded-full object-cover ring-2 ring-gray-200"
+                                        />
+                                    )}
+                                    <div class="text-left">
+                                        <p class="font-semibold text-gray-800">{post.author.name}</p>
+                                        {post.author.title && <p class="text-sm text-gray-500">{post.author.title}</p>}
+                                    </div>
+                                </div>
+                            )
+                        }
+
+                        {
+                            publishedDate && (
+                                <time datetime={post.publishedAt} class="text-sm text-gray-500  border-l pl-4 border-gray-300">
+                                    {publishedDate}
+                                </time>
+                            )
+                        }
+                    </div>
+
+                    {/* Excerpt/Lead */}
+                    {post.excerpt && <p class="text-xl md:text-2xl text-gray-700 leading-relaxed mb-8 font-medium">{post.excerpt}</p>}
+                </header>
+
+                {/* Post content */}
+                <div class="prose prose-lg md:prose-xl max-w-none prose-headings:font-bold prose-a:text-primary prose-img:rounded-lg">
+                    {
+                        post.body && (
+                            <div
+                                class="portable-text"
+                                set:html={post.body
+                                    .map((block: any) => {
+                                        if (block._type === 'block') {
+                                            const children = block.children
+                                                .map((child: any) => {
+                                                    if (child._type === 'span') {
+                                                        let text = child.text;
+                                                        if (child.marks && child.marks.length > 0) {
+                                                            child.marks.forEach((mark: string) => {
+                                                                switch (mark) {
+                                                                    case 'strong':
+                                                                        text = `<strong>${text}</strong>`;
+                                                                        break;
+                                                                    case 'em':
+                                                                        text = `<em>${text}</em>`;
+                                                                        break;
+                                                                    case 'underline':
+                                                                        text = `<u>${text}</u>`;
+                                                                        break;
+                                                                    case 'code':
+                                                                        text = `<code>${text}</code>`;
+                                                                        break;
+                                                                }
+                                                            });
+                                                        }
+                                                        return text;
+                                                    }
+                                                    return '';
+                                                })
+                                                .join('');
+
+                                            switch (block.style) {
+                                                case 'h1':
+                                                    return `<h1>${children}</h1>`;
+                                                case 'h2':
+                                                    return `<h2>${children}</h2>`;
+                                                case 'h3':
+                                                    return `<h3>${children}</h3>`;
+                                                case 'h4':
+                                                    return `<h4>${children}</h4>`;
+                                                case 'blockquote':
+                                                    return `<blockquote>${children}</blockquote>`;
+                                                default:
+                                                    return `<p>${children}</p>`;
+                                            }
+                                        }
+                                        return '';
+                                    })
+                                    .join('')}
+                            />
+                        )
+                    }
+                </div>
+
+                {/* Back to news link */}
+                <div class="mt-12 pt-8 border-t border-gray-200">
+                    <a href="/news" class="inline-flex items-center gap-2 text-primary hover:underline">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                        </svg>
+                        Back to News
+                    </a>
+                </div>
+            </Section>
+        </article>
+    </main>
 </Layout>

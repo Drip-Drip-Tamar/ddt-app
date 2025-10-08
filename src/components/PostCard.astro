@@ -16,10 +16,7 @@ const { title, body, image, author, date, slug, class: className } = Astro.props
 ---
 
 <article class:list={['relative group', className]}>
-    <a
-        href={`/news/${slug}`}
-        class="block"
-    >
+    <a href={`/news/${slug}`} class="block">
         <div class="card card-border w-full h-full hover:shadow-lg transition-shadow duration-200">
             {
                 image && (image.asset || image.src) && (
@@ -37,19 +34,12 @@ const { title, body, image, author, date, slug, class: className } = Astro.props
                 )
             }
             <div class="card-body gap-4 text-left">
-                {
-                    author && (
-                        <Badge
-                            label={`By ${author}`}
-                            theme="neutral"
-                        />
-                    )
-                }
+                {author && <Badge label={`By ${author}`} theme="neutral" />}
                 <h3 class="font-black card-title sm:text-2xl group-hover:text-primary transition-colors">
                     {title}
                 </h3>
-                {body && <p class="text-gray-600 dark:text-gray-400">{body}</p>}
-                {date && <p class="text-sm text-gray-500 dark:text-gray-400">{date}</p>}
+                {body && <p class="text-gray-600">{body}</p>}
+                {date && <p class="text-sm text-gray-500">{date}</p>}
                 <div class="card-actions">
                     <span class="font-bold text-primary group-hover:underline"> Read More → </span>
                 </div>

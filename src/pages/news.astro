@@ -30,92 +30,106 @@ const posts = await sanityClient.fetch<SanityDocument[]>(POSTS_QUERY);
 
 // Helper function to extract plain text from portable text
 function extractTextFromPortableText(blocks: any[], maxLength = 200): string {
-  if (!blocks || !Array.isArray(blocks)) return '';
-  
-  const textBlocks = blocks
-    .filter(block => block._type === 'block')
-    .map(block => {
-      if (!block.children || !Array.isArray(block.children)) return '';
-      return block.children
-        .filter((child: any) => child._type === 'span')
-        .map((child: any) => child.text || '')
-        .join('');
-    })
-    .join(' ');
-  
-  // Truncate to maxLength and add ellipsis if needed
-  if (textBlocks.length > maxLength) {
-    return textBlocks.substring(0, maxLength).trim() + '...';
-  }
-  return textBlocks;
+    if (!blocks || !Array.isArray(blocks)) return '';
+
+    const textBlocks = blocks
+        .filter((block) => block._type === 'block')
+        .map((block) => {
+            if (!block.children || !Array.isArray(block.children)) return '';
+            return block.children
+                .filter((child: any) => child._type === 'span')
+                .map((child: any) => child.text || '')
+                .join('');
+        })
+        .join(' ');
+
+    // Truncate to maxLength and add ellipsis if needed
+    if (textBlocks.length > maxLength) {
+        return textBlocks.substring(0, maxLength).trim() + '...';
+    }
+    return textBlocks;
 }
 
 // Transform posts to card format
-const postCards = posts.map(post => {
-  // Use excerpt if available, otherwise extract from body
-  const contentSnippet = post.excerpt || extractTextFromPortableText(post.body, 150);
-  
-  return {
-    _type: 'card',
-    heading: post.title,
-    body: contentSnippet,
-    image: post.featuredImage,
-    cta: [{
-      _type: 'actionLink',
-      text: 'Read More',
-      url: `/news/${post.slug.current}`,
-    }],
-    badge: post.author ? {
-      label: `By ${post.author}`,
-      theme: 'light'
-    } : undefined,
-  };
+const postCards = posts.map((post) => {
+    // Use excerpt if available, otherwise extract from body
+    const contentSnippet = post.excerpt || extractTextFromPortableText(post.body, 150);
+
+    return {
+        _type: 'card',
+        heading: post.title,
+        body: contentSnippet,
+        image: post.featuredImage,
+        cta: [
+            {
+                _type: 'actionLink',
+                text: 'Read More',
+                url: `/news/${post.slug.current}`
+            }
+        ],
+        badge: post.author
+            ? {
+                  label: `By ${post.author}`,
+                  theme: 'light'
+              }
+            : undefined
+    };
 });
 
-const publishedDates = posts.map(post => 
-  post.publishedAt ? new Date(post.publishedAt).toLocaleDateString('en-GB', {
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric'
-  }) : ''
+const publishedDates = posts.map((post) =>
+    post.publishedAt
+        ? new Date(post.publishedAt).toLocaleDateString('en-GB', {
+              day: 'numeric',
+              month: 'short',
+              year: 'numeric'
+          })
+        : ''
 );
 ---
 
 <Layout title="News" addTitleSuffix={true} description="Latest news and updates from Drip Drip Tamar">
-  <main class="min-h-screen">
-    <Section class="text-center">
-      <h1 class="text-4xl font-black sm:text-5xl mb-4">News</h1>
-      <p class="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto mb-12">
-        Stay updated with the latest news, updates, and insights from Drip Drip Tamar
-      </p>
-      
-      {posts.length === 0 ? (
-        <div class="text-center py-12">
-          <p class="text-gray-500">No news posts available yet.</p>
+    <main class="min-h-screen bg-gray-50">
+        {/* Hero section */}
+        <div class="bg-white border-b border-gray-200">
+            <Section class="text-center py-12 md:py-16">
+                <h1 class="text-4xl font-black sm:text-5xl lg:text-6xl mb-4">News</h1>
+                <p class="text-lg md:text-xl text-gray-600 max-w-2xl mx-auto">Stay updated with the latest news, updates, and insights from Drip Drip Tamar</p>
+            </Section>
         </div>
-      ) : (
-        <div class="flex flex-col gap-6 max-w-5xl mx-auto">
-          {posts.map((post, idx) => {
-            const contentSnippet = post.excerpt || extractTextFromPortableText(post.body, 200);
-            const postImage = post.featuredImage?.image ? {
-              ...post.featuredImage.image,
-              alt: post.featuredImage.alt
-            } : undefined;
-            
-            return (
-              <PostListItem
-                title={post.title}
-                body={contentSnippet}
-                image={postImage}
-                author={post.author}
-                date={publishedDates[idx]}
-                slug={post.slug.current}
-                class="w-full"
-              />
-            );
-          })}
-        </div>
-      )}
-    </Section>
-  </main>
+
+        {/* Posts section */}
+        <Section class="py-8 md:py-12">
+            {
+                posts.length === 0 ? (
+                    <div class="text-center py-12">
+                        <p class="text-gray-500">No news posts available yet.</p>
+                    </div>
+                ) : (
+                    <div class="flex flex-col gap-8 max-w-5xl mx-auto">
+                        {posts.map((post, idx) => {
+                            const contentSnippet = post.excerpt || extractTextFromPortableText(post.body, 200);
+                            const postImage = post.featuredImage?.image
+                                ? {
+                                      ...post.featuredImage.image,
+                                      alt: post.featuredImage.alt
+                                  }
+                                : undefined;
+
+                            return (
+                                <PostListItem
+                                    title={post.title}
+                                    body={contentSnippet}
+                                    image={postImage}
+                                    author={post.author}
+                                    date={publishedDates[idx]}
+                                    slug={post.slug.current}
+                                    class="w-full"
+                                />
+                            );
+                        })}
+                    </div>
+                )
+            }
+        </Section>
+    </main>
 </Layout>
