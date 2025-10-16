@@ -38,6 +38,20 @@ export default defineType({
       group: 'content',
     }),
     defineField({
+      name: 'target',
+      title: 'Link Target',
+      description: 'Choose how the link opens. Use "New Tab" for external links, "Same Tab" for internal navigation',
+      type: 'string',
+      options: {
+        list: [
+          {title: 'Same Tab', value: '_self'},
+          {title: 'New Tab', value: '_blank'},
+        ],
+      },
+      initialValue: '_self',
+      group: 'content',
+    }),
+    defineField({
       name: 'theme',
       title: 'Theme',
       description: 'The color theme of call-to-action button',

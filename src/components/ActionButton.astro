@@ -6,7 +6,7 @@ interface Props extends ActionButton {
     'data-sb-field-path'?: string;
 }
 
-const { label, ariaLabel, url, theme, class: className, 'data-sb-field-path': fieldPath } = Astro.props;
+const { label, ariaLabel, url, theme, target, class: className, 'data-sb-field-path': fieldPath } = Astro.props;
 
 const themeClassMap = {
     primary: 'btn-primary',
@@ -18,7 +18,7 @@ const themeClassMap = {
 
 {
     url ? (
-        <a class:list={['btn', themeClassMap[theme || 'primary'], className]} href={url} aria-label={ariaLabel} data-sb-field-path={fieldPath}>
+        <a class:list={['btn', themeClassMap[theme || 'primary'], className]} href={url} target={target || '_self'} rel={target === '_blank' ? 'noopener noreferrer' : undefined} aria-label={ariaLabel} data-sb-field-path={fieldPath}>
             <span data-sb-field-path={fieldPath ? '.label' : undefined}>{label}</span>
         </a>
     ) : (

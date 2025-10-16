@@ -6,12 +6,12 @@ interface Props extends ActionLink {
     'data-sb-field-path'?: string;
 }
 
-const { label, ariaLabel, url, class: className, 'data-sb-field-path': fieldPath } = Astro.props;
+const { label, ariaLabel, url, target, class: className, 'data-sb-field-path': fieldPath } = Astro.props;
 ---
 
 {
     url ? (
-        <a class:list={['text-neutral', className]} href={url} aria-label={ariaLabel} data-sb-field-path={fieldPath}>
+        <a class:list={['text-neutral', className]} href={url} target={target || '_self'} rel={target === '_blank' ? 'noopener noreferrer' : undefined} aria-label={ariaLabel} data-sb-field-path={fieldPath}>
             <span data-sb-field-path={fieldPath ? '.label' : undefined}>{label}</span>
         </a>
     ) : (

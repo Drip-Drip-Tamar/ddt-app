@@ -3,6 +3,7 @@ export interface Action {
     label: string;
     url?: string;
     ariaLabel?: string;
+    target?: '_self' | '_blank';
 }
 
 export interface ActionButton extends Action {
