@@ -108,9 +108,11 @@ const publishedDates = posts.map((post) =>
                     <div class="flex flex-col gap-8 max-w-5xl mx-auto">
                         {posts.map((post, idx) => {
                             const contentSnippet = post.excerpt || extractTextFromPortableText(post.body, 200);
-                            const postImage = post.featuredImage?.image
+                            // Pass image data structure that ResponsiveImage expects
+                            const postImage = post.featuredImage?.image?.asset
                                 ? {
-                                      ...post.featuredImage.image,
+                                      asset: post.featuredImage.image.asset,
+                                      dimensions: post.featuredImage.image.dimensions,
                                       alt: post.featuredImage.alt
                                   }
                                 : undefined;
