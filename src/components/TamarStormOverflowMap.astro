@@ -53,72 +53,76 @@ const mapId = `cso-map-${Math.random().toString(36).substring(2, 11)}`;
                         <span class="font-medium text-gray-700">✓ Inactive</span>
                     </div>
                 </div>
-            </div>
 
-            <!-- Map Element -->
-            <div
-                id={mapId}
-                class="cso-leaflet-map"
-                style="height: 500px; width: 100%;"
-                data-lat={centre.lat}
-                data-lon={centre.lon}
-                data-radius={radiusKm}
-                data-days={days}
-                data-api={api}
-                aria-label={`Interactive map showing storm overflow locations within ${radiusKm}km of Calstock`}
-            >
-            </div>
-        </div>
+                <!-- Warning about map validity and data freshness -->
+                <div class="alert alert-warning mb-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                        ></path>
+                    </svg>
+                    <span> This map is for general guidance only. Always check local conditions and official sources before water activities. </span>
+                </div>
 
-        <!-- Data source notice (hidden by default) -->
-        <div id={`${mapId}-notice`} class="alert alert-info mt-4 hidden">
-            <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-            </svg>
-            <span>
-                Live data currently unavailable. Showing CSO locations with 2023 historical statistics. Check <a
-                    href="https://www.southwestwater.co.uk/environment/rivers-and-bathing-waters/waterfitlive/"
-                    target="_blank"
-                    rel="noopener"
-                    class="link">WaterFit Live</a
-                > for latest updates.
-            </span>
-        </div>
-
-        <!-- Attribution -->
-        <div class="mt-6 pt-3 border-t border-base-300">
-            <p class="text-xs text-base-content/60">
-                Data: <a href="https://theriverstrust.org/key-issues/sewage-in-rivers" target="_blank" rel="noopener noreferrer" class="link link-hover">
-                    Rivers Trust EDM 2023
-                </a> +
-                <a
-                    href="https://www.southwestwater.co.uk/environment/rivers-and-bathing-waters/waterfitlive/"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    class="link link-hover"
+                <!-- Map Element -->
+                <div
+                    id={mapId}
+                    class="cso-leaflet-map"
+                    style="height: 500px; width: 100%;"
+                    data-lat={centre.lat}
+                    data-lon={centre.lon}
+                    data-radius={radiusKm}
+                    data-days={days}
+                    data-api={api}
+                    aria-label={`Interactive map showing storm overflow locations within ${radiusKm}km of Calstock`}
                 >
-                    South West Water
-                </a> • CC BY 4.0 • Map: © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer" class="link link-hover">
-                    OpenStreetMap
-                </a> contributors
-            </p>
-        </div>
+                </div>
+            </div>
 
-        <!-- Error message (hidden by default) -->
-        <div id={`${mapId}-error`} class="alert alert-warning mt-4 hidden">
-            <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
-                <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-                ></path>
-            </svg>
-            <span>CSO data unavailable — try again shortly.</span>
-        </div>
+            <!-- Data source notice (hidden by default) -->
+            <div id={`${mapId}-notice`} class="alert alert-info mt-4 hidden">
+                <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <span>
+                    Live data currently unavailable. Showing CSO locations with 2023 historical statistics. Check <a
+                        href="https://www.southwestwater.co.uk/environment/rivers-and-bathing-waters/waterfitlive/"
+                        target="_blank"
+                        rel="noopener"
+                        class="link">WaterFit Live</a
+                    > for latest updates.
+                </span>
+            </div>
 
-        <noscript>
-            <div class="alert alert-warning mt-4">
+            <!-- Attribution -->
+            <div class="mt-6 pt-3 border-t border-base-300">
+                <p class="text-xs text-base-content/60">
+                    Data: <a href="https://theriverstrust.org/key-issues/sewage-in-rivers" target="_blank" rel="noopener noreferrer" class="link link-hover">
+                        Rivers Trust EDM 2023
+                    </a> +
+                    <a
+                        href="https://www.southwestwater.co.uk/environment/rivers-and-bathing-waters/waterfitlive/"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="link link-hover"
+                    >
+                        South West Water
+                    </a> • CC BY 4.0 • Map: © <a
+                        href="https://www.openstreetmap.org/copyright"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="link link-hover"
+                    >
+                        OpenStreetMap
+                    </a> contributors
+                </p>
+            </div>
+
+            <!-- Error message (hidden by default) -->
+            <div id={`${mapId}-error`} class="alert alert-warning mt-4 hidden">
                 <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
                     <path
                         stroke-linecap="round"
@@ -127,263 +131,277 @@ const mapId = `cso-map-${Math.random().toString(36).substring(2, 11)}`;
                         d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
                     ></path>
                 </svg>
-                <span>JavaScript is required to view the interactive map.</span>
+                <span>CSO data unavailable — try again shortly.</span>
             </div>
-        </noscript>
+
+            <noscript>
+                <div class="alert alert-warning mt-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                        ></path>
+                    </svg>
+                    <span>JavaScript is required to view the interactive map.</span>
+                </div>
+            </noscript>
+        </div>
     </div>
-</Section>
 
-<script is:inline define:vars={{ mapId }}>
-    // Initialize map when visible
-    async function initializeMap() {
-        try {
-            // Get map element and data attributes
-            const mapElement = document.getElementById(mapId);
-            if (!mapElement) return;
+    <script is:inline define:vars={{ mapId }}>
+        // Initialize map when visible
+        async function initializeMap() {
+            try {
+                // Get map element and data attributes
+                const mapElement = document.getElementById(mapId);
+                if (!mapElement) return;
 
-            const lat = parseFloat(mapElement.dataset.lat);
-            const lon = parseFloat(mapElement.dataset.lon);
-            const radiusKm = parseFloat(mapElement.dataset.radius);
-            const days = parseFloat(mapElement.dataset.days);
-            const apiUrl = mapElement.dataset.api;
+                const lat = parseFloat(mapElement.dataset.lat);
+                const lon = parseFloat(mapElement.dataset.lon);
+                const radiusKm = parseFloat(mapElement.dataset.radius);
+                const days = parseFloat(mapElement.dataset.days);
+                const apiUrl = mapElement.dataset.api;
 
-            // Load Leaflet
-            const L = await window.loadLeaflet();
+                // Load Leaflet
+                const L = await window.loadLeaflet();
 
-            // Initialize map
-            const map = L.map(mapId, {
-                center: [lat, lon],
-                zoom: 11,
-                scrollWheelZoom: false,
-                attributionControl: false
-            });
+                // Initialize map
+                const map = L.map(mapId, {
+                    center: [lat, lon],
+                    zoom: 11,
+                    scrollWheelZoom: false,
+                    attributionControl: false
+                });
 
-            // Add OpenStreetMap tiles
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                maxZoom: 18,
-                attribution: '© OpenStreetMap contributors'
-            }).addTo(map);
+                // Add OpenStreetMap tiles
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    maxZoom: 18,
+                    attribution: '© OpenStreetMap contributors'
+                }).addTo(map);
 
-            // Add custom attribution control
-            L.control
-                .attribution({
-                    position: 'bottomright',
-                    prefix: false
+                // Add custom attribution control
+                L.control
+                    .attribution({
+                        position: 'bottomright',
+                        prefix: false
+                    })
+                    .addTo(map);
+
+                // Draw radius circle
+                L.circle([lat, lon], {
+                    radius: radiusKm * 1000,
+                    color: '#4F46E5',
+                    fillColor: '#4F46E5',
+                    fillOpacity: 0.05,
+                    weight: 2,
+                    dashArray: '5, 10'
+                }).addTo(map);
+
+                // Add center marker with custom icon
+                const centerIcon = L.divIcon({
+                    html: '<div style="background: #4F46E5; width: 12px; height: 12px; border-radius: 50%; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></div>',
+                    className: 'center-marker',
+                    iconSize: [16, 16],
+                    iconAnchor: [8, 8]
+                });
+
+                L.marker([lat, lon], {
+                    icon: centerIcon,
+                    zIndexOffset: -1000
                 })
-                .addTo(map);
+                    .addTo(map)
+                    .bindPopup('<strong>Calstock</strong><br>Monitoring center');
 
-            // Draw radius circle
-            L.circle([lat, lon], {
-                radius: radiusKm * 1000,
-                color: '#4F46E5',
-                fillColor: '#4F46E5',
-                fillOpacity: 0.05,
-                weight: 2,
-                dashArray: '5, 10'
-            }).addTo(map);
+                // Fetch CSO data
+                const response = await fetch(`${apiUrl}?lat=${lat}&lon=${lon}&radiusKm=${radiusKm}&days=${days}`);
+                if (!response.ok) throw new Error('Failed to fetch CSO data');
 
-            // Add center marker with custom icon
-            const centerIcon = L.divIcon({
-                html: '<div style="background: #4F46E5; width: 12px; height: 12px; border-radius: 50%; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></div>',
-                className: 'center-marker',
-                iconSize: [16, 16],
-                iconAnchor: [8, 8]
-            });
+                const data = await response.json();
 
-            L.marker([lat, lon], {
-                icon: centerIcon,
-                zIndexOffset: -1000
-            })
-                .addTo(map)
-                .bindPopup('<strong>Calstock</strong><br>Monitoring center');
+                // Update status badge
+                const statusEl = document.getElementById(`${mapId}-status`);
+                if (statusEl) {
+                    const activeCount = data.activeCount || 0;
+                    const recentCount = data.recentCount || 0;
+                    const dataSource = data.dataSource || 'unknown';
 
-            // Fetch CSO data
-            const response = await fetch(`${apiUrl}?lat=${lat}&lon=${lon}&radiusKm=${radiusKm}&days=${days}`);
-            if (!response.ok) throw new Error('Failed to fetch CSO data');
-
-            const data = await response.json();
-
-            // Update status badge
-            const statusEl = document.getElementById(`${mapId}-status`);
-            if (statusEl) {
-                const activeCount = data.activeCount || 0;
-                const recentCount = data.recentCount || 0;
-                const dataSource = data.dataSource || 'unknown';
-
-                if (activeCount > 0) {
-                    statusEl.textContent = `${activeCount} Active`;
-                    statusEl.className = 'badge badge-lg badge-error';
-                } else if (recentCount > 0) {
-                    statusEl.textContent = `${recentCount} Recent`;
-                    statusEl.className = 'badge badge-lg badge-warning';
-                } else if (dataSource === 'base-only') {
-                    statusEl.textContent = 'No Live Data';
-                    statusEl.className = 'badge badge-lg badge-info';
-                } else {
-                    statusEl.textContent = 'All Clear';
-                    statusEl.className = 'badge badge-lg badge-success';
-                }
-            }
-
-            // Show data source notice if base-only
-            if (data.dataSource === 'base-only') {
-                const noticeEl = document.getElementById(`${mapId}-notice`);
-                if (noticeEl) {
-                    noticeEl.classList.remove('hidden');
-                }
-            }
-
-            // Add markers for each CSO
-            if (data.features && data.features.length > 0) {
-                data.features.forEach((feature) => {
-                    // Determine marker color based on status
-                    let markerColor = '#6B7280'; // grey for inactive
-                    let zIndex = 100;
-
-                    if (feature.status === 'active') {
-                        markerColor = '#EF4444'; // red
-                        zIndex = 300;
-                    } else if (feature.status === 'recent') {
-                        markerColor = '#F59E0B'; // amber
-                        zIndex = 200;
+                    if (activeCount > 0) {
+                        statusEl.textContent = `${activeCount} Active`;
+                        statusEl.className = 'badge badge-lg badge-error';
+                    } else if (recentCount > 0) {
+                        statusEl.textContent = `${recentCount} Recent`;
+                        statusEl.className = 'badge badge-lg badge-warning';
+                    } else if (dataSource === 'base-only') {
+                        statusEl.textContent = 'No Live Data';
+                        statusEl.className = 'badge badge-lg badge-info';
+                    } else {
+                        statusEl.textContent = 'All Clear';
+                        statusEl.className = 'badge badge-lg badge-success';
                     }
+                }
 
-                    // Create custom marker icon
-                    const icon = L.divIcon({
-                        html: `<div style="background: ${markerColor}; width: 20px; height: 20px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 6px rgba(0,0,0,0.4);"></div>`,
-                        className: 'cso-marker',
-                        iconSize: [26, 26],
-                        iconAnchor: [13, 13],
-                        popupAnchor: [0, -13]
-                    });
+                // Show data source notice if base-only
+                if (data.dataSource === 'base-only') {
+                    const noticeEl = document.getElementById(`${mapId}-notice`);
+                    if (noticeEl) {
+                        noticeEl.classList.remove('hidden');
+                    }
+                }
 
-                    // Format popup content
-                    let popupContent = `<div style="min-width: 250px;">
+                // Add markers for each CSO
+                if (data.features && data.features.length > 0) {
+                    data.features.forEach((feature) => {
+                        // Determine marker color based on status
+                        let markerColor = '#6B7280'; // grey for inactive
+                        let zIndex = 100;
+
+                        if (feature.status === 'active') {
+                            markerColor = '#EF4444'; // red
+                            zIndex = 300;
+                        } else if (feature.status === 'recent') {
+                            markerColor = '#F59E0B'; // amber
+                            zIndex = 200;
+                        }
+
+                        // Create custom marker icon
+                        const icon = L.divIcon({
+                            html: `<div style="background: ${markerColor}; width: 20px; height: 20px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 6px rgba(0,0,0,0.4);"></div>`,
+                            className: 'cso-marker',
+                            iconSize: [26, 26],
+                            iconAnchor: [13, 13],
+                            popupAnchor: [0, -13]
+                        });
+
+                        // Format popup content
+                        let popupContent = `<div style="min-width: 250px;">
             <strong>${feature.name}</strong><br>
             <span style="color: ${markerColor}; font-weight: bold;">
               ${feature.status === 'active' ? '⚠️ Active' : feature.status === 'recent' ? '⚡ Recent' : '✓ Inactive'}
             </span><br>`;
 
-                    // Add live event information if available
-                    if (feature.startedAt) {
-                        const startDate = new Date(feature.startedAt);
-                        popupContent += `<small>Started: ${startDate.toLocaleString('en-GB', {
-                            day: 'numeric',
-                            month: 'short',
-                            hour: '2-digit',
-                            minute: '2-digit'
-                        })}</small><br>`;
-                    }
-
-                    if (feature.endedAt) {
-                        const endDate = new Date(feature.endedAt);
-                        popupContent += `<small>Ended: ${endDate.toLocaleString('en-GB', {
-                            day: 'numeric',
-                            month: 'short',
-                            hour: '2-digit',
-                            minute: '2-digit'
-                        })}</small><br>`;
-                    } else if (feature.status === 'active') {
-                        popupContent += `<small>Duration: Ongoing</small><br>`;
-                    }
-
-                    // Add 2023 statistics if available
-                    if (feature.spillCount2023 !== undefined) {
-                        popupContent += `<hr style="margin: 8px 0; border-color: #e5e7eb;">`;
-                        popupContent += `<small><strong>2023 Statistics:</strong><br>`;
-                        popupContent += `Spills: ${feature.spillCount2023} events<br>`;
-                        if (feature.totalDuration2023 !== undefined) {
-                            popupContent += `Total duration: ${feature.totalDuration2023} hrs</small><br>`;
+                        // Add live event information if available
+                        if (feature.startedAt) {
+                            const startDate = new Date(feature.startedAt);
+                            popupContent += `<small>Started: ${startDate.toLocaleString('en-GB', {
+                                day: 'numeric',
+                                month: 'short',
+                                hour: '2-digit',
+                                minute: '2-digit'
+                            })}</small><br>`;
                         }
-                    }
 
-                    // Add receiving water if available
-                    if (feature.receivingWater) {
-                        popupContent += `<small>Discharges to: ${feature.receivingWater}</small><br>`;
-                    }
+                        if (feature.endedAt) {
+                            const endDate = new Date(feature.endedAt);
+                            popupContent += `<small>Ended: ${endDate.toLocaleString('en-GB', {
+                                day: 'numeric',
+                                month: 'short',
+                                hour: '2-digit',
+                                minute: '2-digit'
+                            })}</small><br>`;
+                        } else if (feature.status === 'active') {
+                            popupContent += `<small>Duration: Ongoing</small><br>`;
+                        }
 
-                    if (feature.waterCompany) {
-                        popupContent += `<small>Operator: ${feature.waterCompany}</small>`;
-                    }
+                        // Add 2023 statistics if available
+                        if (feature.spillCount2023 !== undefined) {
+                            popupContent += `<hr style="margin: 8px 0; border-color: #e5e7eb;">`;
+                            popupContent += `<small><strong>2023 Statistics:</strong><br>`;
+                            popupContent += `Spills: ${feature.spillCount2023} events<br>`;
+                            if (feature.totalDuration2023 !== undefined) {
+                                popupContent += `Total duration: ${feature.totalDuration2023} hrs</small><br>`;
+                            }
+                        }
 
-                    popupContent += '</div>';
+                        // Add receiving water if available
+                        if (feature.receivingWater) {
+                            popupContent += `<small>Discharges to: ${feature.receivingWater}</small><br>`;
+                        }
 
-                    // Add marker to map
-                    L.marker([feature.lat, feature.lon], {
-                        icon: icon,
-                        zIndexOffset: zIndex
-                    })
-                        .addTo(map)
-                        .bindPopup(popupContent);
-                });
-            }
+                        if (feature.waterCompany) {
+                            popupContent += `<small>Operator: ${feature.waterCompany}</small>`;
+                        }
 
-            // Enable scroll zoom on focus
-            map.on('focus', function () {
-                map.scrollWheelZoom.enable();
-            });
+                        popupContent += '</div>';
 
-            map.on('blur', function () {
-                map.scrollWheelZoom.disable();
-            });
-        } catch (error) {
-            console.error('Error initializing map:', error);
-            document.getElementById(`${mapId}-error`).classList.remove('hidden');
-        }
-    }
-
-    // Use Intersection Observer to lazy load map
-    const observer = new IntersectionObserver(
-        (entries) => {
-            entries.forEach((entry) => {
-                if (entry.isIntersecting) {
-                    observer.disconnect();
-                    initializeMap();
+                        // Add marker to map
+                        L.marker([feature.lat, feature.lon], {
+                            icon: icon,
+                            zIndexOffset: zIndex
+                        })
+                            .addTo(map)
+                            .bindPopup(popupContent);
+                    });
                 }
-            });
-        },
-        { rootMargin: '50px' }
-    );
 
-    // Start observing when DOM is ready
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', () => {
+                // Enable scroll zoom on focus
+                map.on('focus', function () {
+                    map.scrollWheelZoom.enable();
+                });
+
+                map.on('blur', function () {
+                    map.scrollWheelZoom.disable();
+                });
+            } catch (error) {
+                console.error('Error initializing map:', error);
+                document.getElementById(`${mapId}-error`).classList.remove('hidden');
+            }
+        }
+
+        // Use Intersection Observer to lazy load map
+        const observer = new IntersectionObserver(
+            (entries) => {
+                entries.forEach((entry) => {
+                    if (entry.isIntersecting) {
+                        observer.disconnect();
+                        initializeMap();
+                    }
+                });
+            },
+            { rootMargin: '50px' }
+        );
+
+        // Start observing when DOM is ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => {
+                const mapEl = document.getElementById(mapId);
+                if (mapEl) observer.observe(mapEl);
+            });
+        } else {
             const mapEl = document.getElementById(mapId);
             if (mapEl) observer.observe(mapEl);
-        });
-    } else {
-        const mapEl = document.getElementById(mapId);
-        if (mapEl) observer.observe(mapEl);
-    }
-</script>
-
-<style>
-    .cso-map-container {
-        max-width: 100%;
-    }
-
-    .cso-leaflet-map {
-        background: #e5e7eb;
-        position: relative;
-    }
-
-    :global(.leaflet-container) {
-        font-family: inherit;
-    }
-
-    :global(.leaflet-popup-content-wrapper) {
-        border-radius: 8px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    }
-
-    :global(.leaflet-popup-content) {
-        margin: 12px;
-        font-size: 14px;
-    }
-
-    @media (max-width: 640px) {
-        .cso-leaflet-map {
-            height: 400px !important;
         }
-    }
-</style>
+    </script>
+
+    <style>
+        .cso-map-container {
+            max-width: 100%;
+        }
+
+        .cso-leaflet-map {
+            background: #e5e7eb;
+            position: relative;
+        }
+
+        :global(.leaflet-container) {
+            font-family: inherit;
+        }
+
+        :global(.leaflet-popup-content-wrapper) {
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        :global(.leaflet-popup-content) {
+            margin: 12px;
+            font-size: 14px;
+        }
+
+        @media (max-width: 640px) {
+            .cso-leaflet-map {
+                height: 400px !important;
+            }
+        }
+    </style>
+</Section>
