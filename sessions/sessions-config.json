@@ -1,23 +1,56 @@
 {
-  "developer_name": "Jak",
-  "trigger_phrases": [
-    "make it so",
-    "run that",
-    "go ahead",
-    "yert",
-    "do it"
-  ],
-  "blocked_tools": [
-    "Edit",
-    "Write",
-    "MultiEdit",
-    "NotebookEdit"
-  ],
-  "task_detection": {
-    "enabled": true
+  "trigger_phrases": {
+    "implementation_mode": [
+      "yert"
+    ],
+    "discussion_mode": [
+      "SILENCE"
+    ],
+    "task_creation": [
+      "mek:"
+    ],
+    "task_startup": [
+      "start^"
+    ],
+    "task_completion": [
+      "finito"
+    ],
+    "context_compaction": [
+      "squish"
+    ]
   },
-  "branch_enforcement": {
-    "enabled": true
+  "git_preferences": {
+    "add_pattern": "ask",
+    "default_branch": "main",
+    "commit_style": "conventional",
+    "auto_merge": false,
+    "auto_push": false,
+    "has_submodules": false
   },
-  "api_mode": false
+  "environment": {
+    "os": "macos",
+    "shell": "zsh",
+    "developer_name": "Jak"
+  },
+  "blocked_actions": {
+    "implementation_only_tools": [
+      "Edit",
+      "Write",
+      "MultiEdit",
+      "NotebookEdit"
+    ],
+    "bash_read_patterns": [],
+    "bash_write_patterns": [],
+    "extrasafe": true
+  },
+  "features": {
+    "branch_enforcement": true,
+    "task_detection": true,
+    "auto_ultrathink": true,
+    "icon_style": "nerd_fonts",
+    "context_warnings": {
+      "warn_85": true,
+      "warn_90": true
+    }
+  }
 }

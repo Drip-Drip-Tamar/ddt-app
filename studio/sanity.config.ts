@@ -4,6 +4,7 @@ import {visionTool} from '@sanity/vision'
 import {presentationTool} from 'sanity/presentation'
 import {markdownSchema} from 'sanity-plugin-markdown'
 import {schemaTypes} from './schemaTypes'
+import { media } from 'sanity-plugin-media'
 
 export default defineConfig({
   name: 'default',
@@ -13,8 +14,8 @@ export default defineConfig({
   dataset: 'production',
 
   plugins: [
-    structureTool(), 
-    visionTool(), 
+    structureTool(),
+    visionTool(),
     markdownSchema(),
     presentationTool({
       // Use existing preview infrastructure that works with Netlify Visual Editor
@@ -48,7 +49,8 @@ export default defineConfig({
           }
         }
       }
-    })
+    }),
+    media()
   ],
 
   schema: {
