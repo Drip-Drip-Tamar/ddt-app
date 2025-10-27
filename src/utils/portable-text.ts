@@ -46,6 +46,13 @@ export function extractTextFromPortableText(
 
 /**
  * Apply text marks (formatting) to a text string
+ *
+ * Note: Marks are applied in array order, but because each mark wraps
+ * the previous result, the LAST mark in the array becomes the OUTERMOST tag.
+ *
+ * Example: marks=['strong', 'em'] produces <em><strong>text</strong></em>
+ * - 'strong' is applied first: <strong>text</strong>
+ * - 'em' wraps the result: <em><strong>text</strong></em>
  */
 function applyMarks(text: string, marks: string[] = []): string {
   let result = text;
