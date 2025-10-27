@@ -5,6 +5,7 @@ import Section from '@components/Section.astro';
 import PostListItem from '@components/PostListItem.astro';
 import { client as sanityClient } from '@utils/sanity-client';
 import { getImageUrl } from '@utils/sanity-image';
+import { extractTextFromPortableText } from '@utils/portable-text';
 
 const POSTS_QUERY = `*[
   _type == "post"
@@ -27,28 +28,6 @@ const POSTS_QUERY = `*[
 }`;
 
 const posts = await sanityClient.fetch<SanityDocument[]>(POSTS_QUERY);
-
-// Helper function to extract plain text from portable text
-function extractTextFromPortableText(blocks: any[], maxLength = 200): string {
-    if (!blocks || !Array.isArray(blocks)) return '';
-
-    const textBlocks = blocks
-        .filter((block) => block._type === 'block')
-        .map((block) => {
-            if (!block.children || !Array.isArray(block.children)) return '';
-            return block.children
-                .filter((child: any) => child._type === 'span')
-                .map((child: any) => child.text || '')
-                .join('');
-        })
-        .join(' ');
-
-    // Truncate to maxLength and add ellipsis if needed
-    if (textBlocks.length > maxLength) {
-        return textBlocks.substring(0, maxLength).trim() + '...';
-    }
-    return textBlocks;
-}
 
 // Transform posts to card format
 const postCards = posts.map((post) => {
