@@ -92,20 +92,12 @@ export function transformSamplesToChartData(samples) {
   // Get unique dates and sites
   const dates = [...new Set(samples.map(s => s.date))].sort()
   const sites = [...new Set(samples.map(s => s.siteName))]
-  
+
   // Prepare datasets for each site and bacteria type
   const datasets = []
-  const colors = {
-    'Okel Tor': {
-      ecoli: 'rgb(59, 130, 246)', // blue
-      enterococci: 'rgb(34, 197, 94)' // green
-    },
-    'Calstock': {
-      ecoli: 'rgb(239, 68, 68)', // red
-      enterococci: 'rgb(249, 115, 22)' // orange
-    }
-  }
-  
+  // Note: Colors are applied client-side in WaterQualityChart.astro
+  // after normalizing site names to handle Unicode characters
+
   // Create dataset for each site and bacteria combination
   sites.forEach(site => {
     // E. coli dataset
@@ -113,25 +105,29 @@ export function transformSamplesToChartData(samples) {
       label: `${site} - E. coli`,
       data: dates.map(date => {
         const sample = samples.find(s => s.date === date && s.siteName === site)
-        return sample?.ecoli ?? null
+        const value = sample?.ecoli
+        // For log scale, replace 0 or null with null (Chart.js will skip)
+        // Values < 1 get clamped to 1 for visibility
+        if (value === null || value === undefined) return null
+        return value < 1 ? 1 : value
       }),
-      borderColor: colors[site]?.ecoli || 'rgb(75, 192, 192)',
-      backgroundColor: colors[site]?.ecoli ? `${colors[site].ecoli}33` : 'rgba(75, 192, 192, 0.2)',
       tension: 0.3,
       borderWidth: 2,
       pointRadius: 3,
       pointHoverRadius: 5
     })
-    
+
     // Enterococci dataset
     datasets.push({
       label: `${site} - Enterococci`,
       data: dates.map(date => {
         const sample = samples.find(s => s.date === date && s.siteName === site)
-        return sample?.enterococci ?? null
+        const value = sample?.enterococci
+        // For log scale, replace 0 or null with null (Chart.js will skip)
+        // Values < 1 get clamped to 1 for visibility
+        if (value === null || value === undefined) return null
+        return value < 1 ? 1 : value
       }),
-      borderColor: colors[site]?.enterococci || 'rgb(255, 206, 86)',
-      backgroundColor: colors[site]?.enterococci ? `${colors[site].enterococci}33` : 'rgba(255, 206, 86, 0.2)',
       tension: 0.3,
       borderWidth: 2,
       borderDash: [5, 5], // Dashed line for enterococci
@@ -157,82 +153,114 @@ export function getChartConfig(showThresholds = true) {
   const annotations = {}
   
   if (showThresholds) {
-    // EU Bathing Water Quality thresholds
+    // Background zones for water quality levels (using E. coli thresholds)
+    annotations.excellentZone = {
+      type: 'box',
+      yMin: 0,
+      yMax: 500,
+      backgroundColor: 'rgba(34, 197, 94, 0.08)',
+      borderWidth: 0,
+      drawTime: 'beforeDatasetsDraw'
+    }
+
+    annotations.goodZone = {
+      type: 'box',
+      yMin: 500,
+      yMax: 1000,
+      backgroundColor: 'rgba(251, 191, 36, 0.08)',
+      borderWidth: 0,
+      drawTime: 'beforeDatasetsDraw'
+    }
+
+    annotations.sufficientZone = {
+      type: 'box',
+      yMin: 1000,
+      yMax: 1800,
+      backgroundColor: 'rgba(249, 115, 22, 0.08)',
+      borderWidth: 0,
+      drawTime: 'beforeDatasetsDraw'
+    }
+
+    annotations.poorZone = {
+      type: 'box',
+      yMin: 1800,
+      yMax: 100000,
+      backgroundColor: 'rgba(239, 68, 68, 0.08)',
+      borderWidth: 0,
+      drawTime: 'beforeDatasetsDraw'
+    }
+
+    // EU Bathing Water Quality threshold lines (more subtle)
     annotations.ecoliExcellent = {
       type: 'line',
       yMin: 500,
       yMax: 500,
-      borderColor: 'rgba(34, 197, 94, 0.8)',
-      borderWidth: 2,
+      borderColor: 'rgba(34, 197, 94, 0.5)',
+      borderWidth: 1,
       borderDash: [5, 5],
       label: {
-        display: true,
-        content: 'E. coli Excellent (500)',
-        position: 'end',
-        backgroundColor: 'rgba(34, 197, 94, 0.8)',
-        color: 'white',
-        font: { size: 11 }
+        display: false
       }
     }
-    
+
     annotations.ecoliGood = {
       type: 'line',
       yMin: 1000,
       yMax: 1000,
-      borderColor: 'rgba(251, 191, 36, 0.8)',
-      borderWidth: 2,
+      borderColor: 'rgba(251, 191, 36, 0.5)',
+      borderWidth: 1,
       borderDash: [5, 5],
       label: {
-        display: true,
-        content: 'E. coli Good (1000)',
-        position: 'end',
-        backgroundColor: 'rgba(251, 191, 36, 0.8)',
-        color: 'white',
-        font: { size: 11 }
+        display: false
       }
     }
-    
+
+    annotations.ecoliSufficient = {
+      type: 'line',
+      yMin: 1800,
+      yMax: 1800,
+      borderColor: 'rgba(249, 115, 22, 0.5)',
+      borderWidth: 1,
+      borderDash: [5, 5],
+      label: {
+        display: false
+      }
+    }
+
     annotations.enteroExcellent = {
       type: 'line',
       yMin: 200,
       yMax: 200,
-      borderColor: 'rgba(34, 197, 94, 0.6)',
+      borderColor: 'rgba(34, 197, 94, 0.4)',
       borderWidth: 1,
       borderDash: [3, 3],
       label: {
-        display: true,
-        content: 'Enterococci Excellent (200)',
-        position: 'start',
-        backgroundColor: 'rgba(34, 197, 94, 0.8)',
-        color: 'white',
-        font: { size: 11 }
+        display: false
       }
     }
-    
+
     annotations.enteroGood = {
       type: 'line',
       yMin: 400,
       yMax: 400,
-      borderColor: 'rgba(251, 191, 36, 0.6)',
+      borderColor: 'rgba(251, 191, 36, 0.4)',
       borderWidth: 1,
       borderDash: [3, 3],
       label: {
-        display: true,
-        content: 'Enterococci Good (400)',
-        position: 'start',
-        backgroundColor: 'rgba(251, 191, 36, 0.8)',
-        color: 'white',
-        font: { size: 11 }
+        display: false
       }
     }
-    
-    // Good quality zone
-    annotations.goodZone = {
-      type: 'box',
-      yMin: 0,
-      yMax: 200,
-      backgroundColor: 'rgba(34, 197, 94, 0.05)',
-      borderWidth: 0
+
+    annotations.enteroSufficient = {
+      type: 'line',
+      yMin: 660,
+      yMax: 660,
+      borderColor: 'rgba(249, 115, 22, 0.4)',
+      borderWidth: 1,
+      borderDash: [3, 3],
+      label: {
+        display: false
+      }
     }
   }
   
@@ -279,16 +307,19 @@ export function getChartConfig(showThresholds = true) {
         }
       },
       y: {
+        type: 'logarithmic',
         display: true,
         title: {
           display: true,
-          text: 'Colony Forming Units per 100ml'
+          text: 'Colony Forming Units per 100ml (log scale)'
         },
-        suggestedMin: 0,
-        suggestedMax: 2000,
         ticks: {
           callback: function(value) {
-            return value + ' cfu'
+            // Format log scale ticks nicely
+            if (value === 1 || value === 10 || value === 100 || value === 1000 || value === 10000 || value === 100000) {
+              return value + ' cfu'
+            }
+            return ''
           }
         }
       }

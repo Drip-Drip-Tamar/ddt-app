@@ -31,83 +31,6 @@ const csoChartId = `cso-chart-${Math.random().toString(36).substring(2, 11)}`;
 
         <!-- Stacked Chart Cards -->
         <div class="space-y-6">
-            <!-- River Flow Chart -->
-            <div class="bg-base-100 rounded-lg shadow-lg p-4 md:p-6">
-                <div class="mb-3">
-                    <h4 class="text-lg font-semibold mb-1">River Flow — Gunnislake</h4>
-                    <p class="text-xs text-base-content/60">
-                        High flow indicates recent rainfall, increasing contamination from agricultural runoff and urban drainage.
-                    </p>
-                </div>
-
-                <div id={`${gunnislakeChartId}-current`} class="flex items-center justify-between mb-3 p-2 bg-base-200 rounded">
-                    <div>
-                        <div class="text-xs text-base-content/70">Current Level</div>
-                        <div class="text-xl font-bold">
-                            <span id={`${gunnislakeChartId}-value`}>—</span> m
-                        </div>
-                        <div class="text-xs text-base-content/60 mt-1" id={`${gunnislakeChartId}-time`}>Loading...</div>
-                    </div>
-                    <div id={`${gunnislakeChartId}-badge`} class="badge badge-lg">Loading</div>
-                </div>
-
-                <div class="chart-wrapper">
-                    <canvas id={gunnislakeChartId} class="env-chart" style="height: 250px; max-height: 250px;"></canvas>
-                </div>
-            </div>
-
-            <!-- Tidal Level Chart -->
-            <div class="bg-base-100 rounded-lg shadow-lg p-4 md:p-6">
-                <div class="mb-3">
-                    <h4 class="text-lg font-semibold mb-1">Tidal Level — Plymouth</h4>
-                    <p class="text-xs text-base-content/60">
-                        Low tide concentrates pollution, high tide provides dilution. Check tide state before water activities.
-                    </p>
-                </div>
-
-                <div id={`${plymouthChartId}-current`} class="flex items-center justify-between mb-3 p-2 bg-base-200 rounded">
-                    <div>
-                        <div class="text-xs text-base-content/70">Current Level</div>
-                        <div class="text-xl font-bold">
-                            <span id={`${plymouthChartId}-value`}>—</span> m
-                        </div>
-                        <div class="text-xs text-base-content/60 mt-1" id={`${plymouthChartId}-time`}>Loading...</div>
-                    </div>
-                    <div id={`${plymouthChartId}-badge`} class="badge badge-lg">Loading</div>
-                </div>
-
-                <div class="chart-wrapper">
-                    <canvas id={plymouthChartId} class="env-chart" style="height: 250px; max-height: 250px;"></canvas>
-                </div>
-            </div>
-
-            <!-- Rainfall Chart -->
-            <div class="bg-base-100 rounded-lg shadow-lg p-4 md:p-6">
-                <div class="mb-3">
-                    <h4 class="text-lg font-semibold mb-1">Rainfall — Calstock Area (10km)</h4>
-                    <p class="text-xs text-base-content/60">
-                        Heavy rainfall triggers agricultural runoff and storm overflow discharges. Avoid water contact 48-72 hours after heavy rain.
-                    </p>
-                </div>
-
-                <div id={`${rainfallChartId}-current`} class="flex items-center justify-between mb-3 p-2 bg-base-200 rounded">
-                    <div>
-                        <div class="text-xs text-base-content/70">24h Total</div>
-                        <div class="text-xl font-bold">
-                            <span id={`${rainfallChartId}-value`}>—</span> mm
-                        </div>
-                        <div class="text-xs text-base-content/60 mt-1" id={`${rainfallChartId}-time`}>Loading...</div>
-                    </div>
-                    <div id={`${rainfallChartId}-badge`} class="badge badge-lg">Loading</div>
-                </div>
-
-                <div id={`${rainfallChartId}-stations`} class="text-xs text-base-content/60 mb-3">Loading station data...</div>
-
-                <div class="chart-wrapper">
-                    <canvas id={rainfallChartId} class="env-chart" style="height: 250px; max-height: 250px;"></canvas>
-                </div>
-            </div>
-
             <!-- Storm Overflow Chart -->
             <div class="bg-base-100 rounded-lg shadow-lg p-4 md:p-6">
                 <div class="mb-3">
@@ -166,6 +89,83 @@ const csoChartId = `cso-chart-${Math.random().toString(36).substring(2, 11)}`;
                                 d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
                         </svg>
                     </a>
+                </div>
+            </div>
+
+            <!-- Rainfall Chart -->
+            <div class="bg-base-100 rounded-lg shadow-lg p-4 md:p-6">
+                <div class="mb-3">
+                    <h4 class="text-lg font-semibold mb-1">Rainfall — Calstock Area (10km)</h4>
+                    <p class="text-xs text-base-content/60">
+                        Heavy rainfall triggers agricultural runoff and storm overflow discharges. Avoid water contact 48-72 hours after heavy rain.
+                    </p>
+                </div>
+
+                <div id={`${rainfallChartId}-current`} class="flex items-center justify-between mb-3 p-2 bg-base-200 rounded">
+                    <div>
+                        <div class="text-xs text-base-content/70">24h Total</div>
+                        <div class="text-xl font-bold">
+                            <span id={`${rainfallChartId}-value`}>—</span> mm
+                        </div>
+                        <div class="text-xs text-base-content/60 mt-1" id={`${rainfallChartId}-time`}>Loading...</div>
+                    </div>
+                    <div id={`${rainfallChartId}-badge`} class="badge badge-lg">Loading</div>
+                </div>
+
+                <div id={`${rainfallChartId}-stations`} class="text-xs text-base-content/60 mb-3">Loading station data...</div>
+
+                <div class="chart-wrapper">
+                    <canvas id={rainfallChartId} class="env-chart" style="height: 250px; max-height: 250px;"></canvas>
+                </div>
+            </div>
+
+            <!-- River Flow Chart -->
+            <div class="bg-base-100 rounded-lg shadow-lg p-4 md:p-6">
+                <div class="mb-3">
+                    <h4 class="text-lg font-semibold mb-1">River Flow — Gunnislake</h4>
+                    <p class="text-xs text-base-content/60">
+                        High flow indicates recent rainfall, increasing contamination from agricultural runoff and urban drainage.
+                    </p>
+                </div>
+
+                <div id={`${gunnislakeChartId}-current`} class="flex items-center justify-between mb-3 p-2 bg-base-200 rounded">
+                    <div>
+                        <div class="text-xs text-base-content/70">Current Level</div>
+                        <div class="text-xl font-bold">
+                            <span id={`${gunnislakeChartId}-value`}>—</span> m
+                        </div>
+                        <div class="text-xs text-base-content/60 mt-1" id={`${gunnislakeChartId}-time`}>Loading...</div>
+                    </div>
+                    <div id={`${gunnislakeChartId}-badge`} class="badge badge-lg">Loading</div>
+                </div>
+
+                <div class="chart-wrapper">
+                    <canvas id={gunnislakeChartId} class="env-chart" style="height: 250px; max-height: 250px;"></canvas>
+                </div>
+            </div>
+
+            <!-- Tidal Level Chart -->
+            <div class="bg-base-100 rounded-lg shadow-lg p-4 md:p-6">
+                <div class="mb-3">
+                    <h4 class="text-lg font-semibold mb-1">Tidal Level — Plymouth</h4>
+                    <p class="text-xs text-base-content/60">
+                        Low tide concentrates pollution, high tide provides dilution. Check tide state before water activities.
+                    </p>
+                </div>
+
+                <div id={`${plymouthChartId}-current`} class="flex items-center justify-between mb-3 p-2 bg-base-200 rounded">
+                    <div>
+                        <div class="text-xs text-base-content/70">Current Level</div>
+                        <div class="text-xl font-bold">
+                            <span id={`${plymouthChartId}-value`}>—</span> m
+                        </div>
+                        <div class="text-xs text-base-content/60 mt-1" id={`${plymouthChartId}-time`}>Loading...</div>
+                    </div>
+                    <div id={`${plymouthChartId}-badge`} class="badge badge-lg">Loading</div>
+                </div>
+
+                <div class="chart-wrapper">
+                    <canvas id={plymouthChartId} class="env-chart" style="height: 250px; max-height: 250px;"></canvas>
                 </div>
             </div>
         </div>

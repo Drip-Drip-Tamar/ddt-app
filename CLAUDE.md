@@ -131,6 +131,17 @@ The news system provides blog functionality with the following components:
 - WebP format conversion and quality optimization
 - Predefined size configurations for common use cases (card, hero, logo, avatar)
 
+### Water Quality Visualization
+- `src/components/WaterQualityChart.astro`: Interactive Chart.js visualization of water sample data
+- `src/data/waterQuality.js`: Data fetching, transformation, and chart configuration
+- **Chart Features**:
+  - Logarithmic Y-axis scale to accommodate extreme outliers while maintaining readability of normal values
+  - Bacteria-type-based color grouping (E. coli in blue family, Enterococci in purple family)
+  - Location differentiation via color shade (Calstock darker, Okel Tor lighter within each bacteria type)
+  - EU Bathing Water Quality threshold annotations with colored zones
+  - Unicode normalization for site name matching to handle invisible characters in labels
+  - Client-side color application after data transformation
+
 ### TypeScript Path Aliases
 ```json
 "@components/*": ["src/components/*"]

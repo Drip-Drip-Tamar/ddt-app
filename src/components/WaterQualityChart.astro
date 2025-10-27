@@ -192,7 +192,36 @@ const chartId = `water-chart-${Math.random().toString(36).substring(2, 11)}`;
           try {
             // Load Chart.js from CDN
             const Chart = await window.loadChart();
-            
+
+            // Apply colors to datasets after normalizing site names
+            // Colors grouped by bacteria type (not location)
+            const colors = {
+              'ecoli': {
+                'Calstock': 'rgb(37, 99, 235)',      // darker blue
+                'Calstock-bg': 'rgba(37, 99, 235, 0.2)',
+                'Okel Tor': 'rgb(96, 165, 250)',     // lighter blue
+                'Okel Tor-bg': 'rgba(96, 165, 250, 0.2)'
+              },
+              'enterococci': {
+                'Calstock': 'rgb(124, 58, 237)',     // darker purple
+                'Calstock-bg': 'rgba(124, 58, 237, 0.2)',
+                'Okel Tor': 'rgb(167, 139, 250)',    // lighter purple
+                'Okel Tor-bg': 'rgba(167, 139, 250, 0.2)'
+              }
+            };
+
+            chartData.datasets.forEach(dataset => {
+              // Extract site name and normalize by removing invisible characters
+              const rawSite = dataset.label.split(' - ')[0];
+              const site = rawSite.replace(/[\u200B-\u200D\uFEFF\u00A0\u202F\u205F\u3000]/g, '').trim();
+              const bacteriaType = dataset.label.includes('E. coli') ? 'ecoli' : 'enterococci';
+
+              if (colors[bacteriaType] && colors[bacteriaType][site]) {
+                dataset.borderColor = colors[bacteriaType][site];
+                dataset.backgroundColor = colors[bacteriaType][site + '-bg'];
+              }
+            });
+
             // Create the chart
             const ctx = document.getElementById(chartId);
             if (ctx) {
