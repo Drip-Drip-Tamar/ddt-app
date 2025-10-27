@@ -254,3 +254,4 @@ tests/
 ## Sessions System Behaviors
 
 @CLAUDE.sessions.md
+- Never add Claude Code attribution
