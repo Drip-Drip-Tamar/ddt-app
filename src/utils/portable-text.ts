@@ -7,7 +7,7 @@ export interface PortableTextBlock {
   _type: string;
   style?: string;
   children?: PortableTextSpan[];
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export interface PortableTextSpan {

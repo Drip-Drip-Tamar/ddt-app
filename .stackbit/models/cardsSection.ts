@@ -11,7 +11,7 @@ export const cardsSection: ModelExtension = {
         },
         {
             name: 'fixedImageHeight',
-            controlType: 'switch'
+            controlType: 'checkbox'
         }
     ]
 };

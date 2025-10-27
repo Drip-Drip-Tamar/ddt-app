@@ -48,7 +48,7 @@ describe('News Post Rendering', () => {
         }
       ];
 
-      vi.mocked(client.fetch).mockResolvedValue(mockPosts);
+      vi.mocked(client.fetch).mockResolvedValue(mockPosts as any);
 
       const posts = await client.fetch('mock-query');
 
@@ -88,7 +88,7 @@ describe('News Post Rendering', () => {
         }
       };
 
-      vi.mocked(client.fetch).mockResolvedValue(mockPost);
+      vi.mocked(client.fetch).mockResolvedValue(mockPost as any);
 
       const post = await client.fetch('mock-query', { slug: 'test-post' });
 
@@ -126,7 +126,7 @@ describe('News Post Rendering', () => {
         featuredImage: null
       };
 
-      vi.mocked(client.fetch).mockResolvedValue(mockPost);
+      vi.mocked(client.fetch).mockResolvedValue(mockPost as any);
 
       const post = await client.fetch('mock-query', { slug: 'test-post' });
 
@@ -145,7 +145,7 @@ describe('News Post Rendering', () => {
         featuredImage: null
       };
 
-      vi.mocked(client.fetch).mockResolvedValue(mockPost);
+      vi.mocked(client.fetch).mockResolvedValue(mockPost as any);
 
       const post = await client.fetch('mock-query', { slug: 'test-post' });
 
@@ -434,7 +434,7 @@ describe('News Post Rendering', () => {
         seoKeywords: 'test, keywords'
       };
 
-      vi.mocked(client.fetch).mockResolvedValue(mockPost);
+      vi.mocked(client.fetch).mockResolvedValue(mockPost as any);
 
       const post = await client.fetch('mock-query', { slug: 'test-post' });
 
@@ -491,7 +491,7 @@ describe('News Post Rendering', () => {
         publishedAt: '2025-01-15T10:00:00Z'
       };
 
-      vi.mocked(client.fetch).mockResolvedValue(minimalPost);
+      vi.mocked(client.fetch).mockResolvedValue(minimalPost as any);
 
       const post = await client.fetch('mock-query', { slug: 'minimal-post' });
 
@@ -523,7 +523,7 @@ describe('News Post Rendering', () => {
     });
 
     it('should handle empty posts array', async () => {
-      vi.mocked(client.fetch).mockResolvedValue([]);
+      vi.mocked(client.fetch).mockResolvedValue([] as any);
 
       const posts = await client.fetch('mock-query');
 

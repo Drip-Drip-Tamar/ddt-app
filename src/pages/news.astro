@@ -4,7 +4,6 @@ import Layout from '@layouts/Layout.astro';
 import Section from '@components/Section.astro';
 import PostListItem from '@components/PostListItem.astro';
 import { client as sanityClient } from '@utils/sanity-client';
-import { getImageUrl } from '@utils/sanity-image';
 import { extractTextFromPortableText } from '@utils/portable-text';
 
 const POSTS_QUERY = `*[
@@ -28,32 +27,6 @@ const POSTS_QUERY = `*[
 }`;
 
 const posts = await sanityClient.fetch<SanityDocument[]>(POSTS_QUERY);
-
-// Transform posts to card format
-const postCards = posts.map((post) => {
-    // Use excerpt if available, otherwise extract from body
-    const contentSnippet = post.excerpt || extractTextFromPortableText(post.body, 150);
-
-    return {
-        _type: 'card',
-        heading: post.title,
-        body: contentSnippet,
-        image: post.featuredImage,
-        cta: [
-            {
-                _type: 'actionLink',
-                text: 'Read More',
-                url: `/news/${post.slug.current}`
-            }
-        ],
-        badge: post.author
-            ? {
-                  label: `By ${post.author}`,
-                  theme: 'light'
-              }
-            : undefined
-    };
-});
 
 const publishedDates = posts.map((post) =>
     post.publishedAt
