@@ -1,10 +1,10 @@
 ---
 import type { SanityDocument } from '@sanity/client';
-import { PortableText } from '@portabletext/react';
 import Layout from '@layouts/Layout.astro';
 import Section from '@components/Section.astro';
 import ResponsiveImage from '@components/ResponsiveImage.astro';
 import { client as sanityClient } from '@utils/sanity-client';
+import { portableTextToHtml } from '@utils/portable-text';
 
 export async function getStaticPaths() {
     const POSTS_QUERY = `*[_type == "post" && defined(slug.current)]{
@@ -150,55 +150,7 @@ const seoDescription = post.seoDescription || post.excerpt || '';
                         post.body && (
                             <div
                                 class="portable-text"
-                                set:html={post.body
-                                    .map((block: any) => {
-                                        if (block._type === 'block') {
-                                            const children = block.children
-                                                .map((child: any) => {
-                                                    if (child._type === 'span') {
-                                                        let text = child.text;
-                                                        if (child.marks && child.marks.length > 0) {
-                                                            child.marks.forEach((mark: string) => {
-                                                                switch (mark) {
-                                                                    case 'strong':
-                                                                        text = `<strong>${text}</strong>`;
-                                                                        break;
-                                                                    case 'em':
-                                                                        text = `<em>${text}</em>`;
-                                                                        break;
-                                                                    case 'underline':
-                                                                        text = `<u>${text}</u>`;
-                                                                        break;
-                                                                    case 'code':
-                                                                        text = `<code>${text}</code>`;
-                                                                        break;
-                                                                }
-                                                            });
-                                                        }
-                                                        return text;
-                                                    }
-                                                    return '';
-                                                })
-                                                .join('');
-
-                                            switch (block.style) {
-                                                case 'h1':
-                                                    return `<h1>${children}</h1>`;
-                                                case 'h2':
-                                                    return `<h2>${children}</h2>`;
-                                                case 'h3':
-                                                    return `<h3>${children}</h3>`;
-                                                case 'h4':
-                                                    return `<h4>${children}</h4>`;
-                                                case 'blockquote':
-                                                    return `<blockquote>${children}</blockquote>`;
-                                                default:
-                                                    return `<p>${children}</p>`;
-                                            }
-                                        }
-                                        return '';
-                                    })
-                                    .join('')}
+                                set:html={portableTextToHtml(post.body)}
                             />
                         )
                     }

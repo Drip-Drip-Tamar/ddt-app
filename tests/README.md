@@ -30,12 +30,15 @@ npm run build         # Validate build process
 ```
 tests/
 ├── setup/
-│   └── setup.ts           # Test configuration and global mocks
+│   └── setup.ts                    # Test configuration and global mocks
 ├── unit/
-│   ├── sanity-image.test.ts  # Image optimization utilities
-│   └── sanity-client.test.ts # Sanity client configuration
+│   ├── sanity-image.test.ts        # Image optimization utilities
+│   ├── sanity-client.test.ts       # Sanity client configuration
+│   ├── water-quality.test.ts       # Water quality data transformation (31 tests)
+│   └── portable-text.test.ts       # Portable text conversion (35 tests)
 └── integration/
-    └── page-rendering.test.ts # Page routing and data fetching
+    ├── page-rendering.test.ts      # Page routing and data fetching
+    └── news-rendering.test.ts      # News post rendering and SEO (27 tests)
 ```
 
 ## Test Coverage Areas
@@ -58,6 +61,25 @@ tests/
   - Preview mode configuration
   - Real-time listener setup in development
 
+- **Water Quality Data Transformation** (`water-quality.test.ts`) - 31 tests
+  - Chart data transformation with log-scale clamping
+  - Null and zero value handling for Chart.js compatibility
+  - Dataset structure validation (E. coli and Enterococci datasets)
+  - Date formatting and label generation
+  - Chart configuration with threshold annotations
+  - EU Bathing Water Quality standard zones
+  - Empty data graceful degradation
+  - Coverage: 92.2%
+
+- **Portable Text Utilities** (`portable-text.test.ts`) - 35 tests
+  - Portable text to HTML conversion for all block styles (h1-h4, blockquote, normal)
+  - Text mark application (strong, em, underline, code)
+  - Multiple mark nesting validation
+  - Plain text extraction for excerpt generation
+  - Truncation and ellipsis handling
+  - Edge cases (empty arrays, null values, missing children)
+  - Coverage: 100%
+
 ### 3. Integration Tests
 - **Page Rendering** (`page-rendering.test.ts`)
   - Dynamic page route generation
@@ -67,6 +89,16 @@ tests/
   - Component section mapping
   - Data structure validation
   - Error handling
+
+- **News Post Rendering** (`news-rendering.test.ts`) - 27 tests
+  - Post data fetching and structure validation
+  - SEO metadata fallback logic (title, description, keywords)
+  - Date formatting for listing and detail pages
+  - Author data resolution
+  - Featured image structure validation
+  - Portable text body transformation integration
+  - Multiple locale date formatting
+  - Error handling for missing posts
 
 ## Writing New Tests
 
@@ -129,9 +161,9 @@ The test suite is designed to run in CI/CD pipelines:
 
 ## Performance Goals
 
-- **Execution Time**: All tests should complete in under 2 minutes
-- **Coverage**: Aim for 80% code coverage on critical paths
-- **Fast Feedback**: Use `npm run test:watch` during development
+- **Execution Time**: All 124 tests complete in under 2 minutes
+- **Coverage**: Current coverage exceeds 90% on critical utilities (water quality: 92.2%, portable text: 100%, overall utils: 96.95%)
+- **Fast Feedback**: Use `npm run test:watch` during development for instant test re-runs
 
 ## Troubleshooting
 
@@ -152,11 +184,11 @@ npm run test -- --reporter=verbose
 ## Extending the Test Suite
 
 ### Priority Areas for Additional Testing
-1. Data transformation functions in `src/data/`
-2. Component prop validation
-3. Visual editing annotations
-4. Environment configuration handling
-5. Error boundaries and fallbacks
+1. Component prop validation
+2. Visual editing annotations (Sanity Presentation and Stackbit)
+3. Environment configuration handling
+4. Error boundaries and fallbacks
+5. Image optimization edge cases (invalid dimensions, missing assets)
 
 ### Adding New Test Categories
 1. **Performance Tests**: Add benchmark tests for critical paths
