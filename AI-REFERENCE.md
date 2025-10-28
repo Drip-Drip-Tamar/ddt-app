@@ -487,6 +487,115 @@ function getResource() {
 
 ## TESTING & DEBUGGING
 
+### Vitest Configuration
+```ts
+// vitest.config.ts
+import { defineConfig } from 'vitest/config'
+import path from 'path'
+
+export default defineConfig({
+  resolve: {
+    alias: {
+      '@utils': path.resolve(__dirname, './src/utils'),
+      '@data': path.resolve(__dirname, './src/data'),
+      '@components': path.resolve(__dirname, './src/components')
+    }
+  },
+  test: {
+    globals: true,
+    environment: 'node', // or 'jsdom' for DOM testing
+    setupFiles: './tests/setup/setup.ts',
+    pool: 'forks', // Isolate tests in separate processes
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'json', 'html'],
+      exclude: ['node_modules/', 'dist/', '.astro/', 'studio/']
+    }
+  }
+})
+```
+
+### Test Setup
+```ts
+// tests/setup/setup.ts
+import { beforeEach, afterEach, vi } from 'vitest'
+
+// Mock environment variables
+vi.stubEnv('SANITY_PROJECT_ID', 'test-project')
+vi.stubEnv('SANITY_DATASET', 'test')
+vi.stubEnv('SANITY_TOKEN', 'test-token')
+
+// Mock global APIs
+global.fetch = vi.fn()
+
+// Auto-cleanup
+afterEach(() => {
+  vi.clearAllMocks()
+})
+```
+
+### Unit Testing Patterns
+```ts
+// tests/unit/utils.test.ts
+import { describe, it, expect, vi } from 'vitest'
+import { portableTextToHtml } from '@utils/portable-text'
+
+describe('portableTextToHtml', () => {
+  it('converts basic block to paragraph', () => {
+    const blocks = [{
+      _type: 'block',
+      style: 'normal',
+      children: [{ _type: 'span', text: 'Hello' }]
+    }]
+    expect(portableTextToHtml(blocks)).toBe('<p>Hello</p>')
+  })
+
+  it('applies multiple marks correctly', () => {
+    const blocks = [{
+      _type: 'block',
+      children: [{
+        _type: 'span',
+        text: 'Bold italic',
+        marks: ['strong', 'em']
+      }]
+    }]
+    expect(portableTextToHtml(blocks))
+      .toBe('<p><em><strong>Bold italic</strong></em></p>')
+  })
+})
+```
+
+### Integration Testing
+```ts
+// tests/integration/page-rendering.test.ts
+import { describe, it, expect, vi } from 'vitest'
+
+// Mock module dependencies
+vi.mock('@utils/sanity-client', () => ({
+  client: {
+    fetch: vi.fn((query) => {
+      if (query.includes('page')) {
+        return Promise.resolve({
+          title: 'Test Page',
+          sections: []
+        })
+      }
+      return Promise.resolve([])
+    })
+  }
+}))
+
+describe('Page Rendering', () => {
+  it('fetches and structures page data', async () => {
+    const { client } = await import('@utils/sanity-client')
+    const page = await client.fetch('*[_type == "page"][0]')
+
+    expect(page).toHaveProperty('title')
+    expect(page.sections).toBeDefined()
+  })
+})
+```
+
 ### Performance Measurement
 ```ts
 // Playwright performance test
@@ -521,6 +630,17 @@ console.log('Generated result:', result)
 if (import.meta.env.DEV) {
   console.log('Debug:', data)
 }
+```
+
+### Test Commands
+```bash
+npm run test              # Run all tests once
+npm run test:unit         # Unit tests only
+npm run test:integration  # Integration tests only
+npm run test:watch        # Watch mode
+npm run test:coverage     # With coverage report
+npm run test:ui           # Open Vitest UI
+npm run test:all          # Lint + typecheck + build + test
 ```
 
 ## INTEGRATION PATTERNS
@@ -653,6 +773,19 @@ await client.transaction()
 ### Portable Text Rendering
 ```astro
 ---
+// Option 1: Custom utility (used in this project)
+import { portableTextToHtml, extractTextFromPortableText } from '@utils/portable-text'
+
+// Convert to HTML
+const html = portableTextToHtml(post.body)
+
+// Extract plain text for excerpts
+const excerpt = extractTextFromPortableText(post.body, 200)
+---
+<div set:html={html} />
+
+<!-- Option 2: astro-portabletext library -->
+---
 import { PortableText } from 'astro-portabletext'
 import Image from '@components/Image.astro'
 
@@ -662,7 +795,7 @@ const components = {
     code: ({ value }) => `<pre><code>${value.code}</code></pre>`
   },
   marks: {
-    link: ({ value, children }) => 
+    link: ({ value, children }) =>
       `<a href="${value.href}" target="_blank">${children}</a>`
   }
 }

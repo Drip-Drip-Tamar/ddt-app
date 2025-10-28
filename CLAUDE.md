@@ -103,7 +103,19 @@ const componentMap = {
 - `src/data/page.js`: Page data fetching utilities
 - `src/data/blocks.js`: Block content utilities
 - `src/data/siteConfig.js`: Global site configuration
+- `src/data/waterQuality.js`: Water quality sample fetching and chart data transformation
 - News posts: Direct Sanity queries in page components with GROQ
+
+### Portable Text Utilities
+The `src/utils/portable-text.ts` module provides centralized utilities for transforming Sanity's portable text format:
+
+**Core Functions**:
+- `extractTextFromPortableText(blocks, maxLength)` - Extracts plain text from portable text blocks for excerpt generation, with configurable truncation
+- `portableTextToHtml(blocks)` - Transforms portable text blocks to HTML with support for headings (h1-h4), blockquotes, paragraphs, and inline marks (strong, em, underline, code)
+
+**Mark Nesting Behavior**: When multiple marks are applied, they are processed in array order, but the last mark becomes the outermost HTML tag. For example, `marks=['strong', 'em']` produces `<em><strong>text</strong></em>`.
+
+**Type Safety**: Includes TypeScript interfaces for `PortableTextBlock` and `PortableTextSpan` to ensure type-safe transformations across the application.
 
 ### News System Architecture
 The news system provides blog functionality with the following components:
@@ -120,9 +132,10 @@ The news system provides blog functionality with the following components:
 - Both components support responsive images and author attribution
 
 **Data Transformation**:
-- Portable text to HTML conversion for rich content
-- Automatic excerpt generation from post body when not provided
-- Date formatting and localization
+- Centralized portable text utilities (`src/utils/portable-text.ts`) for consistent transformation across news pages
+- `portableTextToHtml()` converts rich content to HTML in post detail pages
+- `extractTextFromPortableText()` generates excerpts for listing pages when not explicitly provided
+- Date formatting and localization with 'en-GB' locale
 - Image optimization through sanity-image utility
 
 ### Image Optimization System
@@ -236,32 +249,47 @@ External visual editing service with extensive annotation system:
 ```
 tests/
 ├── setup/
-│   └── setup.ts           # Global test configuration and mocks
+│   └── setup.ts                    # Global test configuration and mocks
 ├── unit/
-│   ├── sanity-image.test.ts  # Image utility unit tests
-│   └── sanity-client.test.ts # Sanity client configuration tests
+│   ├── sanity-image.test.ts        # Image utility unit tests
+│   ├── sanity-client.test.ts       # Sanity client configuration tests
+│   ├── water-quality.test.ts       # Water quality data transformation tests (31 tests)
+│   └── portable-text.test.ts       # Portable text transformation tests (35 tests)
 └── integration/
-    └── page-rendering.test.ts # Page routing and rendering tests
+    ├── page-rendering.test.ts      # Page routing and rendering tests
+    └── news-rendering.test.ts      # News post rendering and SEO tests (27 tests)
 ```
 
 ### Test Coverage Areas
-- **Unit Tests**: Sanity image utilities, client configuration validation
-- **Integration Tests**: Page data fetching, routing, component mapping
+- **Unit Tests**: Sanity image utilities, client configuration, water quality data transformation, portable text conversion
+- **Integration Tests**: Page data fetching, routing, component mapping, news post rendering, SEO fallback logic
 - **Static Analysis**: TypeScript checking, ESLint validation, build verification
 - **Coverage Reports**: HTML and JSON coverage reports with v8 provider
 
+**Coverage Metrics** (as of latest run):
+- Water Quality module: 92.2% coverage
+- Portable Text utility: 100% coverage
+- Overall utils directory: 96.95% coverage
+- Total: 124 passing tests
+
 ### Test Configuration
-- **Framework**: Vitest with JSDOM environment
-- **Setup**: Global mocks for Sanity environment variables
-- **Coverage**: Excludes `node_modules/`, `dist/`, `.astro/`, `studio/`, config files
-- **CI/CD Ready**: Designed for automated pipeline integration
+- **Framework**: Vitest with Node environment
+- **Setup**: Global mocks for Sanity environment variables, fetch API, and console methods
+- **Path Aliases**: Configured with TypeScript path mappings (@utils, @data, @components, etc.) for consistent imports
+- **Coverage**: Excludes `node_modules/`, `dist/`, `.astro/`, `studio/`, config files, and test files
+- **CI/CD Ready**: Designed for automated pipeline integration with separate unit/integration test commands
 
 ### Key Testing Features
 - Mocked Sanity client for consistent test environments
 - Image optimization validation with URL generation testing
 - Page routing simulation with data structure validation
 - Component section mapping verification
-- Error handling and edge case coverage
+- Water quality data transformation with log-scale clamping and null handling
+- Portable text HTML conversion with mark nesting validation
+- News post SEO fallback logic testing
+- Date formatting validation for multiple locales
+- Comprehensive edge case coverage (null values, empty arrays, invalid inputs)
+- Error handling and graceful degradation scenarios
 ## Sessions System Behaviors
 
 @CLAUDE.sessions.md
