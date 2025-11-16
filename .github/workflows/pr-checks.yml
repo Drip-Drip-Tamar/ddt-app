@@ -21,6 +21,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Install studio dependencies
+        run: cd studio && npm ci
+
       - name: Run tests and quality checks
         run: npm run test:all
         env:
