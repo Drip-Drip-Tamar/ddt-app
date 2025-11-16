@@ -257,12 +257,15 @@ tests/
 │   └── portable-text.test.ts       # Portable text transformation tests (35 tests)
 └── integration/
     ├── page-rendering.test.ts      # Page routing and rendering tests
-    └── news-rendering.test.ts      # News post rendering and SEO tests (27 tests)
+    ├── news-rendering.test.ts      # News post rendering and SEO tests (27 tests)
+    ├── api-contact.test.ts         # Contact form API endpoint tests (11 tests)
+    └── api-prf.test.ts             # Pollution risk forecast API tests (10 tests)
 ```
 
 ### Test Coverage Areas
 - **Unit Tests**: Sanity image utilities, client configuration, water quality data transformation, portable text conversion
-- **Integration Tests**: Page data fetching, routing, component mapping, news post rendering, SEO fallback logic
+- **Integration Tests**: Page data fetching, routing, component mapping, news post rendering, SEO fallback logic, API endpoint validation
+- **API Endpoint Tests**: Contact form spam detection and validation, external API integration (Environment Agency), error handling
 - **Static Analysis**: TypeScript checking, ESLint validation, build verification
 - **Coverage Reports**: HTML and JSON coverage reports with v8 provider
 
@@ -270,7 +273,7 @@ tests/
 - Water Quality module: 92.2% coverage
 - Portable Text utility: 100% coverage
 - Overall utils directory: 96.95% coverage
-- Total: 124 passing tests
+- Total: 145 passing tests (124 original + 21 new API tests)
 
 ### Test Configuration
 - **Framework**: Vitest with Node environment
@@ -290,6 +293,87 @@ tests/
 - Date formatting validation for multiple locales
 - Comprehensive edge case coverage (null values, empty arrays, invalid inputs)
 - Error handling and graceful degradation scenarios
+
+## PR Checks and CI
+
+### GitHub Actions Workflow
+
+Pull requests to the `main` branch automatically trigger comprehensive quality checks via GitHub Actions (`.github/workflows/pr-checks.yml`). This workflow runs the complete test suite and validation pipeline before code can be merged.
+
+**Workflow Configuration:**
+- **Trigger**: Only on pull requests to `main` (not on every branch push)
+- **Environment**: Ubuntu latest with Node.js 20 (matching Netlify)
+- **Caching**: npm dependencies cached based on `package-lock.json` hash
+- **Command**: `npm run test:all` (executes lint, typecheck, build, and tests)
+
+**What Gets Tested:**
+1. **ESLint Validation** - Code quality and style checking
+2. **TypeScript Type Checking** - Both Astro and TSC type validation
+3. **Build Validation** - Production build must complete successfully
+4. **Unit Tests** - All utility and data transformation tests (124+ tests)
+5. **Integration Tests** - Page rendering, news system, and API endpoint tests
+6. **API Endpoint Tests** - Contact form validation and external API integration
+
+**Expected Performance:**
+- First run (no cache): ~2-3 minutes
+- Subsequent runs (with npm cache): ~1-2 minutes
+- Well under the 5-minute target for PR feedback
+
+**Environment Variables:**
+Tests use stubbed Sanity credentials from `tests/setup/setup.ts`, but the workflow also references GitHub Secrets for consistency:
+- `SANITY_PROJECT_ID`
+- `SANITY_DATASET`
+- `SANITY_TOKEN`
+
+### API Endpoint Test Coverage
+
+**Contact Form** (`tests/integration/api-contact.test.ts`):
+- ✅ Successful form submission with all required fields
+- ✅ Honeypot spam detection (silently rejects when `_website` field is filled)
+- ✅ Time-based spam detection (rejects forms filled in < 3 seconds)
+- ✅ Required field validation (name, email, message, consent)
+- ✅ Email format validation using regex
+- ✅ Content-Type handling (JSON, URL-encoded, multipart)
+- ✅ Sanity client integration (document creation)
+- ✅ Server error handling
+- ✅ IP hashing for privacy-preserving security tracking
+- ✅ Default topic assignment
+
+**Pollution Risk Forecast** (`tests/integration/api-prf.test.ts`):
+- ✅ Successful data fetching from Environment Agency API
+- ✅ Risk level mapping (normal vs increased)
+- ✅ Season detection (in-season vs out-of-season)
+- ✅ EA API error handling (404, network failures)
+- ✅ Cache header validation (15-minute cache, 1-hour stale-while-revalidate)
+- ✅ Response metadata (attribution, license, timestamp)
+- ✅ Malformed JSON handling
+- ✅ Alternative risk level field locations
+- ✅ Fallback to configuration labels
+- ✅ Parallel site data fetching
+
+**Test Execution:**
+- Contact form tests: 11 tests covering validation, spam detection, error handling
+- PRF tests: 10 tests covering API integration, caching, error scenarios
+- Combined execution time: ~100-200ms additional to existing test suite
+
+### Complementary to Netlify Checks
+
+GitHub Actions PR checks **complement** (not replace) Netlify's existing deployment preview validation:
+
+**GitHub Actions** (`.github/workflows/pr-checks.yml`):
+- Runs `npm run test:all` on every PR
+- Validates code quality, types, tests, and build
+- Provides fast feedback (~1-2 minutes)
+- Blocks merge if checks fail
+
+**Netlify** (`netlify.toml`):
+- Runs `npm ci && npm run build` on deploy previews
+- Validates production build and deployment
+- Generates preview URL for visual testing
+- Tests actual deployment environment
+
+Together, these checks ensure both code quality (GitHub Actions) and deployment viability (Netlify) before merging to `main`.
+
 ## Sessions System Behaviors
 
 @CLAUDE.sessions.md
