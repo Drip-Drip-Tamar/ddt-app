@@ -16,12 +16,12 @@
   ],
   "dependencies": {
     "@sanity/presentation": "^2.0.0",
-    "@sanity/vision": "^4.11.0",
+    "@sanity/vision": "^4.15.0",
     "easymde": "^2.20.0",
     "media": "^0.2.1",
     "react": "^19.1",
     "react-dom": "^19.1",
-    "sanity": "^4.11.0",
+    "sanity": "^4.15.0",
     "sanity-plugin-markdown": "^6.0.0",
     "sanity-plugin-media": "^4.0.0",
     "styled-components": "^6.1.18"
