@@ -38,7 +38,9 @@ tests/
 │   └── portable-text.test.ts       # Portable text conversion (35 tests)
 └── integration/
     ├── page-rendering.test.ts      # Page routing and data fetching
-    └── news-rendering.test.ts      # News post rendering and SEO (27 tests)
+    ├── news-rendering.test.ts      # News post rendering and SEO (27 tests)
+    ├── api-contact.test.ts         # Contact form API endpoint (11 tests)
+    └── api-prf.test.ts             # Pollution risk forecast API (10 tests)
 ```
 
 ## Test Coverage Areas
@@ -99,6 +101,30 @@ tests/
   - Portable text body transformation integration
   - Multiple locale date formatting
   - Error handling for missing posts
+
+- **Contact Form API** (`api-contact.test.ts`) - 11 tests
+  - Form submission with all required fields
+  - Honeypot spam detection (hidden field check)
+  - Time-based spam detection (minimum 3-second fill time)
+  - Required field validation (name, email, message, consent)
+  - Email format validation using regex
+  - Content-Type handling (JSON, URL-encoded, multipart)
+  - Sanity client document creation integration
+  - IP hashing for privacy-preserving security tracking
+  - Server error handling and graceful degradation
+  - Default topic assignment
+
+- **Pollution Risk Forecast API** (`api-prf.test.ts`) - 10 tests
+  - Environment Agency API data fetching
+  - Risk level mapping (normal vs increased)
+  - Season detection (May-September bathing season)
+  - EA API error handling (404, 500, network failures)
+  - Cache header validation (15-minute cache, 1-hour stale-while-revalidate)
+  - Response metadata (attribution, license, timestamp)
+  - Malformed JSON handling
+  - Alternative risk level field locations
+  - Fallback to configuration labels when API unavailable
+  - Parallel bathing water site data fetching
 
 ## Writing New Tests
 
@@ -161,7 +187,7 @@ The test suite is designed to run in CI/CD pipelines:
 
 ## Performance Goals
 
-- **Execution Time**: All 124 tests complete in under 2 minutes
+- **Execution Time**: All 145 tests complete in under 2 minutes
 - **Coverage**: Current coverage exceeds 90% on critical utilities (water quality: 92.2%, portable text: 100%, overall utils: 96.95%)
 - **Fast Feedback**: Use `npm run test:watch` during development for instant test re-runs
 
@@ -184,11 +210,12 @@ npm run test -- --reporter=verbose
 ## Extending the Test Suite
 
 ### Priority Areas for Additional Testing
-1. Component prop validation
-2. Visual editing annotations (Sanity Presentation and Stackbit)
-3. Environment configuration handling
-4. Error boundaries and fallbacks
-5. Image optimization edge cases (invalid dimensions, missing assets)
+1. Additional API endpoints (rainfall, tamar-level, CSO data)
+2. Component prop validation
+3. Visual editing annotations (Sanity Presentation and Stackbit)
+4. Environment configuration handling
+5. Error boundaries and fallbacks
+6. Image optimization edge cases (invalid dimensions, missing assets)
 
 ### Adding New Test Categories
 1. **Performance Tests**: Add benchmark tests for critical paths
