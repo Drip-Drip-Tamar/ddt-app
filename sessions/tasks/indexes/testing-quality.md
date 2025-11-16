@@ -9,6 +9,7 @@ description: Tasks related to automated testing, test coverage, code quality, li
 ## Active Tasks
 
 ### High Priority
+- `h-test-pr-automation.md` - Add GitHub Actions PR checks with API endpoint tests
 
 ### Medium Priority
 
