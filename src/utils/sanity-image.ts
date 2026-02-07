@@ -1,6 +1,8 @@
 import imageUrlBuilder from '@sanity/image-url';
-import type { ImageUrlBuilder } from '@sanity/image-url/lib/types/builder';
-import type { SanityImageSource } from '@sanity/image-url/lib/types/types';
+import type {
+  ImageUrlBuilder,
+  SanityImageSource,
+} from '@sanity/image-url/lib/types/types';
 
 // Get Sanity configuration from environment
 const projectId = import.meta.env.SANITY_PROJECT_ID || import.meta.env.PUBLIC_SANITY_PROJECT_ID;
