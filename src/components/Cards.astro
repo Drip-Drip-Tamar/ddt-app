@@ -3,12 +3,15 @@ import { marked } from 'marked';
 import { type CardsSection } from 'types';
 import Card from '@components/Card.astro';
 import Section from '@components/Section.astro';
+import { normalizeColumns } from '@utils/columns';
 
 interface Props extends CardsSection {
     'data-sb-field-path'?: string;
 }
 
 const { heading, body, items, columns, fixedImageHeight, ...rest } = Astro.props;
+
+const effectiveColumns = normalizeColumns(columns) ?? 'three';
 ---
 
 <Section {...rest} class="text-center">
@@ -25,8 +28,16 @@ const { heading, body, items, columns, fixedImageHeight, ...rest } = Astro.props
             <div
                 class:list={[
                     (heading || body) && 'mt-8',
-                    'grid gap-8 justify-items-center',
-                    columns === 'one' ? undefined : columns === 'two' ? 'md:grid-cols-2' : 'md:grid-cols-3'
+                    'grid gap-8 justify-items-center grid-cols-1',
+                    effectiveColumns === 'one'
+                        ? undefined
+                        : effectiveColumns === 'two'
+                            ? 'sm:grid-cols-2'
+                            : effectiveColumns === 'three'
+                                ? 'sm:grid-cols-2 lg:grid-cols-3'
+                                : effectiveColumns === 'four'
+                                    ? 'sm:grid-cols-2 lg:grid-cols-4'
+                                    : 'sm:grid-cols-2 lg:grid-cols-3'
                 ]}
                 data-sb-field-path=".items"
             >

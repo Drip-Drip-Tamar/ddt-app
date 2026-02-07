@@ -38,6 +38,7 @@ export default defineType({
           {title: '1', value: 'one'},
           {title: '2', value: 'two'},
           {title: '3', value: 'three'},
+          {title: '4', value: 'four'},
         ],
       },
       initialValue: 'three',
