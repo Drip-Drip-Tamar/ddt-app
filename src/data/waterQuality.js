@@ -86,7 +86,15 @@ export async function getSamplingSites() {
 }
 
 /**
+ * Transform actual value to display position using shifted log scale
+ * log10(value + 100) - compresses low values less than standard log
+ */
+export const SHIFT_OFFSET = 100
+export const toDisplay = (value) => Math.log10(value + SHIFT_OFFSET)
+
+/**
  * Transform samples data for Chart.js format
+ * Uses shifted logarithmic scale for more balanced visual distribution
  */
 export function transformSamplesToChartData(samples) {
   // Get unique dates and sites
@@ -100,35 +108,37 @@ export function transformSamplesToChartData(samples) {
 
   // Create dataset for each site and bacteria combination
   sites.forEach(site => {
-    // E. coli dataset
+    // E. coli dataset - store raw values separately for tooltips
+    const rawValues = dates.map(date => {
+      const sample = samples.find(s => s.date === date && s.siteName === site)
+      const value = sample?.ecoli
+      if (value === null || value === undefined) return null
+      return value < 1 ? 1 : value
+    })
+
     datasets.push({
       label: `${site} - E. coli`,
-      data: dates.map(date => {
-        const sample = samples.find(s => s.date === date && s.siteName === site)
-        const value = sample?.ecoli
-        // For log scale, replace 0 or null with null (Chart.js will skip)
-        // Values < 1 get clamped to 1 for visibility
-        if (value === null || value === undefined) return null
-        return value < 1 ? 1 : value
-      }),
-      tension: 0.3,
+      data: rawValues.map(v => v === null ? null : toDisplay(v)),
+      rawValues: rawValues, // Store raw values for tooltips
+      tension: 0.1,
       borderWidth: 2,
       pointRadius: 3,
       pointHoverRadius: 5
     })
 
     // Enterococci dataset
+    const rawEnteroValues = dates.map(date => {
+      const sample = samples.find(s => s.date === date && s.siteName === site)
+      const value = sample?.enterococci
+      if (value === null || value === undefined) return null
+      return value < 1 ? 1 : value
+    })
+
     datasets.push({
       label: `${site} - Enterococci`,
-      data: dates.map(date => {
-        const sample = samples.find(s => s.date === date && s.siteName === site)
-        const value = sample?.enterococci
-        // For log scale, replace 0 or null with null (Chart.js will skip)
-        // Values < 1 get clamped to 1 for visibility
-        if (value === null || value === undefined) return null
-        return value < 1 ? 1 : value
-      }),
-      tension: 0.3,
+      data: rawEnteroValues.map(v => v === null ? null : toDisplay(v)),
+      rawValues: rawEnteroValues, // Store raw values for tooltips
+      tension: 0.1,
       borderWidth: 2,
       borderDash: [5, 5], // Dashed line for enterococci
       pointRadius: 3,
@@ -148,16 +158,18 @@ export function transformSamplesToChartData(samples) {
 
 /**
  * Get chart configuration with thresholds
+ * Uses shifted log scale transformation for annotations
  */
 export function getChartConfig(showThresholds = true) {
   const annotations = {}
-  
+
   if (showThresholds) {
-    // Background zones for water quality levels (using E. coli thresholds)
+    // Background zones for water quality levels (EU Bathing Water Quality thresholds)
+    // All values transformed using shifted log: log10(value + 100)
     annotations.excellentZone = {
       type: 'box',
-      yMin: 0,
-      yMax: 500,
+      yMin: toDisplay(0),
+      yMax: toDisplay(500),
       backgroundColor: 'rgba(34, 197, 94, 0.08)',
       borderWidth: 0,
       drawTime: 'beforeDatasetsDraw'
@@ -165,8 +177,8 @@ export function getChartConfig(showThresholds = true) {
 
     annotations.goodZone = {
       type: 'box',
-      yMin: 500,
-      yMax: 1000,
+      yMin: toDisplay(500),
+      yMax: toDisplay(1000),
       backgroundColor: 'rgba(251, 191, 36, 0.08)',
       borderWidth: 0,
       drawTime: 'beforeDatasetsDraw'
@@ -174,8 +186,8 @@ export function getChartConfig(showThresholds = true) {
 
     annotations.sufficientZone = {
       type: 'box',
-      yMin: 1000,
-      yMax: 1800,
+      yMin: toDisplay(1000),
+      yMax: toDisplay(1800),
       backgroundColor: 'rgba(249, 115, 22, 0.08)',
       borderWidth: 0,
       drawTime: 'beforeDatasetsDraw'
@@ -183,18 +195,18 @@ export function getChartConfig(showThresholds = true) {
 
     annotations.poorZone = {
       type: 'box',
-      yMin: 1800,
-      yMax: 100000,
+      yMin: toDisplay(1800),
+      yMax: 6, // log10(1000000 + 100) ≈ 6, covers extreme spikes
       backgroundColor: 'rgba(239, 68, 68, 0.08)',
       borderWidth: 0,
       drawTime: 'beforeDatasetsDraw'
     }
 
-    // EU Bathing Water Quality threshold lines (more subtle)
+    // EU Bathing Water Quality threshold lines for E. coli
     annotations.ecoliExcellent = {
       type: 'line',
-      yMin: 500,
-      yMax: 500,
+      yMin: toDisplay(500),
+      yMax: toDisplay(500),
       borderColor: 'rgba(34, 197, 94, 0.5)',
       borderWidth: 1,
       borderDash: [5, 5],
@@ -205,8 +217,8 @@ export function getChartConfig(showThresholds = true) {
 
     annotations.ecoliGood = {
       type: 'line',
-      yMin: 1000,
-      yMax: 1000,
+      yMin: toDisplay(1000),
+      yMax: toDisplay(1000),
       borderColor: 'rgba(251, 191, 36, 0.5)',
       borderWidth: 1,
       borderDash: [5, 5],
@@ -217,8 +229,8 @@ export function getChartConfig(showThresholds = true) {
 
     annotations.ecoliSufficient = {
       type: 'line',
-      yMin: 1800,
-      yMax: 1800,
+      yMin: toDisplay(1800),
+      yMax: toDisplay(1800),
       borderColor: 'rgba(249, 115, 22, 0.5)',
       borderWidth: 1,
       borderDash: [5, 5],
@@ -227,10 +239,11 @@ export function getChartConfig(showThresholds = true) {
       }
     }
 
+    // EU Bathing Water Quality threshold lines for Enterococci
     annotations.enteroExcellent = {
       type: 'line',
-      yMin: 200,
-      yMax: 200,
+      yMin: toDisplay(200),
+      yMax: toDisplay(200),
       borderColor: 'rgba(34, 197, 94, 0.4)',
       borderWidth: 1,
       borderDash: [3, 3],
@@ -241,8 +254,8 @@ export function getChartConfig(showThresholds = true) {
 
     annotations.enteroGood = {
       type: 'line',
-      yMin: 400,
-      yMax: 400,
+      yMin: toDisplay(400),
+      yMax: toDisplay(400),
       borderColor: 'rgba(251, 191, 36, 0.4)',
       borderWidth: 1,
       borderDash: [3, 3],
@@ -253,8 +266,8 @@ export function getChartConfig(showThresholds = true) {
 
     annotations.enteroSufficient = {
       type: 'line',
-      yMin: 660,
-      yMax: 660,
+      yMin: toDisplay(660),
+      yMax: toDisplay(660),
       borderColor: 'rgba(249, 115, 22, 0.4)',
       borderWidth: 1,
       borderDash: [3, 3],
@@ -263,7 +276,7 @@ export function getChartConfig(showThresholds = true) {
       }
     }
   }
-  
+
   return {
     responsive: true,
     maintainAspectRatio: false,
@@ -282,13 +295,7 @@ export function getChartConfig(showThresholds = true) {
         }
       },
       tooltip: {
-        callbacks: {
-          label: function(context) {
-            const value = context.parsed.y
-            if (value === null) return `${context.dataset.label}: No data`
-            return `${context.dataset.label}: ${value} cfu/100ml`
-          }
-        }
+        // Callback added client-side (functions don't survive JSON serialization)
       },
       annotation: {
         annotations
@@ -307,21 +314,14 @@ export function getChartConfig(showThresholds = true) {
         }
       },
       y: {
-        type: 'logarithmic',
+        type: 'linear',
+        min: toDisplay(10),
         display: true,
         title: {
           display: true,
-          text: 'Colony Forming Units per 100ml (log scale)'
-        },
-        ticks: {
-          callback: function(value) {
-            // Format log scale ticks nicely
-            if (value === 1 || value === 10 || value === 100 || value === 1000 || value === 10000 || value === 100000) {
-              return value + ' cfu'
-            }
-            return ''
-          }
+          text: 'Colony Forming Units per 100ml'
         }
+        // Tick callback added client-side (functions don't survive JSON serialization)
       }
     }
   }

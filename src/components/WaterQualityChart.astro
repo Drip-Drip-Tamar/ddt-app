@@ -104,15 +104,15 @@ const chartId = `water-chart-${Math.random().toString(36).substring(2, 11)}`;
                     <td>{new Date(sample.date).toLocaleDateString('en-GB')}</td>
                     <td>{sample.siteName}</td>
                     <td class:list={[
-                      sample.ecoli > 1000 ? 'text-error font-semibold' : 
-                      sample.ecoli > 500 ? 'text-warning' : 
+                      sample.ecoli > 1000 ? 'text-error font-semibold' :
+                      sample.ecoli > 500 ? 'text-warning' :
                       'text-success'
                     ]}>
                       {sample.ecoli ?? '—'}
                     </td>
                     <td class:list={[
-                      sample.enterococci > 400 ? 'text-error font-semibold' : 
-                      sample.enterococci > 200 ? 'text-warning' : 
+                      sample.enterococci > 400 ? 'text-error font-semibold' :
+                      sample.enterococci > 200 ? 'text-warning' :
                       'text-success'
                     ]}>
                       {sample.enterococci ?? '—'}
@@ -215,12 +215,96 @@ const chartId = `water-chart-${Math.random().toString(36).substring(2, 11)}`;
               const rawSite = dataset.label.split(' - ')[0];
               const site = rawSite.replace(/[\u200B-\u200D\uFEFF\u00A0\u202F\u205F\u3000]/g, '').trim();
               const bacteriaType = dataset.label.includes('E. coli') ? 'ecoli' : 'enterococci';
+              const isEcoli = bacteriaType === 'ecoli';
+              const spikeThreshold = isEcoli ? 1000 : 400;
 
               if (colors[bacteriaType] && colors[bacteriaType][site]) {
                 dataset.borderColor = colors[bacteriaType][site];
                 dataset.backgroundColor = colors[bacteriaType][site + '-bg'];
               }
+
+              // Dynamic point sizing - use rawValues for threshold check
+              dataset.pointRadius = (context) => {
+                const rawValues = context.dataset.rawValues;
+                const raw = rawValues?.[context.dataIndex];
+                if (raw === null || raw === undefined) return 0;
+                return raw > spikeThreshold ? 6 : 3;
+              };
+
+              dataset.pointHoverRadius = (context) => {
+                const rawValues = context.dataset.rawValues;
+                const raw = rawValues?.[context.dataIndex];
+                if (raw === null || raw === undefined) return 0;
+                return raw > spikeThreshold ? 8 : 5;
+              };
+
+              // Add visual emphasis for spike points
+              dataset.pointBackgroundColor = (context) => {
+                const rawValues = context.dataset.rawValues;
+                const raw = rawValues?.[context.dataIndex];
+                if (raw === null || raw === undefined) return 'transparent';
+                if (raw > spikeThreshold) {
+                  return colors[bacteriaType]?.[site] || 'rgb(239, 68, 68)';
+                }
+                return colors[bacteriaType]?.[site] || 'rgb(59, 130, 246)';
+              };
+
+              dataset.pointBorderColor = (context) => {
+                const rawValues = context.dataset.rawValues;
+                const raw = rawValues?.[context.dataIndex];
+                if (raw === null || raw === undefined) return 'transparent';
+                if (raw > spikeThreshold) {
+                  return 'rgba(255, 255, 255, 0.8)';
+                }
+                return 'transparent';
+              };
+
+              dataset.pointBorderWidth = (context) => {
+                const rawValues = context.dataset.rawValues;
+                const raw = rawValues?.[context.dataIndex];
+                if (raw === null || raw === undefined) return 0;
+                return raw > spikeThreshold ? 2 : 0;
+              };
             });
+
+            // Calculate dynamic yMax based on transformed data values
+            let dataMaxY = 2; // log10(10 + 100) ≈ 2
+            chartData.datasets.forEach(dataset => {
+              dataset.data.forEach(value => {
+                if (value !== null && value !== undefined && value > dataMaxY) {
+                  dataMaxY = value;
+                }
+              });
+            });
+
+            // Apply max with buffer for visual breathing room
+            if (!chartConfig.scales) chartConfig.scales = {};
+            if (!chartConfig.scales.y) chartConfig.scales.y = {};
+            chartConfig.scales.y.max = dataMaxY + 0.3; // Add buffer in transformed space
+
+            // Add tooltip callback to show actual values (callbacks don't survive JSON serialization)
+            if (!chartConfig.plugins) chartConfig.plugins = {};
+            if (!chartConfig.plugins.tooltip) chartConfig.plugins.tooltip = {};
+            chartConfig.plugins.tooltip.callbacks = {
+              label: function(context) {
+                const rawValues = context.dataset.rawValues;
+                const raw = rawValues?.[context.dataIndex];
+                if (raw === null || raw === undefined) return `${context.dataset.label}: No data`;
+                return `${context.dataset.label}: ${raw} cfu/100ml`;
+              }
+            };
+
+            // Add Y-axis tick callback to show actual values
+            if (!chartConfig.scales.y.ticks) chartConfig.scales.y.ticks = {};
+            const SHIFT_OFFSET = 100;
+            chartConfig.scales.y.ticks.callback = function(value) {
+              const actual = Math.pow(10, value) - SHIFT_OFFSET;
+              if (actual < 0 || actual > 100000) return '';
+              if (actual >= 10000) return Math.round(actual / 1000) + 'K cfu';
+              if (actual >= 1000) return Math.round(actual / 1000) + 'K cfu';
+              if (actual >= 1) return Math.round(actual) + ' cfu';
+              return '';
+            };
 
             // Create the chart
             const ctx = document.getElementById(chartId);

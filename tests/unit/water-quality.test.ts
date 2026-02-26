@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeAll } from 'vitest';
-import { transformSamplesToChartData, getChartConfig } from '../../src/data/waterQuality';
+import { transformSamplesToChartData, getChartConfig, toDisplay } from '../../src/data/waterQuality';
 
 // Mock environment variables
 beforeAll(() => {
@@ -148,7 +148,7 @@ describe('Water Quality Data Transformation', () => {
       expect(result.datasets[1].data[0]).toBeNull();
     });
 
-    it('should clamp values less than 1 to 1 for log scale', () => {
+    it('should clamp values less than 1 to 1 and apply shifted log transformation', () => {
       const samples = [
         {
           _id: 'sample-1',
@@ -162,11 +162,16 @@ describe('Water Quality Data Transformation', () => {
 
       const result = transformSamplesToChartData(samples);
 
-      expect(result.datasets[0].data[0]).toBe(1);
-      expect(result.datasets[1].data[0]).toBe(1);
+      // Raw values should be clamped to 1
+      expect(result.datasets[0].rawValues[0]).toBe(1);
+      expect(result.datasets[1].rawValues[0]).toBe(1);
+
+      // Data should be transformed using shifted log
+      expect(result.datasets[0].data[0]).toBeCloseTo(toDisplay(1), 5);
+      expect(result.datasets[1].data[0]).toBeCloseTo(toDisplay(1), 5);
     });
 
-    it('should not clamp values equal to or greater than 1', () => {
+    it('should apply shifted log transformation to values equal to or greater than 1', () => {
       const samples = [
         {
           _id: 'sample-1',
@@ -180,11 +185,16 @@ describe('Water Quality Data Transformation', () => {
 
       const result = transformSamplesToChartData(samples);
 
-      expect(result.datasets[0].data[0]).toBe(1);
-      expect(result.datasets[1].data[0]).toBe(1000);
+      // Raw values should be preserved
+      expect(result.datasets[0].rawValues[0]).toBe(1);
+      expect(result.datasets[1].rawValues[0]).toBe(1000);
+
+      // Data should be transformed
+      expect(result.datasets[0].data[0]).toBeCloseTo(toDisplay(1), 5);
+      expect(result.datasets[1].data[0]).toBeCloseTo(toDisplay(1000), 5);
     });
 
-    it('should handle extreme outliers without modification', () => {
+    it('should handle extreme outliers with shifted log transformation', () => {
       const samples = [
         {
           _id: 'sample-1',
@@ -198,8 +208,13 @@ describe('Water Quality Data Transformation', () => {
 
       const result = transformSamplesToChartData(samples);
 
-      expect(result.datasets[0].data[0]).toBe(100000);
-      expect(result.datasets[1].data[0]).toBe(50000);
+      // Raw values should be preserved
+      expect(result.datasets[0].rawValues[0]).toBe(100000);
+      expect(result.datasets[1].rawValues[0]).toBe(50000);
+
+      // Data should be transformed using shifted log
+      expect(result.datasets[0].data[0]).toBeCloseTo(toDisplay(100000), 5);
+      expect(result.datasets[1].data[0]).toBeCloseTo(toDisplay(50000), 5);
     });
 
     it('should format dates in en-GB locale', () => {
@@ -244,8 +259,14 @@ describe('Water Quality Data Transformation', () => {
 
       expect(result.labels).toHaveLength(2);
       expect(result.datasets[0].data).toHaveLength(2);
-      expect(result.datasets[0].data[0]).toBe(250);
-      expect(result.datasets[0].data[1]).toBe(500);
+
+      // Check transformed values
+      expect(result.datasets[0].data[0]).toBeCloseTo(toDisplay(250), 5);
+      expect(result.datasets[0].data[1]).toBeCloseTo(toDisplay(500), 5);
+
+      // Check raw values are preserved
+      expect(result.datasets[0].rawValues[0]).toBe(250);
+      expect(result.datasets[0].rawValues[1]).toBe(500);
     });
 
     it('should use null when site has no sample for a date', () => {
@@ -272,13 +293,17 @@ describe('Water Quality Data Transformation', () => {
 
       // Calstock should have data for first date, null for second
       const calstockEcoliDataset = result.datasets.find(d => d.label === 'Calstock - E. coli');
-      expect(calstockEcoliDataset?.data[0]).toBe(250);
+      expect(calstockEcoliDataset?.data[0]).toBeCloseTo(toDisplay(250), 5);
       expect(calstockEcoliDataset?.data[1]).toBeNull();
+      expect(calstockEcoliDataset?.rawValues[0]).toBe(250);
+      expect(calstockEcoliDataset?.rawValues[1]).toBeNull();
 
       // Okel Tor should have null for first date, data for second
       const okelTorEcoliDataset = result.datasets.find(d => d.label === 'Okel Tor - E. coli');
       expect(okelTorEcoliDataset?.data[0]).toBeNull();
-      expect(okelTorEcoliDataset?.data[1]).toBe(300);
+      expect(okelTorEcoliDataset?.data[1]).toBeCloseTo(toDisplay(300), 5);
+      expect(okelTorEcoliDataset?.rawValues[0]).toBeNull();
+      expect(okelTorEcoliDataset?.rawValues[1]).toBe(300);
     });
 
     it('should handle empty samples array gracefully', () => {
@@ -305,12 +330,13 @@ describe('Water Quality Data Transformation', () => {
 
       expect(dataset).toHaveProperty('label');
       expect(dataset).toHaveProperty('data');
+      expect(dataset).toHaveProperty('rawValues'); // Raw values for tooltips
       expect(dataset).toHaveProperty('tension');
       expect(dataset).toHaveProperty('borderWidth');
       expect(dataset).toHaveProperty('pointRadius');
       expect(dataset).toHaveProperty('pointHoverRadius');
 
-      expect(dataset.tension).toBe(0.3);
+      expect(dataset.tension).toBe(0.1); // Reduced from 0.3 for sharper spikes
       expect(dataset.borderWidth).toBe(2);
       expect(dataset.pointRadius).toBe(3);
       expect(dataset.pointHoverRadius).toBe(5);
@@ -348,25 +374,25 @@ describe('Water Quality Data Transformation', () => {
       expect(annotations.poorZone.type).toBe('box');
     });
 
-    it('should configure quality zones with correct ranges', () => {
+    it('should configure quality zones with correct transformed ranges', () => {
       const config = getChartConfig(true);
       const annotations = config.plugins.annotation.annotations;
 
-      // Excellent: 0-500
-      expect(annotations.excellentZone.yMin).toBe(0);
-      expect(annotations.excellentZone.yMax).toBe(500);
+      // Excellent: 0-500 (transformed)
+      expect(annotations.excellentZone.yMin).toBeCloseTo(toDisplay(0), 5);
+      expect(annotations.excellentZone.yMax).toBeCloseTo(toDisplay(500), 5);
 
-      // Good: 500-1000
-      expect(annotations.goodZone.yMin).toBe(500);
-      expect(annotations.goodZone.yMax).toBe(1000);
+      // Good: 500-1000 (transformed)
+      expect(annotations.goodZone.yMin).toBeCloseTo(toDisplay(500), 5);
+      expect(annotations.goodZone.yMax).toBeCloseTo(toDisplay(1000), 5);
 
-      // Sufficient: 1000-1800
-      expect(annotations.sufficientZone.yMin).toBe(1000);
-      expect(annotations.sufficientZone.yMax).toBe(1800);
+      // Sufficient: 1000-1800 (transformed)
+      expect(annotations.sufficientZone.yMin).toBeCloseTo(toDisplay(1000), 5);
+      expect(annotations.sufficientZone.yMax).toBeCloseTo(toDisplay(1800), 5);
 
-      // Poor: 1800-100000
-      expect(annotations.poorZone.yMin).toBe(1800);
-      expect(annotations.poorZone.yMax).toBe(100000);
+      // Poor: 1800-100000000 (transformed, high max to cover all spikes)
+      expect(annotations.poorZone.yMin).toBeCloseTo(toDisplay(1800), 5);
+      expect(annotations.poorZone.yMax).toBe(6); // log10(1000000 + 100) ≈ 6
     });
 
     it('should include 6 threshold lines when thresholds enabled', () => {
@@ -388,44 +414,49 @@ describe('Water Quality Data Transformation', () => {
       expect(annotations.enteroExcellent.type).toBe('line');
     });
 
-    it('should configure E. coli thresholds correctly', () => {
+    it('should configure E. coli thresholds correctly with transformed values', () => {
       const config = getChartConfig(true);
       const annotations = config.plugins.annotation.annotations;
 
-      // E. coli excellent: 500
-      expect(annotations.ecoliExcellent.yMin).toBe(500);
-      expect(annotations.ecoliExcellent.yMax).toBe(500);
+      // E. coli excellent: 500 (transformed)
+      expect(annotations.ecoliExcellent.yMin).toBeCloseTo(toDisplay(500), 5);
+      expect(annotations.ecoliExcellent.yMax).toBeCloseTo(toDisplay(500), 5);
 
-      // E. coli good: 1000
-      expect(annotations.ecoliGood.yMin).toBe(1000);
-      expect(annotations.ecoliGood.yMax).toBe(1000);
+      // E. coli good: 1000 (transformed)
+      expect(annotations.ecoliGood.yMin).toBeCloseTo(toDisplay(1000), 5);
+      expect(annotations.ecoliGood.yMax).toBeCloseTo(toDisplay(1000), 5);
 
-      // E. coli sufficient: 1800
-      expect(annotations.ecoliSufficient.yMin).toBe(1800);
-      expect(annotations.ecoliSufficient.yMax).toBe(1800);
+      // E. coli sufficient: 1800 (transformed)
+      expect(annotations.ecoliSufficient.yMin).toBeCloseTo(toDisplay(1800), 5);
+      expect(annotations.ecoliSufficient.yMax).toBeCloseTo(toDisplay(1800), 5);
     });
 
-    it('should configure Enterococci thresholds correctly', () => {
+    it('should configure Enterococci thresholds correctly with transformed values', () => {
       const config = getChartConfig(true);
       const annotations = config.plugins.annotation.annotations;
 
-      // Enterococci excellent: 200
-      expect(annotations.enteroExcellent.yMin).toBe(200);
-      expect(annotations.enteroExcellent.yMax).toBe(200);
+      // Enterococci excellent: 200 (transformed)
+      expect(annotations.enteroExcellent.yMin).toBeCloseTo(toDisplay(200), 5);
+      expect(annotations.enteroExcellent.yMax).toBeCloseTo(toDisplay(200), 5);
 
-      // Enterococci good: 400
-      expect(annotations.enteroGood.yMin).toBe(400);
-      expect(annotations.enteroGood.yMax).toBe(400);
+      // Enterococci good: 400 (transformed)
+      expect(annotations.enteroGood.yMin).toBeCloseTo(toDisplay(400), 5);
+      expect(annotations.enteroGood.yMax).toBeCloseTo(toDisplay(400), 5);
 
-      // Enterococci sufficient: 660
-      expect(annotations.enteroSufficient.yMin).toBe(660);
-      expect(annotations.enteroSufficient.yMax).toBe(660);
+      // Enterococci sufficient: 660 (transformed)
+      expect(annotations.enteroSufficient.yMin).toBeCloseTo(toDisplay(660), 5);
+      expect(annotations.enteroSufficient.yMax).toBeCloseTo(toDisplay(660), 5);
     });
 
-    it('should use logarithmic y-axis scale', () => {
+    it('should use linear y-axis scale with shifted log transformation', () => {
       const config = getChartConfig();
 
-      expect(config.scales?.y?.type).toBe('logarithmic');
+      // Y-axis is now linear (not logarithmic) because we apply
+      // shifted log transformation to the data values
+      expect(config.scales?.y?.type).toBe('linear');
+
+      // Y-axis min should be the transformed value of 10
+      expect(config.scales?.y?.min).toBeCloseTo(toDisplay(10), 5);
     });
 
     it('should configure responsive behavior', () => {
@@ -443,64 +474,10 @@ describe('Water Quality Data Transformation', () => {
       expect(config.interaction?.intersect).toBe(false);
     });
 
-    it('should have tooltip callback that formats values', () => {
-      const config = getChartConfig();
-
-      expect(config.plugins?.tooltip?.callbacks?.label).toBeDefined();
-      expect(typeof config.plugins.tooltip.callbacks.label).toBe('function');
-    });
-
-    it('should format valid values in tooltip as "label: value cfu/100ml"', () => {
-      const config = getChartConfig();
-      const labelCallback = config.plugins?.tooltip?.callbacks?.label;
-
-      const mockContext = {
-        dataset: { label: 'Calstock - E. coli' },
-        parsed: { y: 250 }
-      };
-
-      const result = labelCallback(mockContext);
-      expect(result).toBe('Calstock - E. coli: 250 cfu/100ml');
-    });
-
-    it('should format null values in tooltip as "label: No data"', () => {
-      const config = getChartConfig();
-      const labelCallback = config.plugins?.tooltip?.callbacks?.label;
-
-      const mockContext = {
-        dataset: { label: 'Calstock - E. coli' },
-        parsed: { y: null }
-      };
-
-      const result = labelCallback(mockContext);
-      expect(result).toBe('Calstock - E. coli: No data');
-    });
-
-    it('should have tick callback that filters log scale labels', () => {
-      const config = getChartConfig();
-
-      expect(config.scales?.y?.ticks?.callback).toBeDefined();
-      expect(typeof config.scales.y.ticks.callback).toBe('function');
-    });
-
-    it('should only show labels for specific values on log scale', () => {
-      const config = getChartConfig();
-      const tickCallback = config.scales?.y?.ticks?.callback;
-
-      // Should show labels for these values
-      expect(tickCallback(1)).toBe('1 cfu');
-      expect(tickCallback(10)).toBe('10 cfu');
-      expect(tickCallback(100)).toBe('100 cfu');
-      expect(tickCallback(1000)).toBe('1000 cfu');
-      expect(tickCallback(10000)).toBe('10000 cfu');
-      expect(tickCallback(100000)).toBe('100000 cfu');
-
-      // Should not show labels for these values
-      expect(tickCallback(5)).toBe('');
-      expect(tickCallback(50)).toBe('');
-      expect(tickCallback(500)).toBe('');
-      expect(tickCallback(5000)).toBe('');
-    });
+    // Note: Tooltip callback is now added client-side in WaterQualityChart.astro
+    // since functions don't survive JSON serialization.
+    // The client-side callback uses rawValues array to display actual values.
+    // See WaterQualityChart.astro for the tooltip implementation.
 
     it('should have axis titles', () => {
       const config = getChartConfig();
@@ -508,7 +485,7 @@ describe('Water Quality Data Transformation', () => {
       expect(config.scales?.x?.title?.display).toBe(true);
       expect(config.scales?.x?.title?.text).toBe('Sample Date');
       expect(config.scales?.y?.title?.display).toBe(true);
-      expect(config.scales?.y?.title?.text).toBe('Colony Forming Units per 100ml (log scale)');
+      expect(config.scales?.y?.title?.text).toBe('Colony Forming Units per 100ml');
     });
 
     it('should configure x-axis tick rotation', () => {
