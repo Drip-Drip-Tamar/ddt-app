@@ -1,4 +1,5 @@
-import { describe, it, expect, vi } from 'vitest';
+import { beforeEach, describe, it, expect, vi } from 'vitest';
+import type { APIContext } from 'astro';
 
 vi.mock('../../src/data/locationConfig', () => ({
   getPrimaryLocation: vi.fn(() => Promise.resolve({
@@ -11,6 +12,10 @@ vi.mock('../../src/data/locationConfig', () => ({
 }));
 
 describe('Rainfall API', () => {
+  beforeEach(() => {
+    vi.mocked(global.fetch).mockReset();
+  });
+
   it('returns hourly and rolling totals', async () => {
     const now = new Date();
     const readingOne = new Date(now.getTime() - 2 * 60 * 60 * 1000).toISOString();
@@ -69,12 +74,118 @@ describe('Rainfall API', () => {
       );
 
     const { GET } = await import('../../src/pages/api/rainfall.json');
-    const response = await GET();
+    const response = await GET({} as APIContext);
     const data = await response.json();
 
     expect(response.status).toBe(200);
+    expect(response.headers.get('Cache-Control')).toBe('s-maxage=600, stale-while-revalidate=3600');
     expect(data.stations).toHaveLength(2);
     expect(data.hourly.length).toBeGreaterThan(0);
     expect(data.rolling24h.length).toBeGreaterThan(0);
+    expect(data).toEqual(expect.objectContaining({
+      generatedAt: expect.any(String),
+      attribution: expect.any(String)
+    }));
+  });
+
+  it('returns an empty 200 payload when the station lookup fails', async () => {
+    vi.mocked(global.fetch).mockResolvedValueOnce(
+      new Response(JSON.stringify({ error: 'EA unavailable' }), { status: 503 })
+    );
+
+    const { GET } = await import('../../src/pages/api/rainfall.json');
+    const response = await GET({} as APIContext);
+    const data = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(response.headers.get('Cache-Control')).toBe('s-maxage=600, stale-while-revalidate=3600');
+    expect(data).toMatchObject({
+      error: 'No rainfall stations found within 5km',
+      stations: [],
+      hourly: [],
+      rolling24h: []
+    });
+    expect(data.generatedAt).toEqual(expect.any(String));
+  });
+
+  it('keeps station metadata when upstream readings are empty', async () => {
+    vi.mocked(global.fetch)
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({
+          items: [
+            {
+              stationReference: 'ST-EMPTY',
+              label: 'Empty Station',
+              lat: 50.01,
+              long: -4.01,
+              measures: [
+                {
+                  '@id': 'https://environment.data.gov.uk/flood-monitoring/id/measures/ST-empty-rainfall',
+                  parameter: 'rainfall',
+                  parameterName: 'Rainfall',
+                  unitName: 'mm'
+                }
+              ]
+            }
+          ]
+        }), { status: 200 })
+      )
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ items: [] }), { status: 200 })
+      );
+
+    const { GET } = await import('../../src/pages/api/rainfall.json');
+    const response = await GET({} as APIContext);
+    const data = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(data.stations).toEqual([
+      {
+        id: 'ST-EMPTY',
+        name: 'Empty Station',
+        distanceKm: expect.any(Number)
+      }
+    ]);
+    expect(data.hourly).toEqual([]);
+    expect(data.rolling24h).toEqual([]);
+  });
+
+  it('keeps station metadata when a station readings fetch fails', async () => {
+    vi.mocked(global.fetch)
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({
+          items: [
+            {
+              stationReference: 'ST-FAIL',
+              label: 'Failing Station',
+              lat: 50.01,
+              long: -4.01,
+              measures: [
+                {
+                  '@id': 'https://environment.data.gov.uk/flood-monitoring/id/measures/ST-fail-rainfall',
+                  parameter: 'rainfall',
+                  parameterName: 'Rainfall',
+                  unitName: 'mm'
+                }
+              ]
+            }
+          ]
+        }), { status: 200 })
+      )
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ error: 'readings unavailable' }), { status: 500 })
+      );
+
+    const { GET } = await import('../../src/pages/api/rainfall.json');
+    const response = await GET({} as APIContext);
+    const data = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(data.stations[0]).toMatchObject({
+      id: 'ST-FAIL',
+      name: 'Failing Station'
+    });
+    expect(data.hourly).toEqual([]);
+    expect(data.rolling24h).toEqual([]);
   });
 });

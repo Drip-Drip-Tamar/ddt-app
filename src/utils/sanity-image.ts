@@ -1,15 +1,15 @@
-import imageUrlBuilder from '@sanity/image-url';
+import { createImageUrlBuilder } from '@sanity/image-url';
 import type {
   ImageUrlBuilder,
   SanityImageSource,
-} from '@sanity/image-url/lib/types/types';
+} from '@sanity/image-url';
 
 // Get Sanity configuration from environment
 const projectId = import.meta.env.SANITY_PROJECT_ID || import.meta.env.PUBLIC_SANITY_PROJECT_ID;
 const dataset = import.meta.env.SANITY_DATASET || import.meta.env.PUBLIC_SANITY_DATASET || 'production';
 
 // Initialize the image URL builder
-const builder = imageUrlBuilder({
+const builder = createImageUrlBuilder({
     projectId,
     dataset
 });

@@ -49,10 +49,13 @@ vi.mock('@sanity/image-url', () => {
     return mockBuilder;
   };
   
+  const createImageUrlBuilder = vi.fn(() => ({
+    image: vi.fn(() => createMockBuilder())
+  }));
+
   return {
-    default: vi.fn(() => ({
-      image: vi.fn(() => createMockBuilder())
-    }))
+    createImageUrlBuilder,
+    default: createImageUrlBuilder
   };
 });
 
