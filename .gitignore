@@ -16,6 +16,9 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 
+# Local backup staging. Contains sensitive Sanity exports; never commit.
+/backups/
+
 # environment variables
 .env
 .env.production
