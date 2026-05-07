@@ -1,231 +1,110 @@
-# Test Suite Documentation
+# Test Suite
 
-## Overview
+The test suite covers the Astro + Sanity website, server API routes, data transforms, and operational backup helpers.
 
-This test suite provides comprehensive automated testing for the Astro + Sanity CMS application, including static analysis, unit tests, and integration tests.
+## Commands
 
-## Quick Start
+Run the full gate:
 
-### Run All Tests (Recommended Post-Task)
-```bash
+```sh
 npm run test:all
 ```
-This runs linting, type checking, build validation, and all tests in sequence.
 
-### Individual Test Commands
-```bash
-npm run test          # Run all tests once
-npm run test:unit     # Run unit tests only
-npm run test:integration # Run integration tests only
-npm run test:watch    # Run tests in watch mode
-npm run test:coverage # Run tests with coverage report
-npm run test:ui       # Open Vitest UI
-npm run lint          # Run ESLint
-npm run typecheck     # Run TypeScript checking
-npm run build         # Validate build process
+This runs:
+
+```sh
+npm run lint
+npm run typecheck
+npm run build
+npm test
 ```
 
-## Test Structure
+Run narrower checks:
 
+```sh
+npm test                 # all Vitest tests
+npm run test:unit        # unit tests only
+npm run test:integration # integration tests only
+npm run test:watch       # Vitest watch mode
+npm run test:coverage    # coverage report
+npm run test:ui          # Vitest UI
 ```
+
+## Structure
+
+```txt
 tests/
-├── setup/
-│   └── setup.ts                    # Test configuration and global mocks
-├── unit/
-│   ├── sanity-image.test.ts        # Image optimization utilities
-│   ├── sanity-client.test.ts       # Sanity client configuration
-│   ├── water-quality.test.ts       # Water quality data transformation (31 tests)
-│   └── portable-text.test.ts       # Portable text conversion (35 tests)
-└── integration/
-    ├── page-rendering.test.ts      # Page routing and data fetching
-    ├── news-rendering.test.ts      # News post rendering and SEO (27 tests)
-    ├── api-contact.test.ts         # Contact form API endpoint (11 tests)
-    └── api-prf.test.ts             # Pollution risk forecast API (10 tests)
+  setup/
+    setup.ts
+  unit/
+    blocks.test.ts
+    columns.test.ts
+    location-config.test.ts
+    page-data.test.ts
+    portable-text.test.ts
+    sanity-backup.test.ts
+    sanity-client.test.ts
+    sanity-image.test.ts
+    site-config.test.ts
+    water-quality.test.ts
+  integration/
+    api-contact.test.ts
+    api-cso-live.test.ts
+    api-cso-map.test.ts
+    api-cso.test.ts
+    api-prf.test.ts
+    api-rainfall.test.ts
+    api-tamar-level.test.ts
+    news-rendering.test.ts
+    page-rendering.test.ts
 ```
 
-## Test Coverage Areas
+## Coverage Areas
 
-### 1. Static Analysis
-- **TypeScript Checking**: Validates all `.ts`, `.tsx`, and `.astro` files
-- **ESLint**: Enforces code style and catches potential bugs
-- **Build Validation**: Ensures the application builds without errors
+- Sanity client configuration, preview perspective selection, and listener setup
+- Sanity image URL and responsive image helpers
+- Portable Text extraction and HTML rendering
+- Water-quality chart data transforms and threshold configuration
+- Site/page/location configuration queries and fallbacks
+- Contact form validation, spam checks, IP hashing, and Sanity document creation
+- Environment Agency and South West Water API route behavior and fallback handling
+- News and page rendering data contracts
+- Manual Sanity backup pathing, export-argument safety, and gitignore checks
 
-### 2. Unit Tests
-- **Sanity Image Utilities** (`sanity-image.test.ts`)
-  - URL generation with different widths and formats
-  - Srcset generation for responsive images
-  - Image validation (`isSanityImage` function)
-  - Image size configurations
+## Test Environment
 
-- **Sanity Client** (`sanity-client.test.ts`)
-  - Client initialization with correct configuration
-  - Environment-based perspective switching
-  - Preview mode configuration
-  - Real-time listener setup in development
+`tests/setup/setup.ts` stubs:
 
-- **Water Quality Data Transformation** (`water-quality.test.ts`) - 31 tests
-  - Chart data transformation with log-scale clamping
-  - Null and zero value handling for Chart.js compatibility
-  - Dataset structure validation (E. coli and Enterococci datasets)
-  - Date formatting and label generation
-  - Chart configuration with threshold annotations
-  - EU Bathing Water Quality standard zones
-  - Empty data graceful degradation
-  - Coverage: 92.2%
-
-- **Portable Text Utilities** (`portable-text.test.ts`) - 35 tests
-  - Portable text to HTML conversion for all block styles (h1-h4, blockquote, normal)
-  - Text mark application (strong, em, underline, code)
-  - Multiple mark nesting validation
-  - Plain text extraction for excerpt generation
-  - Truncation and ellipsis handling
-  - Edge cases (empty arrays, null values, missing children)
-  - Coverage: 100%
-
-### 3. Integration Tests
-- **Page Rendering** (`page-rendering.test.ts`)
-  - Dynamic page route generation
-  - Page data fetching by slug
-  - Homepage handling (undefined slug)
-  - Site configuration loading
-  - Component section mapping
-  - Data structure validation
-  - Error handling
-
-- **News Post Rendering** (`news-rendering.test.ts`) - 27 tests
-  - Post data fetching and structure validation
-  - SEO metadata fallback logic (title, description, keywords)
-  - Date formatting for listing and detail pages
-  - Author data resolution
-  - Featured image structure validation
-  - Portable text body transformation integration
-  - Multiple locale date formatting
-  - Error handling for missing posts
-
-- **Contact Form API** (`api-contact.test.ts`) - 11 tests
-  - Form submission with all required fields
-  - Honeypot spam detection (hidden field check)
-  - Time-based spam detection (minimum 3-second fill time)
-  - Required field validation (name, email, message, consent)
-  - Email format validation using regex
-  - Content-Type handling (JSON, URL-encoded, multipart)
-  - Sanity client document creation integration
-  - IP hashing for privacy-preserving security tracking
-  - Server error handling and graceful degradation
-  - Default topic assignment
-
-- **Pollution Risk Forecast API** (`api-prf.test.ts`) - 10 tests
-  - Environment Agency API data fetching
-  - Risk level mapping (normal vs increased)
-  - Season detection (May-September bathing season)
-  - EA API error handling (404, 500, network failures)
-  - Cache header validation (15-minute cache, 1-hour stale-while-revalidate)
-  - Response metadata (attribution, license, timestamp)
-  - Malformed JSON handling
-  - Alternative risk level field locations
-  - Fallback to configuration labels when API unavailable
-  - Parallel bathing water site data fetching
-
-## Writing New Tests
-
-### Adding a Unit Test
-Create a new file in `tests/unit/` following the naming convention `[module].test.ts`:
-
-```typescript
-import { describe, it, expect, vi } from 'vitest';
-import { myFunction } from '../../src/utils/my-module';
-
-describe('my-module', () => {
-  it('should do something', () => {
-    const result = myFunction('input');
-    expect(result).toBe('expected output');
-  });
-});
+```txt
+SANITY_PROJECT_ID=test-project-id
+SANITY_DATASET=test-dataset
+SANITY_TOKEN=test-token
 ```
 
-### Adding an Integration Test
-Create a new file in `tests/integration/` for testing multiple modules together:
+It also provides global fetch and console mocks. Tests that need different environment behavior reset modules and override env values locally.
 
-```typescript
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+## CI
 
-describe('Feature Integration', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
+`.github/workflows/pr-checks.yml` installs root and Studio dependencies, then runs:
 
-  it('should integrate multiple components', async () => {
-    // Test cross-module functionality
-  });
-});
+```sh
+npm run test:all
 ```
 
-### Mocking Best Practices
-1. Mock external dependencies in `tests/setup/setup.ts` for global mocks
-2. Use `vi.mock()` for module-specific mocks
-3. Clear mocks between tests with `vi.clearAllMocks()`
-4. Reset modules when testing different configurations with `vi.resetModules()`
+The workflow expects these secrets:
 
-## Environment Variables
-
-Tests run with mocked environment variables defined in `tests/setup/setup.ts`:
-- `SANITY_PROJECT_ID`: test-project-id
-- `SANITY_DATASET`: test-dataset  
-- `SANITY_TOKEN`: test-token
-
-## Continuous Integration
-
-The test suite is designed to run in CI/CD pipelines:
-
-```yaml
-# Example GitHub Actions workflow
-- name: Run Tests
-  run: |
-    npm ci
-    npm run test:all
+```txt
+SANITY_PROJECT_ID
+SANITY_DATASET
+SANITY_TOKEN
 ```
 
-## Performance Goals
+## Current Baseline
 
-- **Execution Time**: All 145 tests complete in under 2 minutes
-- **Coverage**: Current coverage exceeds 90% on critical utilities (water quality: 92.2%, portable text: 100%, overall utils: 96.95%)
-- **Fast Feedback**: Use `npm run test:watch` during development for instant test re-runs
+As of the latest verification, the Vitest suite contains 181 tests across 19 test files.
 
-## Troubleshooting
+Known non-failing warnings in the full gate:
 
-### Common Issues
-
-1. **TypeScript Errors**: Run `npm run typecheck` to see detailed errors
-2. **ESLint Failures**: Run `npm run lint` to see specific issues
-3. **Build Failures**: Check for missing environment variables or dependencies
-4. **Test Timeouts**: Increase timeout in `vitest.config.ts` if needed
-
-### Debug Mode
-
-Run tests with detailed output:
-```bash
-npm run test -- --reporter=verbose
-```
-
-## Extending the Test Suite
-
-### Priority Areas for Additional Testing
-1. Additional API endpoints (rainfall, tamar-level, CSO data)
-2. Component prop validation
-3. Visual editing annotations (Sanity Presentation and Stackbit)
-4. Environment configuration handling
-5. Error boundaries and fallbacks
-6. Image optimization edge cases (invalid dimensions, missing assets)
-
-### Adding New Test Categories
-1. **Performance Tests**: Add benchmark tests for critical paths
-2. **Accessibility Tests**: Test ARIA attributes and keyboard navigation
-3. **Visual Regression**: Add screenshot comparison tests
-4. **E2E Tests**: Add Playwright for full user journey testing
-
-## Maintenance
-
-- Review and update tests when adding new features
-- Keep test data synchronized with TypeScript interfaces
-- Update mocks when external dependencies change
-- Run `npm run test:coverage` periodically to identify untested code
+- ESLint warnings in legacy scripts/tests for console statements and explicit `any`.
+- One Astro Check hint for `@sanity/eslint-config-studio` lacking local type declarations.
+- Build warnings for the dynamic news route, generated CSS `@property`, and large chunks.
