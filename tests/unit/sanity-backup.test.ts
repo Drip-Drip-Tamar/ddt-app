@@ -54,6 +54,19 @@ describe('sanity backup script helpers', () => {
     ).rejects.toThrow(/Backup root is not gitignored/);
   });
 
+  it('accepts directory ignore rules that match files under the backup root', async () => {
+    const checkedPaths: string[] = [];
+
+    await expect(
+      assertBackupRootIgnored('backups', async (relativePath) => {
+        checkedPaths.push(relativePath);
+        return relativePath === 'backups/sanity/.gitignore-probe';
+      })
+    ).resolves.toBeUndefined();
+
+    expect(checkedPaths).toEqual(['backups', 'backups/sanity/.gitignore-probe']);
+  });
+
   it('rejects any Sanity command that is not a dataset export', () => {
     expect(() => assertSanityExportOnlyArgs(['datasets', 'export', 'production', 'backup.tar.gz'])).not.toThrow();
 

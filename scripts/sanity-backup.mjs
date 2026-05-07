@@ -98,7 +98,9 @@ async function defaultCheckIgnored(relativePath, repoRoot) {
 }
 
 export async function assertBackupRootIgnored(relativePath, checkIgnored = defaultCheckIgnored, repoRoot = process.cwd()) {
-  if (await checkIgnored(relativePath, repoRoot)) {
+  const probePath = path.posix.join(relativePath, 'sanity', '.gitignore-probe');
+
+  if (await checkIgnored(relativePath, repoRoot) || await checkIgnored(probePath, repoRoot)) {
     return;
   }
 
