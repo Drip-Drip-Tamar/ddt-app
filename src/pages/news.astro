@@ -22,7 +22,9 @@ const POSTS_QUERY = `*[
       asset,
       "dimensions": asset->metadata.dimensions
     },
-    alt
+    alt,
+    sizingMode,
+    backgroundColor
   }
 }`;
 
@@ -65,7 +67,9 @@ const publishedDates = posts.map((post) =>
                                 ? {
                                       asset: post.featuredImage.image.asset,
                                       dimensions: post.featuredImage.image.dimensions,
-                                      alt: post.featuredImage.alt
+                                      alt: post.featuredImage.alt,
+                                      sizingMode: post.featuredImage.sizingMode,
+                                      backgroundColor: post.featuredImage.backgroundColor
                                   }
                                 : undefined;
 

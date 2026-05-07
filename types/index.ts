@@ -51,6 +51,8 @@ export interface CustomImage {
     _id?: string;
     src?: string;
     alt?: string;
+    sizingMode?: 'cover' | 'container' | 'fill' | 'stretch';
+    backgroundColor?: string;
     dimensions?: { height: number; width: number };
     asset?: {
         _ref?: string;

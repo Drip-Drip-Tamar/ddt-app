@@ -1,5 +1,9 @@
 ---
 import ResponsiveImage from '@components/ResponsiveImage.astro';
+import {
+    getNewsImageBackgroundStyle,
+    getNewsImageSizingClasses
+} from '@utils/news-image-sizing';
 
 interface Props {
     title: string;
@@ -12,6 +16,8 @@ interface Props {
 }
 
 const { title, body, image, author, date, slug, class: className } = Astro.props;
+const imageSizingClasses = getNewsImageSizingClasses('card', image?.sizingMode);
+const imageBackgroundStyle = getNewsImageBackgroundStyle(image?.backgroundColor, 'card');
 ---
 
 <article class:list={['group', className]}>
@@ -21,7 +27,7 @@ const { title, body, image, author, date, slug, class: className } = Astro.props
                 {/* Featured image */}
                 {
                     image && (image.asset || image.src) && (
-                        <figure class="w-full sm:w-64 md:w-80 flex-shrink-0 overflow-hidden bg-gray-100">
+                        <figure class={imageSizingClasses.figure} style={imageBackgroundStyle}>
                             <ResponsiveImage
                                 _id={image._id}
                                 src={image.src}
@@ -29,7 +35,7 @@ const { title, body, image, author, date, slug, class: className } = Astro.props
                                 dimensions={image.dimensions}
                                 alt={image.alt || title}
                                 imageType="card"
-                                class="w-full h-48 sm:h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                                class={imageSizingClasses.image}
                             />
                         </figure>
                     )

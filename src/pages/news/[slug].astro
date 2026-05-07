@@ -4,6 +4,11 @@ import Layout from '@layouts/Layout.astro';
 import Section from '@components/Section.astro';
 import ResponsiveImage from '@components/ResponsiveImage.astro';
 import { client as sanityClient } from '@utils/sanity-client';
+import {
+    getNewsImageBackgroundStyle,
+    getNewsImageSizingClasses,
+    normalizeNewsImageSizingMode
+} from '@utils/news-image-sizing';
 import { portableTextToHtml } from '@utils/portable-text';
 
 export async function getStaticPaths() {
@@ -42,7 +47,9 @@ const POST_QUERY = `*[_type == "post" && slug.current == $slug][0]{
       asset,
       "dimensions": asset->metadata.dimensions
     },
-    alt
+    alt,
+    sizingMode,
+    backgroundColor
   },
   seoTitle,
   seoDescription,
@@ -66,6 +73,12 @@ const publishedDate = post.publishedAt
 // Use SEO fields if available, otherwise fall back to title and excerpt
 const seoTitle = post.seoTitle || post.title;
 const seoDescription = post.seoDescription || post.excerpt || '';
+const featuredImageSizingMode = normalizeNewsImageSizingMode(post.featuredImage?.sizingMode);
+const featuredImageClass = getNewsImageSizingClasses('banner', featuredImageSizingMode);
+const featuredImageFrameClass = featuredImageSizingMode === 'fill'
+    ? 'overflow-hidden rounded-xl shadow-lg bg-gray-200'
+    : 'max-h-96 md:max-h-[28rem] overflow-hidden rounded-xl shadow-lg bg-gray-200';
+const featuredImageBackgroundStyle = getNewsImageBackgroundStyle(post.featuredImage?.backgroundColor, 'banner');
 ---
 
 <Layout
@@ -93,13 +106,13 @@ const seoDescription = post.seoDescription || post.excerpt || '';
                     {
                         post.featuredImage?.image?.asset && (
                             <figure class="mb-8 overflow-hidden">
-                                <div class="max-h-96 md:max-h-[28rem] overflow-hidden rounded-xl shadow-lg">
+                                <div class={featuredImageFrameClass} style={featuredImageBackgroundStyle}>
                                     <ResponsiveImage
                                         asset={post.featuredImage.image.asset}
                                         dimensions={post.featuredImage.image.dimensions}
                                         alt={post.featuredImage.alt || post.title}
                                         imageType="hero"
-                                        class="w-full h-64 md:h-[28rem] object-cover object-center bg-gray-200"
+                                        class={featuredImageClass}
                                     />
                                 </div>
                                 {post.featuredImage.alt && (

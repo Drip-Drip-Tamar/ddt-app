@@ -43,7 +43,9 @@ describe('News Post Rendering', () => {
               asset: { _ref: 'image-123' },
               dimensions: { width: 1200, height: 630 }
             },
-            alt: 'Test image'
+            alt: 'Test image',
+            sizingMode: 'cover',
+            backgroundColor: '#e5e7eb'
           }
         }
       ];
@@ -84,7 +86,9 @@ describe('News Post Rendering', () => {
             asset: { _ref: 'image-123' },
             dimensions: { width: 1200, height: 630 }
           },
-          alt: 'Featured image'
+          alt: 'Featured image',
+          sizingMode: 'container',
+          backgroundColor: '#000000'
         }
       };
 
@@ -101,17 +105,23 @@ describe('News Post Rendering', () => {
       const imageData = {
         asset: { _ref: 'image-123' },
         dimensions: { width: 1200, height: 630 },
-        alt: 'Test image'
+        alt: 'Test image',
+        sizingMode: 'stretch',
+        backgroundColor: '#000000'
       };
 
       // Verify structure matches what ResponsiveImage expects
       expect(imageData).toHaveProperty('asset');
       expect(imageData).toHaveProperty('dimensions');
       expect(imageData).toHaveProperty('alt');
+      expect(imageData).toHaveProperty('sizingMode');
+      expect(imageData).toHaveProperty('backgroundColor');
       expect(imageData.asset).toHaveProperty('_ref');
       expect(imageData.dimensions).toHaveProperty('width');
       expect(imageData.dimensions).toHaveProperty('height');
       expect(typeof imageData.alt).toBe('string');
+      expect(imageData.sizingMode).toBe('stretch');
+      expect(imageData.backgroundColor).toBe('#000000');
     });
 
     it('should handle posts without featured image', async () => {
@@ -427,7 +437,9 @@ describe('News Post Rendering', () => {
             asset: { _ref: 'image-123' },
             dimensions: { width: 1200, height: 630 }
           },
-          alt: 'Image alt'
+          alt: 'Image alt',
+          sizingMode: 'fill',
+          backgroundColor: '#f3f4f6'
         },
         seoTitle: 'SEO Title',
         seoDescription: 'SEO Description',
