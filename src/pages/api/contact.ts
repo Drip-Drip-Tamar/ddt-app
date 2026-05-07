@@ -14,6 +14,111 @@ const sanityClient = createClient({
   useCdn: false
 });
 
+const TURNSTILE_VERIFY_URL = 'https://challenges.cloudflare.com/turnstile/v0/siteverify';
+const TURNSTILE_ACTION = 'contact';
+const MIN_FORM_FILL_TIME_MS = 3000;
+const SUSPICIOUS_LINK_THRESHOLD = 3;
+
+type TurnstileSiteverifyResponse = {
+  success?: boolean;
+  action?: string;
+  hostname?: string;
+  challenge_ts?: string;
+  'error-codes'?: string[];
+};
+
+function jsonResponse(body: Record<string, unknown>, status: number) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { 'Content-Type': 'application/json' }
+  });
+}
+
+function getClientIp(request: Request) {
+  const forwardedFor = request.headers.get('x-forwarded-for');
+  const realIp = request.headers.get('x-real-ip');
+  const rawIp = forwardedFor || realIp || 'unknown';
+
+  return rawIp.split(',')[0]?.trim() || 'unknown';
+}
+
+function isExpectedHostname(turnstileHostname: string | undefined, requestHostname: string) {
+  if (!turnstileHostname) {
+    return false;
+  }
+
+  return turnstileHostname.toLowerCase() === requestHostname.toLowerCase();
+}
+
+async function verifyTurnstileToken(token: string | undefined, request: Request, ip: string) {
+  if (!token) {
+    return { ok: false, reason: 'missing_token' };
+  }
+
+  const secret = import.meta.env.TURNSTILE_SECRET_KEY;
+  if (!secret) {
+    console.error('Turnstile secret is not configured');
+    return { ok: false, reason: 'not_configured' };
+  }
+
+  const params = new URLSearchParams({
+    secret,
+    response: token
+  });
+
+  if (ip !== 'unknown') {
+    params.set('remoteip', ip);
+  }
+
+  try {
+    const response = await fetch(TURNSTILE_VERIFY_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: params
+    });
+
+    if (!response.ok) {
+      return { ok: false, reason: 'siteverify_http_error' };
+    }
+
+    const result = await response.json() as TurnstileSiteverifyResponse;
+    const requestHostname = new URL(request.url).hostname;
+
+    if (!result.success) {
+      return { ok: false, reason: result['error-codes']?.join(',') || 'siteverify_failed' };
+    }
+
+    if (result.action !== TURNSTILE_ACTION) {
+      return { ok: false, reason: 'action_mismatch' };
+    }
+
+    if (!isExpectedHostname(result.hostname, requestHostname)) {
+      return { ok: false, reason: 'hostname_mismatch' };
+    }
+
+    return { ok: true, hostname: result.hostname, action: result.action };
+  } catch (error) {
+    console.error('Turnstile verification error:', error);
+    return { ok: false, reason: 'siteverify_request_failed' };
+  }
+}
+
+function getSpamReasons(message: string, formStartedAt: string | undefined) {
+  const reasons: string[] = [];
+  const startedAt = formStartedAt ? parseInt(formStartedAt, 10) : NaN;
+
+  if (!formStartedAt || Number.isNaN(startedAt)) {
+    reasons.push('missing_form_started_at');
+  }
+
+  const linkCount = message.match(/https?:\/\/|www\./gi)?.length || 0;
+  if (linkCount >= SUSPICIOUS_LINK_THRESHOLD) {
+    reasons.push('multiple_links');
+  }
+
+  return reasons;
+}
+
 export const POST: APIRoute = async ({ request }) => {
   try {
     // Parse form data
@@ -42,6 +147,7 @@ export const POST: APIRoute = async ({ request }) => {
     const message = formData.get('message')?.toString();
     const consent = formData.get('consent')?.toString() === 'on' || 
                     formData.get('consent')?.toString() === 'true';
+    const turnstileToken = formData.get('cf-turnstile-response')?.toString();
     
     // Anti-spam checks
     const honeypot = formData.get('_website')?.toString(); // Hidden field
@@ -50,57 +156,52 @@ export const POST: APIRoute = async ({ request }) => {
     // Check honeypot (should be empty)
     if (honeypot) {
       // Silently reject spam
-      return new Response(JSON.stringify({ ok: true }), {
-        status: 200,
-        headers: { 'Content-Type': 'application/json' }
-      });
+      return jsonResponse({ ok: true }, 200);
     }
     
     // Check time (form should take more than 3 seconds to fill)
     if (formStartedAt) {
-      const timeDiff = Date.now() - parseInt(formStartedAt);
-      if (timeDiff < 3000) {
-        return new Response(JSON.stringify({ 
-          ok: false, 
-          error: 'Please take your time filling out the form' 
-        }), {
-          status: 400,
-          headers: { 'Content-Type': 'application/json' }
-        });
+      const timeDiff = Date.now() - parseInt(formStartedAt, 10);
+      if (timeDiff < MIN_FORM_FILL_TIME_MS) {
+        return jsonResponse({
+          ok: false,
+          error: 'Please take your time filling out the form'
+        }, 400);
       }
     }
     
     // Validate required fields
     if (!name || !email || !message || !consent) {
-      return new Response(JSON.stringify({ 
-        ok: false, 
-        error: 'Please fill in all required fields and accept the privacy policy' 
-      }), {
-        status: 400,
-        headers: { 'Content-Type': 'application/json' }
-      });
+      return jsonResponse({
+        ok: false,
+        error: 'Please fill in all required fields and accept the privacy policy'
+      }, 400);
     }
     
     // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-      return new Response(JSON.stringify({ 
-        ok: false, 
-        error: 'Please provide a valid email address' 
-      }), {
-        status: 400,
-        headers: { 'Content-Type': 'application/json' }
-      });
+      return jsonResponse({
+        ok: false,
+        error: 'Please provide a valid email address'
+      }, 400);
     }
     
     // Get IP and user agent for security tracking
-    const ip = request.headers.get('x-forwarded-for') || 
-               request.headers.get('x-real-ip') || 
-               'unknown';
+    const ip = getClientIp(request);
     const userAgent = request.headers.get('user-agent') || 'unknown';
+
+    const turnstileVerification = await verifyTurnstileToken(turnstileToken, request, ip);
+    if (!turnstileVerification.ok) {
+      return jsonResponse({
+        ok: false,
+        error: 'Please complete the verification check and try again.'
+      }, 400);
+    }
     
     // Hash IP for privacy
     const ipHash = crypto.createHash('sha256').update(ip).digest('hex');
+    const spamReasons = getSpamReasons(message, formStartedAt);
     
     // Create Sanity document
     const contactMessage = {
@@ -112,6 +213,9 @@ export const POST: APIRoute = async ({ request }) => {
       consent,
       ipHash,
       userAgent,
+      spamStatus: spamReasons.length > 0 ? 'suspicious' : 'clean',
+      spamReasons,
+      turnstileOutcome: 'success',
       createdAt: new Date().toISOString()
     };
     
@@ -119,23 +223,17 @@ export const POST: APIRoute = async ({ request }) => {
     await sanityClient.create(contactMessage);
     
     // Return success response
-    return new Response(JSON.stringify({ 
+    return jsonResponse({
       ok: true,
       message: 'Thank you for your message. We will get back to you soon.'
-    }), {
-      status: 200,
-      headers: { 'Content-Type': 'application/json' }
-    });
+    }, 200);
     
   } catch (error) {
     console.error('Contact form error:', error);
     
-    return new Response(JSON.stringify({ 
-      ok: false, 
-      error: 'Sorry, something went wrong. Please try again later or email us directly.' 
-    }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' }
-    });
+    return jsonResponse({
+      ok: false,
+      error: 'Sorry, something went wrong. Please try again later or email us directly.'
+    }, 500);
   }
 };

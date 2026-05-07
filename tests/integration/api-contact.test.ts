@@ -22,6 +22,16 @@ vi.mock('crypto', () => ({
 describe('Contact Form API Endpoint', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.stubEnv('TURNSTILE_SECRET_KEY', 'test-turnstile-secret');
+    global.fetch = vi.fn(() => Promise.resolve(new Response(JSON.stringify({
+      success: true,
+      action: 'contact',
+      hostname: 'localhost',
+      challenge_ts: '2026-05-07T10:00:00.000Z'
+    }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' }
+    })));
   });
 
   it('should successfully process valid contact form submission', async () => {
@@ -40,6 +50,7 @@ describe('Contact Form API Endpoint', () => {
         topic: 'General enquiry',
         message: 'This is a test message',
         consent: 'true',
+        'cf-turnstile-response': 'valid-turnstile-token',
         form_started_at: String(Date.now() - 5000) // 5 seconds ago
       })
     });
@@ -62,7 +73,156 @@ describe('Contact Form API Endpoint', () => {
         topic: 'General enquiry',
         message: 'This is a test message',
         consent: true,
-        ipHash: 'mock-hash-abc123'
+        ipHash: 'mock-hash-abc123',
+        spamStatus: 'clean',
+        spamReasons: [],
+        turnstileOutcome: 'success'
+      })
+    );
+  });
+
+  it('should reject valid-looking submissions without Turnstile verification', async () => {
+    const { POST } = await import('../../src/pages/api/contact');
+
+    const mockRequest = new Request('http://localhost/api/contact', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        name: 'No Token User',
+        email: 'notoken@example.com',
+        message: 'This looks legitimate but has no verification token',
+        consent: 'true',
+        form_started_at: String(Date.now() - 5000)
+      })
+    });
+
+    const context: Partial<APIContext> = {
+      request: mockRequest
+    };
+
+    const response = await POST(context as APIContext);
+    const data = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(data.ok).toBe(false);
+    expect(data.error).toContain('verification');
+    expect(mockCreate).not.toHaveBeenCalled();
+    expect(global.fetch).not.toHaveBeenCalled();
+  });
+
+  it('should reject submissions when Turnstile verification fails', async () => {
+    vi.mocked(global.fetch).mockResolvedValueOnce(new Response(JSON.stringify({
+      success: false,
+      'error-codes': ['timeout-or-duplicate']
+    }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' }
+    }));
+
+    const { POST } = await import('../../src/pages/api/contact');
+
+    const mockRequest = new Request('http://localhost/api/contact', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        name: 'Expired Token User',
+        email: 'expired@example.com',
+        message: 'This token has expired',
+        consent: 'true',
+        'cf-turnstile-response': 'expired-turnstile-token',
+        form_started_at: String(Date.now() - 5000)
+      })
+    });
+
+    const context: Partial<APIContext> = {
+      request: mockRequest
+    };
+
+    const response = await POST(context as APIContext);
+    const data = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(data.ok).toBe(false);
+    expect(data.error).toContain('verification');
+    expect(mockCreate).not.toHaveBeenCalled();
+  });
+
+  it('should reject submissions when Turnstile action or hostname does not match', async () => {
+    vi.mocked(global.fetch).mockResolvedValueOnce(new Response(JSON.stringify({
+      success: true,
+      action: 'newsletter',
+      hostname: 'attacker.example'
+    }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' }
+    }));
+
+    const { POST } = await import('../../src/pages/api/contact');
+
+    const mockRequest = new Request('http://localhost/api/contact', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        name: 'Wrong Action User',
+        email: 'wrong-action@example.com',
+        message: 'This token is for the wrong action',
+        consent: 'true',
+        'cf-turnstile-response': 'wrong-action-token',
+        form_started_at: String(Date.now() - 5000)
+      })
+    });
+
+    const context: Partial<APIContext> = {
+      request: mockRequest
+    };
+
+    const response = await POST(context as APIContext);
+    const data = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(data.ok).toBe(false);
+    expect(data.error).toContain('verification');
+    expect(mockCreate).not.toHaveBeenCalled();
+  });
+
+  it('should accept but flag suspicious submissions with repeated links', async () => {
+    const { POST } = await import('../../src/pages/api/contact');
+
+    const mockRequest = new Request('http://localhost/api/contact', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        name: 'Link Heavy User',
+        email: 'links@example.com',
+        message: 'Please see https://one.example https://two.example and https://three.example',
+        consent: 'true',
+        'cf-turnstile-response': 'valid-turnstile-token',
+        form_started_at: String(Date.now() - 5000)
+      })
+    });
+
+    const context: Partial<APIContext> = {
+      request: mockRequest
+    };
+
+    const response = await POST(context as APIContext);
+    const data = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(data.ok).toBe(true);
+    expect(mockCreate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        spamStatus: 'suspicious',
+        spamReasons: ['multiple_links'],
+        turnstileOutcome: 'success'
       })
     );
   });
@@ -110,6 +270,7 @@ describe('Contact Form API Endpoint', () => {
         email: 'fast@example.com',
         message: 'Quick message',
         consent: 'true',
+        'cf-turnstile-response': 'valid-turnstile-token',
         form_started_at: String(Date.now() - 1000) // Only 1 second ago
       })
     });
@@ -139,6 +300,7 @@ describe('Contact Form API Endpoint', () => {
         email: 'test@example.com',
         message: 'Message without name',
         consent: 'true',
+        'cf-turnstile-response': 'valid-turnstile-token',
         form_started_at: String(Date.now() - 5000)
       })
     });
@@ -168,6 +330,7 @@ describe('Contact Form API Endpoint', () => {
         name: 'Test User',
         message: 'Message without email',
         consent: 'true',
+        'cf-turnstile-response': 'valid-turnstile-token',
         form_started_at: String(Date.now() - 5000)
       })
     });
@@ -196,6 +359,7 @@ describe('Contact Form API Endpoint', () => {
         name: 'Test User',
         email: 'test@example.com',
         consent: 'true',
+        'cf-turnstile-response': 'valid-turnstile-token',
         form_started_at: String(Date.now() - 5000)
       })
     });
@@ -224,6 +388,7 @@ describe('Contact Form API Endpoint', () => {
         name: 'Test User',
         email: 'test@example.com',
         message: 'Message without consent',
+        'cf-turnstile-response': 'valid-turnstile-token',
         form_started_at: String(Date.now() - 5000)
       })
     });
@@ -253,6 +418,7 @@ describe('Contact Form API Endpoint', () => {
         email: 'not-an-email',
         message: 'Message with invalid email',
         consent: 'true',
+        'cf-turnstile-response': 'valid-turnstile-token',
         form_started_at: String(Date.now() - 5000)
       })
     });
@@ -277,6 +443,7 @@ describe('Contact Form API Endpoint', () => {
       email: 'form@example.com',
       message: 'URL encoded form message',
       consent: 'on',
+      'cf-turnstile-response': 'valid-turnstile-token',
       form_started_at: String(Date.now() - 5000)
     });
 
@@ -322,6 +489,7 @@ describe('Contact Form API Endpoint', () => {
         email: 'test@example.com',
         message: 'Test message',
         consent: 'true',
+        'cf-turnstile-response': 'valid-turnstile-token',
         form_started_at: String(Date.now() - 5000)
       })
     });
@@ -351,6 +519,7 @@ describe('Contact Form API Endpoint', () => {
         email: 'test@example.com',
         message: 'Message without topic',
         consent: 'true',
+        'cf-turnstile-response': 'valid-turnstile-token',
         form_started_at: String(Date.now() - 5000)
       })
     });

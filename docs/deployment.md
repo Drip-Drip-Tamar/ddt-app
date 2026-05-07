@@ -24,9 +24,11 @@ Set these variables in Netlify for production and deploy-preview contexts:
 SANITY_PROJECT_ID=i1ywpsq5
 SANITY_DATASET=production
 SANITY_TOKEN=<private token>
+PUBLIC_TURNSTILE_SITE_KEY=<Cloudflare Turnstile site key>
+TURNSTILE_SECRET_KEY=<private Cloudflare Turnstile secret key>
 ```
 
-`SANITY_TOKEN` must remain private. It is used server-side for Sanity reads, contact form writes, visual-editing preview support, and Sanity backup exports.
+`SANITY_TOKEN` and `TURNSTILE_SECRET_KEY` must remain private. `SANITY_TOKEN` is used server-side for Sanity reads, contact form writes, visual-editing preview support, and Sanity backup exports. `TURNSTILE_SECRET_KEY` is used server-side to verify contact form submissions before storing them in Sanity.
 
 Deploy previews use `previewDrafts` because Netlify sets `CONTEXT=deploy-preview`. Production uses the published perspective unless `STACKBIT_PREVIEW=true` or `SANITY_PREVIEW_DRAFTS=true` is explicitly set.
 
@@ -47,6 +49,8 @@ SANITY_PROJECT_ID
 SANITY_DATASET
 SANITY_TOKEN
 ```
+
+The Turnstile variables are required for deployed Netlify contexts that serve the contact form, but the PR check does not need to call Turnstile directly.
 
 ## Sanity Studio
 

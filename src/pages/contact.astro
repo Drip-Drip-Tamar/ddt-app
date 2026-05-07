@@ -1,9 +1,15 @@
 ---
 import Layout from '@layouts/Layout.astro';
 import { SOCIAL_LINKS, FACEBOOK_GROUP_NAME } from '@config/social';
+
+const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY;
 ---
 
 <Layout title="Contact - Drip Drip Tamar" description="Get in touch with Drip Drip - friends of the Tamar River. Contact us about water quality, volunteering, or media enquiries.">
+  {turnstileSiteKey && (
+    <script is:inline src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+  )}
+
   <div class="container mx-auto px-4 py-12 max-w-6xl">
     <h1 class="text-4xl font-bold mb-6">Contact Drip Drip</h1>
     
@@ -101,8 +107,21 @@ import { SOCIAL_LINKS, FACEBOOK_GROUP_NAME } from '@config/social';
             </label>
             <span id="consent-error" class="text-error text-sm mt-1 hidden"></span>
           </div>
+
+          {turnstileSiteKey ? (
+            <div
+              class="cf-turnstile"
+              data-sitekey={turnstileSiteKey}
+              data-action="contact"
+              data-theme="auto"
+            ></div>
+          ) : (
+            <div class="alert alert-error">
+              <span>Contact form verification is not configured. Please email us directly.</span>
+            </div>
+          )}
           
-          <button type="submit" class="btn btn-primary w-full sm:w-auto">
+          <button type="submit" class="btn btn-primary w-full sm:w-auto" disabled={!turnstileSiteKey}>
             Send Message
           </button>
           
@@ -187,6 +206,16 @@ import { SOCIAL_LINKS, FACEBOOK_GROUP_NAME } from '@config/social';
 </Layout>
 
 <script>
+  type TurnstileWindow = Window & {
+    turnstile?: {
+      reset: () => void;
+    };
+  };
+
+  const resetTurnstile = () => {
+    (window as TurnstileWindow).turnstile?.reset();
+  };
+
   // Set form start time for anti-spam
   (document.getElementById('form_started_at') as HTMLInputElement).value = Date.now().toString();
   
@@ -244,6 +273,7 @@ import { SOCIAL_LINKS, FACEBOOK_GROUP_NAME } from '@config/social';
         formMessage?.classList.remove('hidden');
         formMessage?.classList.add('alert-error');
         formMessageText.textContent = result.error || 'Something went wrong. Please try again.';
+        resetTurnstile();
         submitBtn.disabled = false;
         submitBtn.textContent = originalText;
       }
@@ -252,6 +282,7 @@ import { SOCIAL_LINKS, FACEBOOK_GROUP_NAME } from '@config/social';
       formMessage?.classList.remove('hidden');
       formMessage?.classList.add('alert-error');
       formMessageText.textContent = 'Network error. Please check your connection and try again.';
+      resetTurnstile();
       submitBtn.disabled = false;
       submitBtn.textContent = originalText;
     }

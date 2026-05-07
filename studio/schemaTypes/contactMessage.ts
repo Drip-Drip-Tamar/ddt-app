@@ -55,6 +55,43 @@ export default defineType({
       description: 'Browser user agent string'
     }),
     defineField({
+      name: 'spamStatus',
+      title: 'Spam Status',
+      type: 'string',
+      initialValue: 'clean',
+      options: {
+        list: [
+          {title: 'Clean', value: 'clean'},
+          {title: 'Suspicious', value: 'suspicious'}
+        ]
+      },
+      description: 'Automated spam assessment for review'
+    }),
+    defineField({
+      name: 'spamReasons',
+      title: 'Spam Reasons',
+      type: 'array',
+      of: [{type: 'string'}],
+      description: 'Signals that caused the message to be flagged'
+    }),
+    defineField({
+      name: 'turnstileOutcome',
+      title: 'Turnstile Outcome',
+      type: 'string',
+      options: {
+        list: [
+          {title: 'Success', value: 'success'}
+        ]
+      },
+      description: 'Result of the Cloudflare Turnstile verification'
+    }),
+    defineField({
+      name: 'reviewedAt',
+      title: 'Reviewed At',
+      type: 'datetime',
+      description: 'Optional timestamp for manual review workflow'
+    }),
+    defineField({
       name: 'createdAt',
       title: 'Created At',
       type: 'datetime'

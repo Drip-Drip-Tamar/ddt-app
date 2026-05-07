@@ -48,9 +48,11 @@ Set these values:
 SANITY_PROJECT_ID="i1ywpsq5"
 SANITY_DATASET="production"
 SANITY_TOKEN="..."
+PUBLIC_TURNSTILE_SITE_KEY="..."
+TURNSTILE_SECRET_KEY="..."
 ```
 
-`SANITY_TOKEN` must be kept private. It is used by the SSR app, contact form endpoint, visual editing, and backup export script.
+`SANITY_TOKEN` and `TURNSTILE_SECRET_KEY` must be kept private. `SANITY_TOKEN` is used by the SSR app, contact form endpoint, visual editing, and backup export script. `TURNSTILE_SECRET_KEY` is used server-side to verify contact form submissions.
 
 ## Local Development
 
@@ -146,6 +148,8 @@ Netlify must provide:
 SANITY_PROJECT_ID
 SANITY_DATASET
 SANITY_TOKEN
+PUBLIC_TURNSTILE_SITE_KEY
+TURNSTILE_SECRET_KEY
 ```
 
 GitHub pull requests run `npm run check:prod` through `.github/workflows/pr-checks.yml`.
