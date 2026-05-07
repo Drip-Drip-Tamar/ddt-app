@@ -10,10 +10,9 @@ Netlify uses `netlify.toml`:
 [build]
   publish = "dist"
   command = "npm ci && npm run build"
-
-[build.environment]
-  NODE_VERSION = "20"
 ```
+
+Netlify selects Node.js from `.nvmrc`, currently `22.18.0`. Do not keep a separate `NODE_VERSION` setting in Netlify unless it matches `.nvmrc`; remove any stale Node 20 override from the Netlify UI before deploying Astro 6.
 
 The Astro config uses `output: 'server'` and `@astrojs/netlify`, so the deployed site is an SSR Netlify app rather than a fully static export.
 
@@ -36,10 +35,10 @@ Deploy previews use `previewDrafts` because Netlify sets `CONTEXT=deploy-preview
 GitHub Actions runs on pull requests to `main`:
 
 ```sh
-npm ci
-cd studio && npm ci
-npm run test:all
+npm run check:prod
 ```
+
+The production-parity check uses `.nvmrc`, installs website and Studio dependencies with `npm ci`, runs the website quality gate, and builds Sanity Studio. `sanity build` reaches Sanity's CDN for module metadata, so it needs network access.
 
 The workflow expects the same Sanity secrets as Netlify:
 
@@ -77,11 +76,12 @@ The Studio config uses `SANITY_STUDIO_PREVIEW_URL` to override the Presentation 
 
 ## Pre-Deployment Checklist
 
-1. Run `npm run test:all`.
-2. Confirm no generated backup archives or secrets are staged.
-3. If the change affects content shape, migrations, contact submissions, or Sanity data, run `npm run backup:sanity` first and upload the resulting `backups/sanity/<timestamp>/` folder to secure private storage.
-4. Review Netlify environment variables before first deploy to a new site or context.
-5. For Studio model changes, verify Studio locally before deploying it.
+1. Run `nvm install && nvm use`.
+2. Run `npm run check:prod`.
+3. Confirm no generated backup archives or secrets are staged.
+4. If the change affects content shape, migrations, contact submissions, or Sanity data, run `npm run backup:sanity` first and upload the resulting `backups/sanity/<timestamp>/` folder to secure private storage.
+5. Review Netlify environment variables before first deploy to a new site or context.
+6. For Studio model changes, verify Studio locally before deploying it.
 
 ## Runtime External Data
 

@@ -16,7 +16,12 @@ The production Sanity project is `i1ywpsq5` and the default dataset is `producti
 
 ## Setup
 
-Use Node.js 20.
+Use the Node.js version declared in `.nvmrc`:
+
+```sh
+nvm install
+nvm use
+```
 
 Install the website dependencies:
 
@@ -100,13 +105,19 @@ See [docs/backups.md](docs/backups.md) for the full backup and restore-safety ru
 
 ## Verification
 
-Run the full local gate before merging or deploying code changes:
+Run the full production-parity gate before merging or deploying code changes:
+
+```sh
+npm run check:prod
+```
+
+This verifies the active Node.js version, installs the website and Studio dependencies with `npm ci`, runs linting, type checking, the production build, the full Vitest suite, and the Sanity Studio build.
+
+For faster local iteration after dependencies are installed, use:
 
 ```sh
 npm run test:all
 ```
-
-This runs linting, type checking, the production build, and the full Vitest suite.
 
 Useful narrower commands:
 
@@ -127,6 +138,8 @@ Netlify builds the website with:
 npm ci && npm run build
 ```
 
+Netlify and GitHub Actions use the Node.js version from `.nvmrc`. Do not set a separate `NODE_VERSION` override unless it matches `.nvmrc`.
+
 Netlify must provide:
 
 ```txt
@@ -135,7 +148,7 @@ SANITY_DATASET
 SANITY_TOKEN
 ```
 
-GitHub pull requests run `npm run test:all` through `.github/workflows/pr-checks.yml`.
+GitHub pull requests run `npm run check:prod` through `.github/workflows/pr-checks.yml`.
 
 See [docs/deployment.md](docs/deployment.md) for the deployment checklist and environment notes.
 

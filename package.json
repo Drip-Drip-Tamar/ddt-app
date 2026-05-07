@@ -21,7 +21,12 @@
         "test:ui": "vitest --ui",
         "lint": "eslint .",
         "typecheck": "astro check && tsc --noEmit",
-        "test:all": "npm run lint && npm run typecheck && npm run build && npm run test"
+        "test:all": "npm run lint && npm run typecheck && npm run build && npm run test",
+        "check:node": "node ./scripts/check-node-version.mjs",
+        "check:prod": "npm run check:node && npm ci && npm --prefix studio ci && npm run test:all && npm --prefix studio run build"
+    },
+    "engines": {
+        "node": ">=22.18.0 <23"
     },
     "dependencies": {
         "@astrojs/netlify": "^7.0.8",

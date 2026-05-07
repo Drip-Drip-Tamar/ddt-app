@@ -2,8 +2,5 @@
   publish = "dist"
   command = "npm ci && npm run build"
 
-[build.environment]
-  NODE_VERSION = "20"
-
 [dev]
   targetPort = 3000
