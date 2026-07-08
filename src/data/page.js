@@ -18,12 +18,10 @@ export async function fetchData() {
 }
 
 export async function getPageById(id) {
-    return await client.fetch(`*[_type == "page" && _id == "${id}"] ${PAGE_QUERY_OBJ}`);
+    return await client.fetch(`*[_type == "page" && _id == $id] ${PAGE_QUERY_OBJ}`, { id });
 }
 
 export async function getPageBySlug(slug) {
-    const query = slug 
-        ? `*[_type == "page" && slug.current == "${slug}"] ${PAGE_QUERY_OBJ}`
-        : `*[_type == "page" && slug.current == "/"] ${PAGE_QUERY_OBJ}`;
-    return await client.fetch(query);
+    const query = `*[_type == "page" && slug.current == $slug] ${PAGE_QUERY_OBJ}`;
+    return await client.fetch(query, { slug: slug || '/' });
 }
