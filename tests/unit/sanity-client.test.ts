@@ -21,16 +21,6 @@ vi.mock('fs', () => ({
   }
 }));
 
-// Mock Vite's loadEnv
-vi.mock('vite', () => ({
-  loadEnv: vi.fn(() => ({
-    SANITY_PROJECT_ID: process.env.SANITY_PROJECT_ID,
-    SANITY_DATASET: process.env.SANITY_DATASET,
-    SANITY_TOKEN: process.env.SANITY_TOKEN,
-    SANITY_PREVIEW_DRAFTS: process.env.SANITY_PREVIEW_DRAFTS
-  }))
-}));
-
 describe('sanity-client', () => {
   beforeEach(() => {
     vi.clearAllMocks();

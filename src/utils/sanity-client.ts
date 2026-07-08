@@ -1,20 +1,25 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { loadEnv } from 'vite';
 import { createClient, type ClientConfig, type SanityClient } from '@sanity/client';
+import { buildSanityConfig, resolveIsPreviewContext, SANITY_API_VERSION } from './sanity-config';
 
-const {
-    SANITY_PROJECT_ID,
-    SANITY_DATASET,
-    SANITY_TOKEN,
-    SANITY_WRITE_TOKEN,
-    SANITY_PREVIEW_DRAFTS
-} = loadEnv(process.env.NODE_ENV || '', process.cwd(), '');
+export { SANITY_API_VERSION };
+
+// Env values come from import.meta.env in Vite-processed code (dev server,
+// and statically replaced at build time in the SSR output) with a
+// process.env fallback for plain-node contexts (vitest) and
+// platform-injected runtime vars. Do NOT import vite's loadEnv here: this
+// module is bundled into the Netlify SSR function, and vite pulls rollup's
+// native binary into the runtime graph, which is absent in the function
+// bundle and 502s every request.
+const SANITY_PROJECT_ID = import.meta.env.SANITY_PROJECT_ID ?? process.env.SANITY_PROJECT_ID;
+const SANITY_DATASET = import.meta.env.SANITY_DATASET ?? process.env.SANITY_DATASET;
+const SANITY_TOKEN = import.meta.env.SANITY_TOKEN ?? process.env.SANITY_TOKEN;
+const SANITY_WRITE_TOKEN = import.meta.env.SANITY_WRITE_TOKEN ?? process.env.SANITY_WRITE_TOKEN;
+const SANITY_PREVIEW_DRAFTS = import.meta.env.SANITY_PREVIEW_DRAFTS ?? process.env.SANITY_PREVIEW_DRAFTS;
 
 const isDev = import.meta.env.DEV;
-const isDeployPreview = process.env.CONTEXT === 'deploy-preview';
-const previewDrafts = SANITY_PREVIEW_DRAFTS?.toLowerCase() === 'true';
 
 /**
  * True in local dev, Netlify deploy previews, or when preview drafts are
@@ -22,29 +27,20 @@ const previewDrafts = SANITY_PREVIEW_DRAFTS?.toLowerCase() === 'true';
  * below and (from Layout.astro) to decide whether to render the visual
  * editing overlay at all, so production HTML never ships that island.
  */
-export const isPreviewContext = isDev || isDeployPreview || previewDrafts;
-
-export const SANITY_API_VERSION = '2024-01-31';
-
-const baseConfig: Omit<ClientConfig, 'token'> = {
-    projectId: SANITY_PROJECT_ID,
-    dataset: SANITY_DATASET || 'production',
-    useCdn: false,
-    apiVersion: SANITY_API_VERSION,
-    perspective: isPreviewContext ? 'previewDrafts' : 'published',
-    // Enable stega encoding for visual editing when in preview mode
-    stega: isPreviewContext
-        ? {
-              enabled: true,
-              studioUrl: isDev ? 'http://localhost:3333' : '/studio'
-          }
-        : undefined
-};
+export const isPreviewContext = resolveIsPreviewContext(isDev, SANITY_PREVIEW_DRAFTS);
 
 // Shared read-only client config used for all page rendering/data fetching.
 // SANITY_TOKEN should be rotated to a read-only token; write operations use
 // createSanityWriteClient() below instead.
-export const sanityConfig: ClientConfig = { ...baseConfig, token: SANITY_TOKEN };
+export const sanityConfig: ClientConfig = buildSanityConfig(
+    {
+        projectId: SANITY_PROJECT_ID,
+        dataset: SANITY_DATASET,
+        token: SANITY_TOKEN,
+        previewDrafts: SANITY_PREVIEW_DRAFTS
+    },
+    isDev
+);
 
 export const client = createClient(sanityConfig);
 
@@ -66,7 +62,7 @@ export function createSanityWriteClient(): SanityClient {
         );
     }
 
-    return createClient({ ...baseConfig, token: writeToken });
+    return createClient({ ...sanityConfig, token: writeToken });
 }
 
 const __filename = fileURLToPath(import.meta.url);

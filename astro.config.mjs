@@ -1,9 +1,23 @@
 import { defineConfig } from 'astro/config';
+import { loadEnv } from 'vite';
 import tailwindcss from '@tailwindcss/vite';
 import sanity from '@sanity/astro';
 import netlify from '@astrojs/netlify';
 import react from '@astrojs/react';
-import { sanityConfig } from './src/utils/sanity-client';
+import { buildSanityConfig } from './src/utils/sanity-config';
+
+// loadEnv is safe here (config files are build-time only, never bundled into
+// the server output) but must not be used from src/ — see sanity-config.ts.
+const env = loadEnv(process.env.NODE_ENV || '', process.cwd(), '');
+const sanityConfig = buildSanityConfig(
+    {
+        projectId: env.SANITY_PROJECT_ID,
+        dataset: env.SANITY_DATASET,
+        token: env.SANITY_TOKEN,
+        previewDrafts: env.SANITY_PREVIEW_DRAFTS
+    },
+    process.env.NODE_ENV !== 'production'
+);
 
 // https://astro.build/config
 //
