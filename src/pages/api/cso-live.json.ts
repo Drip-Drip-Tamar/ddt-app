@@ -1,5 +1,6 @@
 import type { APIRoute } from 'astro';
 import { getPrimaryLocation, calculateDistance } from '../../data/locationConfig.js';
+import { fetchUpstream, UpstreamError } from '@utils/upstream';
 
 const SWW_ARCGIS_BASE = 'https://services-eu1.arcgis.com/OMdMOtfhATJPcHe3/arcgis/rest/services/NEH_outlets_PROD/FeatureServer';
 
@@ -31,13 +32,7 @@ interface ArcGISResponse {
 async function discoverLayers(): Promise<number> {
   try {
     const url = `${SWW_ARCGIS_BASE}?f=json`;
-    const response = await fetch(url);
-
-    if (!response.ok) {
-      throw new Error(`ArcGIS service returned ${response.status}`);
-    }
-
-    const data = await response.json();
+    const data = await fetchUpstream<{ layers?: Array<{ id: number; name?: string }> }>(url);
 
     // Look for the EDM/Storm Overflow activity layer
     // Typically layer 0 or 1
@@ -79,15 +74,24 @@ async function queryStormOverflows(layerId: number, sinceDate: Date, centerLat: 
     });
 
     const url = `${SWW_ARCGIS_BASE}/${layerId}/query`;
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      body: params.toString()
-    });
 
-    if (!response.ok) {
+    let data: ArcGISResponse;
+    try {
+      data = await fetchUpstream<ArcGISResponse>(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: params.toString()
+      });
+    } catch (primaryError) {
+      // Only fall back to the alternate query when the primary request
+      // came back with a non-ok status - network/timeout errors are left
+      // to the outer catch, matching prior behaviour.
+      if (!(primaryError instanceof UpstreamError) || primaryError.kind !== 'non-ok') {
+        throw primaryError;
+      }
+
       // Try alternate query format if first fails
       // Fallback already uses simplified query
       const altParams = new URLSearchParams({
@@ -98,12 +102,7 @@ async function queryStormOverflows(layerId: number, sinceDate: Date, centerLat: 
         resultRecordCount: '500'
       });
 
-      const altResponse = await fetch(`${SWW_ARCGIS_BASE}/${layerId}/query?${altParams}`);
-      if (!altResponse.ok) {
-        throw new Error(`ArcGIS query failed: ${response.status}`);
-      }
-
-      const altData = await altResponse.json() as ArcGISResponse;
+      const altData = await fetchUpstream<ArcGISResponse>(`${SWW_ARCGIS_BASE}/${layerId}/query?${altParams}`);
 
       // Filter by distance and date manually
       return altData.features.filter(feature => {
@@ -125,8 +124,6 @@ async function queryStormOverflows(layerId: number, sinceDate: Date, centerLat: 
         return false;
       });
     }
-
-    const data = await response.json() as ArcGISResponse;
 
     // Filter by distance and date
     const filteredFeatures = (data.features || []).filter(feature => {

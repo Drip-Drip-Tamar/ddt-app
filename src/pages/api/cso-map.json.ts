@@ -1,5 +1,6 @@
 import type { APIRoute } from 'astro';
 import { getPrimaryLocation, calculateDistance } from '../../data/locationConfig.js';
+import { fetchUpstream } from '@utils/upstream';
 
 // Using the same reliable data source as cso-live.json
 const SWW_ARCGIS_BASE = 'https://services-eu1.arcgis.com/OMdMOtfhATJPcHe3/arcgis/rest/services/NEH_outlets_PROD/FeatureServer';
@@ -46,19 +47,13 @@ async function queryStormOverflows(lat: number, lon: number, radiusKm: number, d
     });
 
     const url = `${SWW_ARCGIS_BASE}/0/query`;
-    const response = await fetch(url, {
+    const data = await fetchUpstream<ArcGISResponse>(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
       },
       body: params.toString()
     });
-
-    if (!response.ok) {
-      throw new Error(`ArcGIS query failed: ${response.status}`);
-    }
-
-    const data = await response.json() as ArcGISResponse;
 
     // Filter by distance and include all sites within radius
     // We'll show their current status regardless of when last event was

@@ -1,5 +1,6 @@
 import type { APIRoute } from 'astro';
 import { getRiverStations } from '../../data/locationConfig.js';
+import { fetchUpstream } from '@utils/upstream';
 
 const EA_API_BASE = 'https://environment.data.gov.uk/flood-monitoring';
 const GUNNISLAKE_TYPICAL_LOW = 0.297; // meters
@@ -23,14 +24,8 @@ async function fetchStationData(stationId: string, sinceDate: string) {
   try {
     // Fetch readings
     const readingsUrl = `${EA_API_BASE}/id/stations/${stationId}/readings?since=${sinceDate}&_sorted`;
-    const readingsResponse = await fetch(readingsUrl);
-    
-    if (!readingsResponse.ok) {
-      throw new Error(`EA API returned ${readingsResponse.status} for station ${stationId}`);
-    }
-    
-    const readingsData = await readingsResponse.json();
-    const readings = readingsData.items as Reading[];
+    const readingsData = await fetchUpstream<{ items: Reading[] }>(readingsUrl);
+    const readings = readingsData.items;
 
     // Sort readings by date (oldest first for chart)
     readings.sort((a, b) => 
@@ -166,13 +161,10 @@ export const GET: APIRoute = async () => {
     
     try {
       const stationUrl = `${EA_API_BASE}/id/stations/${GUNNISLAKE_STATION}`;
-      const stationResponse = await fetch(stationUrl);
-      if (stationResponse.ok) {
-        const stationData = await stationResponse.json() as StationData;
-        if (stationData.items?.stageScale) {
-          typicalRangeLow = stationData.items.stageScale.typicalRangeLow || GUNNISLAKE_TYPICAL_LOW;
-          typicalRangeHigh = stationData.items.stageScale.typicalRangeHigh || GUNNISLAKE_TYPICAL_HIGH;
-        }
+      const stationData = await fetchUpstream<StationData>(stationUrl);
+      if (stationData.items?.stageScale) {
+        typicalRangeLow = stationData.items.stageScale.typicalRangeLow || GUNNISLAKE_TYPICAL_LOW;
+        typicalRangeHigh = stationData.items.stageScale.typicalRangeHigh || GUNNISLAKE_TYPICAL_HIGH;
       }
     } catch (error) {
       console.warn('Failed to fetch Gunnislake station metadata, using defaults', error);

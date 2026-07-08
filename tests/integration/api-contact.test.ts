@@ -506,6 +506,70 @@ describe('Contact Form API Endpoint', () => {
     expect(data.error).toContain('something went wrong');
   });
 
+  it('should reject a submission with an oversize field with a 400', async () => {
+    const { POST } = await import('../../src/pages/api/contact');
+
+    const mockRequest = new Request('http://localhost/api/contact', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        name: 'Test User',
+        email: 'test@example.com',
+        message: 'x'.repeat(5001),
+        consent: 'true',
+        'cf-turnstile-response': 'valid-turnstile-token',
+        form_started_at: String(Date.now() - 5000)
+      })
+    });
+
+    const context: Partial<APIContext> = {
+      request: mockRequest
+    };
+
+    const response = await POST(context as APIContext);
+    const data = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(data.ok).toBe(false);
+    expect(data.error).toContain('message');
+    expect(mockCreate).not.toHaveBeenCalled();
+    // Should fail fast, before calling out to Turnstile
+    expect(global.fetch).not.toHaveBeenCalled();
+  });
+
+  it('should reject a submission with multiple oversize fields with a 400', async () => {
+    const { POST } = await import('../../src/pages/api/contact');
+
+    const mockRequest = new Request('http://localhost/api/contact', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        name: 'x'.repeat(201),
+        email: 'test@example.com',
+        message: 'A perfectly normal length message',
+        consent: 'true',
+        'cf-turnstile-response': 'valid-turnstile-token',
+        form_started_at: String(Date.now() - 5000)
+      })
+    });
+
+    const context: Partial<APIContext> = {
+      request: mockRequest
+    };
+
+    const response = await POST(context as APIContext);
+    const data = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(data.ok).toBe(false);
+    expect(data.error).toContain('name');
+    expect(mockCreate).not.toHaveBeenCalled();
+  });
+
   it('should default topic to "General enquiry" when not provided', async () => {
     const { POST } = await import('../../src/pages/api/contact');
 
