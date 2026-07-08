@@ -47,14 +47,14 @@ This document is the working checklist. Tick tasks as they complete; add notes i
 - **Env changes**: Update `.env-sample`, Netlify env vars, and `.github/workflows/pr-checks.yml` secrets if names change.
 - **Acceptance**: Contact form still creates documents; rendering works with read-only token; no websocket opened in production SSR; grep shows one `createClient` call site (plus studio).
 
-### 4. [ ] Shared upstream-fetch helper with timeouts
+### 4. [x] Shared upstream-fetch helper with timeouts — *done 2026-07-07; src/utils/upstream.ts, all 7 call sites converted.*
 
 - **Files**: all of `src/pages/api/*.json.ts` (`prf`, `cso`, `cso-live`, `cso-map`, `rainfall`, `tamar-level`), Turnstile fetch in `src/pages/api/contact.ts`
 - **Problem**: Zero `AbortController`/`AbortSignal`/timeout usage across every upstream call (Environment Agency, SWW, Turnstile). A hung upstream hangs the serverless function until the platform kills it.
 - **Solution**: One deep module — `fetchUpstream(url, opts)` in e.g. `src/utils/upstream.ts` — hiding `AbortSignal.timeout(~8s)`, ok-check, JSON parse, and a consistent error envelope. Convert all 7 call sites. Keep the existing per-endpoint cache-header behaviour (it is already good: `s-maxage` + `stale-while-revalidate` on success, `no-cache` on error).
 - **Acceptance**: All API route tests still pass (they mock `global.fetch` — should be transparent); new unit tests for the helper (timeout, non-ok, malformed JSON).
 
-### 5. [ ] Harden contact endpoint
+### 5. [x] Harden contact endpoint — *done 2026-07-07; length caps + salted IP hash (IP_HASH_SALT env). USER ACTION: set IP_HASH_SALT in Netlify env.*
 
 - **Files**: `src/pages/api/contact.ts`
 - **Problem**: No length limits on `name`/`email`/`subject`/`message` — arbitrary-size payloads written straight into Sanity via `.create()`. IP hash is unsalted SHA-256 (rainbow-tableable over IPv4 space). Rate limiting exists only as a Netlify edge function (`netlify/edge-functions/contact-rate-limit.ts`, 5 req/60s) — nothing applies in local dev or non-Netlify hosting.
