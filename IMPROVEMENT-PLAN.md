@@ -148,7 +148,7 @@ This document is the working checklist. Tick tasks as they complete; add notes i
 - **Solution**: For each `src/scripts/charts/*` module: test transform functions (API JSON fixture → chart datasets), config builders (thresholds, annotations, colours), and `mountPanel` error paths (non-ok response → error banner) with jsdom (already a dependency, currently unused — enable per-file via `// @vitest-environment jsdom` or a browser-mode project).
 - **Acceptance**: Every exported function in `src/scripts/charts/` has coverage; coverage of the new directory ≥ 80%.
 
-### 15. [ ] Playwright smoke suite + CI hardening
+### 15. [x] Playwright smoke suite + CI hardening — *done 2026-07-07; 5 smoke specs (API routes stubbed), push+cron CI triggers, coverage thresholds 84/72/86/85.*
 
 - **Files**: new `e2e/` + `playwright.config.ts`; `.github/workflows/pr-checks.yml`; `vitest.config.ts`
 - **Problem**: No e2e at all (`.playwright-mcp/` is an MCP artifact dir, not a suite). CI runs only on PRs to `main` — direct pushes and upstream API drift are never caught. Coverage configured but no thresholds enforced, so the untested surface never fails a build. Global test setup silences `console` entirely and sets `global.fetch = vi.fn()` with no default (un-mocked fetches fail confusingly).
