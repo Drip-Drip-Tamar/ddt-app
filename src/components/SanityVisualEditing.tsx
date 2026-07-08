@@ -1,11 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { enableVisualEditing } from '@sanity/visual-editing';
 
-interface Props {
-  token?: string;
-}
-
-export function SanityVisualEditing({ token }: Props) {
+export function SanityVisualEditing() {
   const [isInPresentation, setIsInPresentation] = useState(false);
 
   useEffect(() => {
@@ -47,7 +43,7 @@ export function SanityVisualEditing({ token }: Props) {
         cleanup();
       };
     }
-  }, [token]);
+  }, []);
 
   // Only render a status indicator in development
   if (import.meta.env.DEV && isInPresentation) {

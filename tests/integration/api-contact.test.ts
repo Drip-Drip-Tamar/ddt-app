@@ -3,8 +3,8 @@ import type { APIContext } from 'astro';
 
 // Mock Sanity client to prevent actual database writes
 const mockCreate = vi.fn(() => Promise.resolve({ _id: 'test-message-123' }));
-vi.mock('@sanity/client', () => ({
-  createClient: vi.fn(() => ({
+vi.mock('@utils/sanity-client', () => ({
+  createSanityWriteClient: vi.fn(() => ({
     create: mockCreate
   }))
 }));

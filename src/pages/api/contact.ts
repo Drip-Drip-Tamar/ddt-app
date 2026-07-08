@@ -1,18 +1,12 @@
 import type { APIRoute } from 'astro';
-import { createClient } from '@sanity/client';
 import crypto from 'crypto';
+import { createSanityWriteClient } from '@utils/sanity-client';
 
 // Mark this endpoint as server-rendered (not pre-rendered)
 export const prerender = false;
 
-// Create Sanity client with server-side token
-const sanityClient = createClient({
-  projectId: import.meta.env.SANITY_PROJECT_ID,
-  dataset: import.meta.env.SANITY_DATASET || 'production',
-  apiVersion: '2024-01-31',
-  token: import.meta.env.SANITY_TOKEN,
-  useCdn: false
-});
+// Write-capable Sanity client for creating contact form submissions
+const sanityClient = createSanityWriteClient();
 
 const TURNSTILE_VERIFY_URL = 'https://challenges.cloudflare.com/turnstile/v0/siteverify';
 const TURNSTILE_ACTION = 'contact';
