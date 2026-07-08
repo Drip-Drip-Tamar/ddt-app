@@ -9,7 +9,7 @@ interface Props {
     'data-sb-field-path'?: string;
 }
 
-const { items, motion, class: className, 'data-sb-field-path': fieldPath } = Astro.props;
+const { items = [], motion, class: className, 'data-sb-field-path': fieldPath } = Astro.props;
 ---
 
 <div

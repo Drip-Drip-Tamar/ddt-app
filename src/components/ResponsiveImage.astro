@@ -74,7 +74,7 @@ if (_id) {
 }
 
 // Generate responsive image props for Sanity images
-const responsiveSizes = isSanity ? (sizes || defaultSizes[imageType] || '100vw') : undefined;
+const responsiveSizes = isSanity ? (sizes || (imageType !== 'custom' && defaultSizes[imageType]) || '100vw') : undefined;
 const srcSet = isSanity ? generateSrcSet(sanitySource) : undefined;
 const defaultSrc = isSanity ? getImageUrl(sanitySource, 800) : undefined;
 
@@ -86,9 +86,9 @@ const shouldRender = isSanity ? (sanitySource && defaultSrc) : hasValidSrc;
 ---
 
 {shouldRender ? (
-    !isSanity ? (
-        <Image 
-            src={src} 
+    !isSanity && src ? (
+        <Image
+            src={src}
             width={imgWidth} 
             height={imgHeight} 
             alt={alt || ''} 

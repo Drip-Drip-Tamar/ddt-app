@@ -1,5 +1,6 @@
 ---
 import type { Page } from 'types';
+import type { AstroComponentFactory } from 'astro/runtime/server/index.js';
 import Layout from '@layouts/Layout.astro';
 import Cards from '@components/Cards.astro';
 import Cta from '@components/Cta.astro';
@@ -25,7 +26,7 @@ if (!page) {
 const { _id, title, sections, metaTitle, metaDescription, socialImage } = page || {};
 
 
-const componentMap = {
+const componentMap: Record<string, AstroComponentFactory> = {
     cardsSection: Cards,
     ctaSection: Cta,
     heroSection: Hero,
@@ -39,7 +40,7 @@ const componentMap = {
     <div data-sb-object-id={_id}>
         {sections?.length ? (
             sections.map((section, idx) => {
-                const Component = componentMap[section._type];
+                const Component = section._type ? componentMap[section._type] : undefined;
                 return Component ? (
                     <Component {...section} data-sb-field-path={`sections.${idx}`} />
                 ) : null;

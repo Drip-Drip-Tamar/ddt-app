@@ -107,7 +107,7 @@ export const defaultSizes = {
 };
 
 // Check if source is a Sanity image reference
-export function isSanityImage(source: unknown): boolean {
+export function isSanityImage(source: unknown): source is SanityImageSource {
     if (!source) return false;
     
     if (typeof source === 'string') {

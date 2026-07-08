@@ -178,7 +178,8 @@ describe('sanity-client listener', () => {
     await import('../../src/utils/sanity-client');
     
     // Simulate an 'appear' event
-    await eventCallback({ transition: 'appear' });
+    expect(eventCallback).toBeDefined();
+    await eventCallback!({ transition: 'appear' });
     
     // Check that fs.promises.utimes was called
     const fs = await import('fs');

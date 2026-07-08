@@ -133,7 +133,7 @@ This document is the working checklist. Tick tasks as they complete; add notes i
 
 ## Batch 4 — Tests (after Batch 2)
 
-### 13. [ ] Delete tautological tests; keep the good ones
+### 13. [x] Delete tautological tests; keep the good ones — *done 2026-07-07; −444 lines, 196 tests remain green.*
 
 - **Files**: `tests/integration/page-rendering.test.ts` (entire file, ~13 tests), `tests/integration/news-rendering.test.ts` (SEO-fallback L166-241 and date-formatting L243-308 sections)
 - **Problem**: `page-rendering.test.ts` mocks `src/data/page` and `src/data/siteConfig` with hardcoded objects then asserts those same objects back — zero production code executes; its "component section mapping" block asserts on an inline copy of the map, not the real renderer. `news-rendering.test.ts` re-implements `seoTitle || title` fallback inline and tests `toLocaleDateString` — testing the Node stdlib, not the app. False coverage confidence.
@@ -178,7 +178,7 @@ This document is the working checklist. Tick tasks as they complete; add notes i
 - **Solution (revised)**: Keep server output. Instead: add `prerender = true` to any page NOT backed by editable Sanity content (candidate: `404.astro`); add explicit `prerender = false` to the six JSON API routes for clarity; remove the dead `getStaticPaths`; add sensible `Cache-Control`/CDN caching on SSR content pages so production requests are edge-cached even though rendering is dynamic. Document why the site is SSR in `astro.config.mjs` comment.
 - **Acceptance**: Content pages carry cache headers; dead `getStaticPaths` gone; visual editing unaffected.
 
-### 18. [ ] Strict TypeScript + JSX transform
+### 18. [x] Strict TypeScript + JSX transform — *done 2026-07-07; 51→0 errors, no @ts-expect-error; locationConfig.d.ts is interim until Task 10 converts the module.*
 
 - **Files**: `tsconfig.json` (L2 extends `astro/tsconfigs/base`; L11 `"jsx": "react"`)
 - **Problem**: Loosest Astro preset — no `strict`, no `strictNullChecks` (studio half has `strict: true`; the two halves disagree). `"jsx": "react"` is the classic transform, outdated for React 19.

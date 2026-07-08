@@ -211,7 +211,7 @@ function processOverflowData(features: StormOverflowFeature[], startDate: Date, 
       const event: {
         site: string;
         start: string;
-        end: string;
+        end: string | null;
         durationMin: number | null;
         status: 'active' | 'ended';
         distanceKm?: number;

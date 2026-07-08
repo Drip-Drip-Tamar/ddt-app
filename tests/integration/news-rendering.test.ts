@@ -282,7 +282,7 @@ describe('News Post Rendering', () => {
     });
 
     it('should handle post not found', async () => {
-      vi.mocked(client.fetch).mockResolvedValue(null);
+      vi.mocked(client.fetch).mockResolvedValue(null as never);
 
       const post = await client.fetch('mock-query', { slug: 'non-existent' });
 

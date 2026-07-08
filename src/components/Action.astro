@@ -15,7 +15,7 @@ const componentMap = {
     actionButton: ActionButton,
     actionLink: ActionLink
 };
-const Component = componentMap[action._type];
+const Component = action._type && action._type in componentMap ? componentMap[action._type as keyof typeof componentMap] : undefined;
 ---
 
-<Component {...action} class={className} data-sb-field-path={fieldPath} />
+{Component && <Component {...action} class={className} data-sb-field-path={fieldPath} />}
