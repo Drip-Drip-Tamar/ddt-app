@@ -14,7 +14,7 @@ const containerId = `prf-${Math.random().toString(36).substring(2, 11)}`;
 ---
 
 <Section {...sectionProps} class={className}>
-  <div class="prf-container">
+  <div class="prf-container" data-pollution-risk data-container-id={containerId} data-endpoint="/api/prf.json">
     <div class="mb-6">
       <h3 class="text-2xl font-bold mb-2">
         Nearest Coastal Pollution Risk (Today)
@@ -97,114 +97,10 @@ const containerId = `prf-${Math.random().toString(36).substring(2, 11)}`;
   </div>
 </Section>
 
-<script is:inline define:vars={{ containerId }}>
-  async function loadPollutionRiskForecast() {
-    const badgesContainer = document.getElementById(`${containerId}-badges`);
-    const errorAlert = document.getElementById(`${containerId}-error`);
-    const offseasonAlert = document.getElementById(`${containerId}-offseason`);
-    
-    try {
-      const response = await fetch('/api/prf.json');
-      if (!response.ok) throw new Error('Failed to fetch data');
-      
-      const data = await response.json();
-      
-      if (!data.sites || data.sites.length === 0) {
-        throw new Error('No data available');
-      }
-      
-      // Check if all sites are off-season
-      const allOffSeason = data.sites.every(site => !site.season);
-      
-      if (allOffSeason) {
-        badgesContainer.style.display = 'none';
-        offseasonAlert.classList.remove('hidden');
-        return;
-      }
-      
-      // Clear loading placeholders
-      badgesContainer.innerHTML = '';
-      
-      // Create badges for each site
-      data.sites.forEach(site => {
-        const siteCard = document.createElement('div');
-        siteCard.className = 'bg-base-100 rounded-lg shadow-md p-4';
-        
-        // Determine risk status and styling
-        let badgeClass = 'badge-neutral';
-        let statusText = 'No Data';
-        let statusIcon = '';
-        
-        if (site.season && site.risk === 'normal') {
-          badgeClass = 'badge-success';
-          statusText = 'Low potential danger';
-          statusIcon = '✓';
-        } else if (site.season && site.risk === 'increased') {
-          badgeClass = 'badge-warning';
-          statusText = 'High potential danger';
-          statusIcon = '⚠';
-        } else if (!site.season) {
-          statusText = 'Off-season';
-          statusIcon = '—';
-        }
-        
-        // Format expiry time
-        let expiryText = '';
-        if (site.expiresAt) {
-          const expiryDate = new Date(site.expiresAt);
-          const now = new Date();
-          if (expiryDate > now) {
-            expiryText = `Valid until ${expiryDate.toLocaleTimeString('en-GB', {
-              hour: '2-digit',
-              minute: '2-digit'
-            })}`;
-          } else {
-            expiryText = 'Forecast expired';
-            badgeClass = 'badge-neutral';
-          }
-        }
-        
-        siteCard.innerHTML = `
-          <h4 class="font-semibold text-base mb-2">${site.label}</h4>
-          <div class="flex flex-col gap-2">
-            <div class="badge ${badgeClass} badge-lg gap-2 py-4 px-3 w-full justify-center">
-              <span class="text-lg">${statusIcon}</span>
-              <span class="font-medium">${statusText}</span>
-            </div>
-            ${expiryText ? `<p class="text-xs text-base-content/60 text-center">${expiryText}</p>` : ''}
-          </div>
-        `;
-        
-        // Add tooltip with more information
-        if (site.season) {
-          siteCard.setAttribute('title', 
-            `EA Pollution Risk Forecast for ${site.label}. ${
-              site.risk === 'increased' 
-                ? 'Increased risk may be due to recent rainfall or storm overflows.' 
-                : 'Normal risk indicates typical conditions.'
-            } ${expiryText}`
-          );
-        }
-        
-        badgesContainer.appendChild(siteCard);
-      });
-      
-    } catch (error) {
-      console.error('Error loading pollution risk forecast:', error);
-      badgesContainer.style.display = 'none';
-      errorAlert.classList.remove('hidden');
-    }
-  }
-  
-  // Load data when DOM is ready
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', loadPollutionRiskForecast);
-  } else {
-    loadPollutionRiskForecast();
-  }
-  
-  // Refresh data every 15 minutes while page is open
-  setInterval(loadPollutionRiskForecast, 15 * 60 * 1000);
+<script>
+  import { registerPollutionRiskForecast } from '../scripts/charts/pollution-risk';
+
+  registerPollutionRiskForecast();
 </script>
 
 <style>

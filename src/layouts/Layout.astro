@@ -2,8 +2,6 @@
 import { type SiteConfig, type CustomImage } from 'types';
 import Footer from '@components/Footer.astro';
 import Header from '@components/Header.astro';
-import ChartLoader from '@components/ChartLoader.astro';
-import LeafletLoader from '@components/LeafletLoader.astro';
 import { SanityVisualEditing } from '@components/SanityVisualEditing';
 import { fetchData } from '@data/siteConfig';
 import { getImageUrl, isSanityImage } from '@utils/sanity-image';
@@ -88,8 +86,6 @@ function formatCanonicalURL(url: string | URL) {
         {resolvedImage?.src && <meta property="twitter:image" content={resolvedImage.src} />}
     </head>
     <body class="antialiased">
-        <ChartLoader />
-        <LeafletLoader />
         <Header {...configData.header} data-sb-field-path={`${configData._id}:header`} />
         <slot />
         <Footer {...configData.footer} data-sb-field-path={`${configData._id}:footer`} />
