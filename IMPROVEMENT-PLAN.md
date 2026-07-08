@@ -80,7 +80,7 @@ This document is the working checklist. Tick tasks as they complete; add notes i
 - **Benefits**: Interface becomes the test surface — every panel unit-testable in Vitest with mocked fetch. Leverage: 6 components share one envelope. Locality: chart styling, error UX, retry policy each change in one file.
 - **Acceptance**: All panels render identically (visual check on `/`, `/map`, `/results`); no `window.loadChart` references remain; each panel's transform + config-build covered by unit tests (see Task 12).
 
-### 7. [ ] Deduplicate TEM; delete orphaned chart components
+### 7. [x] Deduplicate TEM; delete orphaned chart components — *done 2026-07-07; TEM already composed shared theme.ts/mount-panel.ts/storm-overflow.ts building blocks post-Task 6, no further duplication to lift.*
 
 - **Files**: `TamarEnvironmentalMonitoring.astro`, `TamarRiverLevel.astro` (425 lines), `TamarRainfall.astro` (314 lines)
 - **Problem**: TEM re-implements the standalone panels inline instead of composing them — fetches the same three endpoints (`/api/tamar-level.json`, `/api/rainfall.json`, `/api/cso-live.json`) and renders 4 `new Chart()` instances with copy-pasted config. Meanwhile `TamarRiverLevel` and `TamarRainfall` are referenced by **zero** pages, Sanity mappings, or Stackbit models (verified by grep across `src`, `studio`, `.stackbit`). Deletion test fails in the worst way: deleting the standalones removes nothing because TEM holds independent copies.
