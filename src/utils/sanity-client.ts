@@ -9,13 +9,12 @@ const {
     SANITY_DATASET,
     SANITY_TOKEN,
     SANITY_WRITE_TOKEN,
-    STACKBIT_PREVIEW,
     SANITY_PREVIEW_DRAFTS
 } = loadEnv(process.env.NODE_ENV || '', process.cwd(), '');
 
 const isDev = import.meta.env.DEV;
 const isDeployPreview = process.env.CONTEXT === 'deploy-preview';
-const previewDrafts = STACKBIT_PREVIEW?.toLowerCase() === 'true' || SANITY_PREVIEW_DRAFTS?.toLowerCase() === 'true';
+const previewDrafts = SANITY_PREVIEW_DRAFTS?.toLowerCase() === 'true';
 
 /**
  * True in local dev, Netlify deploy previews, or when preview drafts are

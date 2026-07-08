@@ -5,9 +5,7 @@ import Card from '@components/Card.astro';
 import Section from '@components/Section.astro';
 import { normalizeColumns } from '@utils/columns';
 
-interface Props extends CardsSection {
-    'data-sb-field-path'?: string;
-}
+interface Props extends CardsSection {}
 
 const { heading, body, items, columns, fixedImageHeight, ...rest } = Astro.props;
 
@@ -17,12 +15,12 @@ const effectiveColumns = normalizeColumns(columns) ?? 'three';
 <Section {...rest} class="text-center">
     {
         heading && (
-            <h2 class="text-2xl font-black sm:text-4xl text-balance" data-sb-field-path=".heading">
+            <h2 class="text-2xl font-black sm:text-4xl text-balance">
                 {heading}
             </h2>
         )
     }
-    {body && <div class:list={['mx-auto', heading && 'mt-4', 'max-w-prose markdown']} data-sb-field-path=".body" set:html={marked.parse(body)} />}
+    {body && <div class:list={['mx-auto', heading && 'mt-4', 'max-w-prose markdown']} set:html={marked.parse(body)} />}
     {
         items && items?.length > 0 && (
             <div
@@ -39,10 +37,9 @@ const effectiveColumns = normalizeColumns(columns) ?? 'three';
                                     ? 'sm:grid-cols-2 lg:grid-cols-4'
                                     : 'sm:grid-cols-2 lg:grid-cols-3'
                 ]}
-                data-sb-field-path=".items"
             >
-                {items?.map((item, idx) => (
-                    <Card {...item} fixedImageHeight={fixedImageHeight} data-sb-field-path={`.${idx}`} class="flex-1" />
+                {items?.map((item) => (
+                    <Card {...item} fixedImageHeight={fixedImageHeight} class="flex-1" />
                 ))}
             </div>
         )

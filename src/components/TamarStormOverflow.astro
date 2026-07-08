@@ -4,7 +4,6 @@ import type { Section as SectionType } from 'types';
 
 export interface Props extends SectionType {
     class?: string;
-    'data-sb-field-path'?: string;
 }
 
 const { class: className, ...sectionProps } = Astro.props;

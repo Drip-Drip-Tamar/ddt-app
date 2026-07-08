@@ -43,24 +43,19 @@ npm run lint          # Run ESLint
 npm run typecheck     # Run TypeScript checking
 ```
 
-### Visual Editing Options
+### Visual Editing
 ```bash
-# Option 1: Sanity Presentation Tool (Native)
 cd studio && sanity dev      # Access via Studio → Presentation tab
-
-# Option 2: Netlify Visual Editor (Stackbit)
-npm install -g @stackbit/cli  # Install Netlify Visual Editor CLI
-stackbit dev                 # Run visual editor development server
 ```
 
 ## Architecture Overview
 
-This is an **Astro + Sanity CMS** starter with **dual visual editing** integration. The architecture follows a JAMstack pattern with:
+This is an **Astro + Sanity CMS** starter with Sanity Presentation tool visual editing. The architecture follows a JAMstack pattern with:
 
 - **Frontend**: Astro static site generator with TypeScript
 - **CMS**: Sanity.io headless CMS with structured content
 - **News System**: Blog/news functionality with posts and author management
-- **Visual Editing**: Dual system supporting both Sanity Presentation tool and Netlify Visual Editor (Stackbit)
+- **Visual Editing**: Sanity Presentation tool (native)
 - **Styling**: Tailwind CSS with DaisyUI components
 - **Deployment**: Optimized for Netlify
 
@@ -180,7 +175,6 @@ SANITY_STUDIO_DATASET="..."     # Same as above
 ```
 
 ### Preview Configuration
-- `STACKBIT_PREVIEW=true`: Enable Stackbit visual editing mode
 - `SANITY_PREVIEW_DRAFTS=true`: Enable Sanity draft content preview
 - `SANITY_STUDIO_PREVIEW_URL`: Preview URL for Presentation tool (defaults to localhost:3000)
 - Automatically enabled in development and deploy previews
@@ -193,37 +187,25 @@ Content models are defined in `studio/schemaTypes/`:
 - **Utilities**: siteConfig, header, footer
 - **Base Types**: sectionBase, customImage, badge, actionButton, actionLink
 
-Each section type extends from `sectionBase` providing consistent structure for visual editing annotations.
+Each section type extends from `sectionBase` providing consistent structure for visual editing.
 
-## Dual Visual Editing System
+## Visual Editing System
 
-The project supports two visual editing approaches that can be used independently or together:
-
-### Sanity Presentation Tool (Native)
-Integrated directly into Sanity Studio via `@sanity/presentation` plugin:
+The Sanity Presentation tool is the sole visual-editing path, integrated directly into Sanity Studio via `@sanity/presentation`:
 - **Configuration**: `studio/sanity.config.ts:19-51` - presentationTool configuration
 - **Preview URL**: Configurable via `SANITY_STUDIO_PREVIEW_URL` environment variable
 - **Document Resolution**: Maps pages by slug with automatic navigation
 - **Client Component**: `src/components/SanityVisualEditing.tsx` - Handles iframe detection and editing activation
-- **Layout Integration**: `src/layouts/Layout.astro:83` - Conditionally loads visual editing
+- **Layout Integration**: `src/layouts/Layout.astro` - Conditionally loads visual editing
 - **Access**: Via Studio interface → Presentation tab
-
-### Netlify Visual Editor (Stackbit)
-External visual editing service with extensive annotation system:
-- **Configuration**: `stackbit.config.ts` - Sanity content source integration
-- **Annotations**: Comprehensive `data-sb-field-path` attributes throughout components
-- **Model Extensions**: Custom definitions in `.stackbit/models/`
-- **HMR Support**: Live preview with hot module replacement
-- **Access**: Via `stackbit dev` command or deployed interface
 
 ### Key Implementation Details
 
-**SanityVisualEditing Component (`src/components/SanityVisualEditing.tsx:8-75`)**:
+**SanityVisualEditing Component (`src/components/SanityVisualEditing.tsx`)**:
 - Detects iframe context and `SANITY_PREVIEW_DRAFTS` parameter
 - Only activates within Sanity Studio's Presentation tool
 - Provides history API integration for navigation
 - Shows development status indicator when active
-- Prevents conflicts with Stackbit visual editing
 
 **Studio Configuration (`studio/sanity.config.ts:19-51`)**:
 - Preview URL with draft mode support
@@ -233,7 +215,6 @@ External visual editing service with extensive annotation system:
 **Environment Variables**:
 - `SANITY_STUDIO_PREVIEW_URL`: Presentation tool preview URL (defaults to localhost:3000)
 - `SANITY_PREVIEW_DRAFTS`: Enables draft content in preview mode
-- `STACKBIT_PREVIEW`: Enables Stackbit visual editing mode
 
 ### Dependencies Added
 - **Studio**: `@sanity/presentation: ^2.0.0`

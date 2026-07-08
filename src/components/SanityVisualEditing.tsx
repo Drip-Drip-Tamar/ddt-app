@@ -10,7 +10,6 @@ export function SanityVisualEditing() {
     const hasSanityPreview = new URLSearchParams(window.location.search).has('SANITY_PREVIEW_DRAFTS');
     
     // Only activate if we're in Sanity Studio's Presentation tool
-    // This prevents conflicts with Stackbit visual editing
     if (inIframe && hasSanityPreview) {
       setIsInPresentation(true);
       

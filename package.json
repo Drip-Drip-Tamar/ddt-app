@@ -62,8 +62,6 @@
         "@astrojs/check": "^0.9.9",
         "@sanity/export": "^6.0.5",
         "@sanity/import": "^4.1.0",
-        "@stackbit/cms-sanity": "^0.2.92",
-        "@stackbit/types": "^2.0.0",
         "@testing-library/jest-dom": "^6.8.0",
         "@testing-library/react": "^16.3.2",
         "@types/fs-extra": "^11.0.4",

@@ -724,7 +724,6 @@ if (import.meta.env.DEV) {
 ```bash
 npm run dev          # Astro dev server :3000
 cd studio && sanity dev # Sanity Studio :3333
-stackbit dev        # Visual editor
 astro check         # Type checking
 ```
 

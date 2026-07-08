@@ -8,7 +8,6 @@ import {
 } from '@utils/sanity-image';
 
 interface Props {
-    _id?: string;
     src?: string;
     asset?: any;
     width?: number;
@@ -23,23 +22,20 @@ interface Props {
     loading?: 'lazy' | 'eager';
     fetchpriority?: 'high' | 'low' | 'auto';
     imageType?: 'card' | 'hero' | 'logo' | 'avatar' | 'custom';
-    'data-sb-field-path'?: string;
 }
 
-const { 
-    _id, 
-    src, 
+const {
+    src,
     asset,
-    width, 
-    height, 
+    width,
+    height,
     dimensions,
-    alt, 
-    class: className, 
+    alt,
+    class: className,
     sizes,
     loading = 'lazy',
     fetchpriority = 'auto',
-    imageType = 'custom',
-    'data-sb-field-path': fieldPath 
+    imageType = 'custom'
 } = Astro.props;
 
 // Determine if this is a Sanity image - prioritize asset over src
@@ -65,14 +61,6 @@ const defaults = getDefaultDimensions(imageType);
 const imgWidth = width || dimensions?.width || defaults.width;
 const imgHeight = height || dimensions?.height || defaults.height;
 
-// Prepare annotations for visual editing
-const annotations: { [key: string]: string } = {};
-if (_id) {
-    annotations['data-sb-object-id'] = _id;
-} else if (fieldPath) {
-    annotations['data-sb-field-path'] = fieldPath;
-}
-
 // Generate responsive image props for Sanity images
 const responsiveSizes = isSanity ? (sizes || (imageType !== 'custom' && defaultSizes[imageType]) || '100vw') : undefined;
 const srcSet = isSanity ? generateSrcSet(sanitySource) : undefined;
@@ -95,7 +83,6 @@ const shouldRender = isSanity ? (sanitySource && defaultSrc) : hasValidSrc;
             format={format} 
             class:list={className}
             loading={loading}
-            {...annotations} 
         />
     ) : (
         <img
@@ -108,7 +95,6 @@ const shouldRender = isSanity ? (sanitySource && defaultSrc) : hasValidSrc;
             class={className}
             loading={loading}
             fetchpriority={fetchpriority}
-            {...annotations}
         />
     )
 ) : null}

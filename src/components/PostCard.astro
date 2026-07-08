@@ -22,7 +22,6 @@ const { title, body, image, author, date, slug, class: className } = Astro.props
                 image && (image.asset || image.src) && (
                     <figure>
                         <ResponsiveImage
-                            _id={image._id}
                             src={image.src}
                             asset={image.asset}
                             dimensions={image.dimensions}
