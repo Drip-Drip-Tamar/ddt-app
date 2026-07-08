@@ -141,7 +141,7 @@ This document is the working checklist. Tick tasks as they complete; add notes i
 - **Solution**: Delete `page-rendering.test.ts`; strip the tautological sections of `news-rendering.test.ts` (its `extractTextFromPortableText` import duplicates unit coverage — fold anything unique into the unit file). Replace with real tests where Batch 2/3 created importable surfaces.
 - **Acceptance**: `npm run test` green; no test asserts a mock against itself.
 
-### 14. [ ] Unit tests for extracted chart modules
+### 14. [x] Unit tests for extracted chart modules — *done 2026-07-07; 140 tests, 94.6% lines / 84.9% branches of src/scripts/charts/.*
 
 - **Depends on**: Task 6.
 - **Problem being fixed**: ~2,085 lines of client JS currently have zero coverage (TEM 588, RiverLevel 278, StormOverflowMap 221, StormOverflow 206, Rainfall 203, WaterQualityChart 178, LeafletLoader 164, ChartLoader 126, PRF 107, Header 14). `water-quality.test.ts:477-480` even documents logic that was moved client-side and out of test reach.
@@ -170,7 +170,7 @@ This document is the working checklist. Tick tasks as they complete; add notes i
 - **Solution**: Self-host fonts (`@fontsource-variable/mulish` or Astro 6 fonts API), subset weights actually used. Move loaders to the pages/components that need them (naturally falls out of Task 6 if modules import their own loader).
 - **Acceptance**: No `fonts.googleapis.com` request; Lighthouse render-blocking warning gone; chart-less pages load no Chart.js.
 
-### 17. [ ] Audit `output: 'server'` → static-first routing
+### 17. [x] Audit `output: 'server'` → static-first routing — *done 2026-07-07; s-maxage=300 + SWR on content pages outside preview, 404 prerendered, dead getStaticPaths removed.*
 
 - **Files**: `astro.config.mjs:11`
 - **Problem**: Whole site is SSR-by-default. Only `api/contact.ts` sets `prerender` explicitly; every content page pays SSR latency and Netlify function invocations per request.
@@ -186,7 +186,7 @@ This document is the working checklist. Tick tasks as they complete; add notes i
 - **Sequencing**: Before or with Task 10 (typegen lands much better under strict).
 - **Acceptance**: `npm run typecheck` green under strict.
 
-### 19. [ ] Retire Stackbit visual editing — **DECIDED 2026-07-07: retire**
+### 19. [x] Retire Stackbit visual editing — *done 2026-07-07; 480 transitive packages pruned, all data-sb annotations and STACKBIT_PREVIEW handling removed.*
 
 - **Files**: `stackbit.config.ts`, `.stackbit/models/` (15 files), `@stackbit/cms-sanity` + `@stackbit/types` deps, `data-sb-field-path` attributes (`Header.astro:15,38,49,56,76,85`, `Layout.astro:92,94`, others), legacy `stackbitObjectsChanged` reload listener (`Layout.astro:95-100`)
 - **Problem**: Two overlapping visual-editing systems. Sanity Presentation tool (configured in `studio/sanity.config.ts`) is the newer, native path — session history shows it was added later. Stackbit doubles the dependency/config surface and sprinkles dead markup through production HTML.
