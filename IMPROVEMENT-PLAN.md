@@ -13,12 +13,14 @@ This document is the working checklist. Tick tasks as they complete; add notes i
 
 ## Batch 1 — Security & correctness
 
-### 0. [ ] URGENT — stop leaking SANITY_TOKEN into production HTML
+### 0. [x] URGENT — stop leaking SANITY_TOKEN into production HTML — *done 2026-07-07; token prop was entirely unused; render now gated to preview contexts. USER ACTION: rotate SANITY_TOKEN to read-only, add SANITY_WRITE_TOKEN to Netlify + GitHub secrets.*
 
 - **Files**: `src/layouts/Layout.astro:95`, `src/components/SanityVisualEditing.tsx`
 - **Problem** (verified against Astro runtime internals): `Layout.astro:95` renders `<SanityVisualEditing client:only="react" token={import.meta.env.SANITY_TOKEN} />` unconditionally on every page in every environment. Astro serialises `client:only` props into the `astro-island` element's `props` attribute in the served HTML — the component's internal `import.meta.env.DEV && isInPresentation` check (SanityVisualEditing.tsx:53) runs after hydration and does not prevent serialisation. **The write-capable token is therefore visible via View Source on every production page.** (`grep dist/` finds nothing only because `output: 'server'` renders per-request — the leak is in served HTML, not build artifacts.)
 - **Solution**: Never pass the token as a prop. Gate the component render itself to preview/dev contexts (`{isPreviewContext && <SanityVisualEditing ... />}`); the visual-editing client does not need the token prop at all (verify what it actually uses it for — likely removable outright). Then **rotate the exposed token in Sanity** — it must be assumed compromised.
 - **Acceptance**: `curl` a production/preview page → HTML contains no token; visual editing still works in Presentation tool; old token revoked, new tokens issued per Task 3's split.
+
+### 1. [x] Parameterise GROQ queries (injection fix) — *done 2026-07-07*
 
 - **Files**: `src/data/page.js` (~L21 `getPageById`, ~L26 `getPageBySlug`), caller `src/pages/[...slug].astro:16`
 - **Problem**: Slug from `Astro.params` is interpolated raw into the GROQ query string: `*[_type == "page" && slug.current == "${slug}"]`. A slug containing `"` breaks out of the string literal — query-breaking at minimum, injection at worst. Same pattern in `getPageById` with `_id == "${id}"`.
@@ -26,7 +28,7 @@ This document is the working checklist. Tick tasks as they complete; add notes i
 - **Solution**: Convert both functions to parameterised queries (`client.fetch(query, { slug })`). Sweep the codebase for any other raw `${...}` interpolation inside GROQ strings.
 - **Acceptance**: No template interpolation inside any GROQ query; existing pages still render; add a unit test that a slug containing `"` returns null/404 rather than throwing.
 
-### 2. [ ] Add security headers (CSP, HSTS, frame/referrer policies)
+### 2. [x] Add security headers (CSP, HSTS, frame/referrer policies) — *done 2026-07-07; CSP uses 'unsafe-inline' pragmatically (Astro inline scripts); CDN allowances shrink after Task 6.*
 
 - **Files**: `netlify.toml` (currently 6 lines, no `[[headers]]` block); alternatively `public/_headers`
 - **Problem**: Zero security headers repo-wide — no CSP, no HSTS, no X-Frame-Options, no Referrer-Policy. SSR site with a public contact form.
@@ -34,7 +36,7 @@ This document is the working checklist. Tick tasks as they complete; add notes i
 - **Note**: Visual editing (Sanity Presentation iframe) needs `frame-ancestors` allowance for the Studio origin on preview contexts — verify before locking down.
 - **Acceptance**: Headers visible on deploy preview; site functional (charts, map, Turnstile, Studio presentation preview all work); no CSP violations in console on main pages.
 
-### 3. [ ] Split Sanity tokens; remove module-load side effects from sanity-client
+### 3. [x] Split Sanity tokens; remove module-load side effects from sanity-client — *done 2026-07-07; write client falls back to SANITY_TOKEN with a warning until SANITY_WRITE_TOKEN is set.*
 
 - **Files**: `src/utils/sanity-client.ts` (token at L24, listener at L33-45), `astro.config.mjs` (spreads same config into `sanity()` integration), `src/pages/api/contact.ts:9-14`
 - **Problem** (three parts):
