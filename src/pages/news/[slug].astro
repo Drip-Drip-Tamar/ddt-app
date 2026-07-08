@@ -9,15 +9,8 @@ import {
     normalizeNewsImageSizingMode
 } from '@utils/news-image-sizing';
 import { portableTextToHtml } from '@utils/portable-text';
-import { POST_QUERY, POST_SLUGS_QUERY, type Post } from '@data/posts';
-
-export async function getStaticPaths() {
-    const posts = await sanityClient.fetch<{ slug: string }[]>(POST_SLUGS_QUERY);
-
-    return posts.map((post) => ({
-        params: { slug: post.slug }
-    }));
-}
+import { POST_QUERY, type Post } from '@data/posts';
+import { isPreviewContext } from '@utils/sanity-client';
 
 const { slug } = Astro.params;
 
@@ -25,6 +18,12 @@ const post = await sanityClient.fetch<Post | null>(POST_QUERY, { slug });
 
 if (!post) {
     return Astro.redirect('/404');
+}
+
+// Edge-cache published post pages; never cache in preview contexts so
+// visual editing (draft content, stega) always sees fresh data.
+if (!isPreviewContext) {
+    Astro.response.headers.set('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=3600');
 }
 
 const publishedDate = post.publishedAt

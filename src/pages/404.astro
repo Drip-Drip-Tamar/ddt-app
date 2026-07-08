@@ -1,5 +1,12 @@
 ---
 import Layout from '@layouts/Layout.astro';
+
+// This page has no editable Sanity content of its own; Layout still fetches
+// siteConfig for the header/footer nav, so prerendering means nav labels can
+// go stale between builds until the next deploy. Judged acceptable for a
+// rarely-hit error page — worth revisiting if nav changes need to appear
+// instantly everywhere.
+export const prerender = true;
 ---
 
 <Layout title="404 - Page Not Found">

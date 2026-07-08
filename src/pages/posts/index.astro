@@ -1,9 +1,15 @@
 ---
-import { client as sanityClient } from '@utils/sanity-client';
+import { client as sanityClient, isPreviewContext } from '@utils/sanity-client';
 import { POSTS_QUERY, type Post } from '@data/posts';
 
 const allPosts = await sanityClient.fetch<Post[]>(POSTS_QUERY);
 const posts = allPosts.slice(0, 12);
+
+// Edge-cache the published listing; never cache in preview contexts so
+// visual editing (draft content, stega) always sees fresh data.
+if (!isPreviewContext) {
+    Astro.response.headers.set('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=3600');
+}
 ---
 
 <main class="container mx-auto min-h-screen max-w-3xl p-8">

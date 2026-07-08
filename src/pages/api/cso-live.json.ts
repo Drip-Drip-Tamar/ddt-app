@@ -2,6 +2,10 @@ import type { APIRoute } from 'astro';
 import { getPrimaryLocation, calculateDistance } from '../../data/locationConfig';
 import { fetchUpstream, UpstreamError } from '@utils/upstream';
 
+// Explicitly dynamic (already the default under output: 'server', stated
+// here for clarity/future-proofing against a prerender: true default).
+export const prerender = false;
+
 const SWW_ARCGIS_BASE = 'https://services-eu1.arcgis.com/OMdMOtfhATJPcHe3/arcgis/rest/services/NEH_outlets_PROD/FeatureServer';
 
 interface StormOverflowFeature {

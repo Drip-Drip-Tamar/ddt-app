@@ -2,6 +2,10 @@ import type { APIRoute } from 'astro';
 import { getBathingWaters } from '../../data/locationConfig';
 import { fetchUpstream } from '@utils/upstream';
 
+// Explicitly dynamic (already the default under output: 'server', stated
+// here for clarity/future-proofing against a prerender: true default).
+export const prerender = false;
+
 const EA_API_BASE = 'https://environment.data.gov.uk';
 
 interface RiskPrediction {

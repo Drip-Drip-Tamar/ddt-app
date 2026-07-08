@@ -8,6 +8,7 @@ import Logos from '@components/Logos.astro';
 import Testimonials from '@components/Testimonials.astro';
 import WaterQualityChart from '@components/WaterQualityChart.astro';
 import { getPageBySlug, type PageData } from '@data/page';
+import { isPreviewContext } from '@utils/sanity-client';
 
 // Get slug from params - undefined means homepage
 const { slug } = Astro.params;
@@ -22,7 +23,13 @@ if (!page) {
     return Astro.redirect('/404');
 }
 
-const { _id, title, sections, metaTitle, metaDescription, socialImage } = page || {};
+// Edge-cache published pages; never cache in preview contexts so visual
+// editing (draft content, stega) always sees fresh data.
+if (!isPreviewContext) {
+    Astro.response.headers.set('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=3600');
+}
+
+const { title, sections, metaTitle, metaDescription, socialImage } = page || {};
 
 // Sanity typegen models every fetched field as nullable; Layout's props
 // (from the hand-written `types` module) use the `undefined`-based optional
@@ -44,12 +51,12 @@ const componentMap: Record<string, AstroComponentFactory> = {
 ---
 
 <Layout title={pageTitle} description={pageDescription} image={pageImage}>
-    <div data-sb-object-id={_id}>
+    <div>
         {sections?.length ? (
-            sections.map((section, idx) => {
+            sections.map((section) => {
                 const Component = section._type ? componentMap[section._type] : undefined;
                 return Component ? (
-                    <Component {...section} data-sb-field-path={`sections.${idx}`} />
+                    <Component {...section} />
                 ) : null;
             })
         ) : (

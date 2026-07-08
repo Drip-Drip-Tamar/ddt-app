@@ -2,6 +2,10 @@ import type { APIRoute } from 'astro';
 import { getPrimaryLocation, calculateDistance } from '../../data/locationConfig';
 import { fetchUpstream } from '@utils/upstream';
 
+// Explicitly dynamic (already the default under output: 'server', stated
+// here for clarity/future-proofing against a prerender: true default).
+export const prerender = false;
+
 // Data source endpoints - Using the same reliable source as cso-live.json
 const SWW_ARCGIS_BASE = 'https://services-eu1.arcgis.com/OMdMOtfhATJPcHe3/arcgis/rest/services/NEH_outlets_PROD/FeatureServer';
 const RIVERS_TRUST_EDM_2023 = 'https://services3.arcgis.com/Bb8lfThdhugyc4G3/arcgis/rest/services/edm_2023_tidy_final/FeatureServer';
