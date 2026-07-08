@@ -132,18 +132,8 @@ const { title, logo, navLinks } = Astro.props;
 </style>
 
 <script>
-    function navToggle() {
-        const nav = document.querySelector('.nav-panel');
-        const navToggleBtn = document.querySelector('.nav-toggle');
-        const navToggleIcon = document.querySelector('.nav-toggle-icon');
-        navToggleBtn?.addEventListener('click', () => {
-            const isMenuExpanded = navToggleBtn.getAttribute('aria-expanded') === 'true';
-            navToggleBtn.setAttribute('aria-expanded', isMenuExpanded ? 'false' : 'true');
-            navToggleBtn.setAttribute('aria-label', isMenuExpanded ? 'Open Menu' : 'Close Menu');
-            navToggleIcon?.classList.toggle('is-active');
-            nav?.classList.toggle('is-visible');
-        });
-    }
-    navToggle();
-    document.addEventListener('astro:after-swap', navToggle);
+    import { mountMobileNav } from '../scripts/mobile-nav';
+
+    mountMobileNav();
+    document.addEventListener('astro:after-swap', mountMobileNav);
 </script>
