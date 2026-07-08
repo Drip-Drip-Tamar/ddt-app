@@ -206,107 +206,15 @@ const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY;
 </Layout>
 
 <script>
-  type TurnstileWindow = Window & {
-    turnstile?: {
-      reset: () => void;
-    };
-  };
+  import { mountContactForm } from '../scripts/contact-form';
 
-  const resetTurnstile = () => {
-    (window as TurnstileWindow).turnstile?.reset();
-  };
+  // Initial page load (module scripts are deferred, so the DOM is ready here).
+  mountContactForm();
 
-  // Set form start time for anti-spam
-  (document.getElementById('form_started_at') as HTMLInputElement).value = Date.now().toString();
-  
-  // Handle form submission
-  const form = document.getElementById('contactForm') as HTMLFormElement;
-  const formMessage = document.getElementById('formMessage');
-  const formMessageText = document.getElementById('formMessageText');
-  
-  form?.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    
-    // Clear any previous messages
-    formMessage?.classList.add('hidden');
-    formMessage?.classList.remove('alert-success', 'alert-error');
-    
-    // Disable submit button
-    const submitBtn = form.querySelector('button[type="submit"]') as HTMLButtonElement;
-    const originalText = submitBtn.textContent;
-    submitBtn.disabled = true;
-    submitBtn.textContent = 'Sending...';
-    
-    try {
-      const formData = new FormData(form);
-      
-      const response = await fetch('/api/contact', {
-        method: 'POST',
-        body: formData
-      });
-      
-      const result = await response.json();
-      
-      if (result.ok) {
-        // Success
-        form.reset();
-        (document.getElementById('form_started_at') as HTMLInputElement).value = Date.now().toString();
-        
-        // Replace form with success message
-        const formContainer = form.parentElement;
-        formContainer.innerHTML = `
-          <div class="alert alert-success">
-            <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <div>
-              <h3 class="font-bold">Thank you!</h3>
-              <p>We've received your message and will reply via email soon.</p>
-            </div>
-          </div>
-          <div class="mt-4">
-            <a href="/" class="btn btn-primary">Return to Home</a>
-          </div>
-        `;
-      } else {
-        // Error
-        formMessage?.classList.remove('hidden');
-        formMessage?.classList.add('alert-error');
-        formMessageText.textContent = result.error || 'Something went wrong. Please try again.';
-        resetTurnstile();
-        submitBtn.disabled = false;
-        submitBtn.textContent = originalText;
-      }
-    } catch (error) {
-      // Network error
-      formMessage?.classList.remove('hidden');
-      formMessage?.classList.add('alert-error');
-      formMessageText.textContent = 'Network error. Please check your connection and try again.';
-      resetTurnstile();
-      submitBtn.disabled = false;
-      submitBtn.textContent = originalText;
-    }
-  });
-  
-  // Add client-side validation feedback
-  const requiredFields = form?.querySelectorAll('[required]');
-  requiredFields?.forEach(field => {
-    field.addEventListener('blur', () => {
-      const input = field as HTMLInputElement;
-      const errorSpan = document.getElementById(`${input.name}-error`);
-      
-      if (input.validity.valueMissing) {
-        errorSpan?.classList.remove('hidden');
-        errorSpan.textContent = 'This field is required';
-        input.classList.add('input-error');
-      } else if (input.validity.typeMismatch && input.type === 'email') {
-        errorSpan?.classList.remove('hidden');
-        errorSpan.textContent = 'Please enter a valid email address';
-        input.classList.add('input-error');
-      } else {
-        errorSpan?.classList.add('hidden');
-        input.classList.remove('input-error');
-      }
-    });
+  // Re-mount after client-side navigations when view transitions are enabled.
+  // mountContactForm() is idempotent, so this is also safe to no-op on pages
+  // that never leave the initial load.
+  document.addEventListener('astro:page-load', () => {
+    mountContactForm();
   });
 </script>
