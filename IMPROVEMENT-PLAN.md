@@ -66,7 +66,7 @@ This document is the working checklist. Tick tasks as they complete; add notes i
 
 ## Batch 2 — Chart extraction (flagship)
 
-### 6. [ ] Extract chart client logic into importable modules
+### 6. [x] Extract chart client logic into importable modules — *done 2026-07-07; npm-bundled chart.js/leaflet, loaders deleted, CSP shrunk. Net −81 lines with 10 new modules.*
 
 - **Files**: `src/components/TamarEnvironmentalMonitoring.astro` (861 lines, ~589 inline script — 68%), `TamarStormOverflow.astro` (360/207), `TamarStormOverflowMap.astro` (408/222), `WaterQualityChart.astro` (395/180), `PollutionRiskForecast.astro` (231/108), `ChartLoader.astro` (127 script lines), `LeafletLoader.astro` (165)
 - **Problem**: Each component is one giant un-exported inline function with the same envelope: `fetch → response.ok check → .json() → build Chart config → render → catch`, copy-pasted 6×. Error handling copy-pasted (`document.getElementById('<name>-error').classList.remove('hidden')`). Chart option objects re-declared per component (TEM alone: `scales` ×4, `tooltip` ×4, `annotation` ×4; WaterQualityChart `scales` ×8). Chart.js reached via `window.loadChart()` global — no seam to mock. Locations hardcoded as string literals in client JS (Calstock ×3, Gunnislake ×3, Plymouth ×3 in TEM), bypassing the `locationConfig` seam the API routes use correctly. Nothing importable ⇒ nothing testable.
@@ -88,14 +88,14 @@ This document is the working checklist. Tick tasks as they complete; add notes i
 - **Benefit**: One copy of each panel's logic; ~700 lines deleted.
 - **Acceptance**: `/results` TEM section renders all four panels; grep shows no references to deleted files.
 
-### 8. [ ] Fix chart lifecycle for client-side navigation
+### 8. [x] Fix chart lifecycle for client-side navigation — *done 2026-07-07 inside mountPanel; immediate mount + astro:page-load (repo has no ClientRouter yet), idempotent re-mount.*
 
 - **Files**: all chart components — `DOMContentLoaded` listeners (e.g. TEM L824) vs `Header.astro:163` which correctly uses `astro:after-swap`
 - **Problem**: Charts register on `DOMContentLoaded` only; after an Astro view-transition/client-side navigation, charts never re-initialise. Latent bug, inconsistent lifecycle model across the codebase.
 - **Solution**: Standardise on `astro:page-load` inside the Task 6 `mountPanel` envelope (fires on initial load and after every swap). Ensure idempotent mounting (destroy/recreate or guard against double-init).
 - **Acceptance**: Navigate between pages via links (no full reload) — charts render on arrival at `/map` and `/results`.
 
-### 9. [ ] Extract contact form client logic
+### 9. [x] Extract contact form client logic — *done 2026-07-07; src/scripts/contact-form.ts + 11 jsdom tests.*
 
 - **Files**: `src/pages/contact.astro` (~L227-257 inline: Turnstile init, submit handler, `fetch('/api/contact')`, success `innerHTML`)
 - **Problem**: Same anti-pattern as the charts — form logic welded to the DOM, untestable. (The server half, `src/pages/api/contact.ts`, is fine and well-tested.)
