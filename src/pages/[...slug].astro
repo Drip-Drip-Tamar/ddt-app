@@ -1,5 +1,4 @@
 ---
-import type { Page } from 'types';
 import type { AstroComponentFactory } from 'astro/runtime/server/index.js';
 import Layout from '@layouts/Layout.astro';
 import Cards from '@components/Cards.astro';
@@ -8,7 +7,7 @@ import Hero from '@components/Hero.astro';
 import Logos from '@components/Logos.astro';
 import Testimonials from '@components/Testimonials.astro';
 import WaterQualityChart from '@components/WaterQualityChart.astro';
-import { getPageBySlug } from '@data/page';
+import { getPageBySlug, type PageData } from '@data/page';
 
 // Get slug from params - undefined means homepage
 const { slug } = Astro.params;
@@ -16,7 +15,7 @@ const slugParam = slug ? (Array.isArray(slug) ? slug.join('/') : slug) : undefin
 
 // Fetch page data by slug
 const pages = await getPageBySlug(slugParam);
-const page: Page = pages.length ? pages[0] : null;
+const page: PageData | null = pages.length ? pages[0] : null;
 
 // If no page found, return 404
 if (!page) {
@@ -24,6 +23,14 @@ if (!page) {
 }
 
 const { _id, title, sections, metaTitle, metaDescription, socialImage } = page || {};
+
+// Sanity typegen models every fetched field as nullable; Layout's props
+// (from the hand-written `types` module) use the `undefined`-based optional
+// convention shared by the rest of the components, so normalise at this
+// boundary rather than changing that convention everywhere.
+const pageTitle = metaTitle ?? title;
+const pageDescription = metaDescription ?? undefined;
+const pageImage = socialImage?.src ? { src: socialImage.src } : undefined;
 
 
 const componentMap: Record<string, AstroComponentFactory> = {
@@ -36,7 +43,7 @@ const componentMap: Record<string, AstroComponentFactory> = {
 };
 ---
 
-<Layout title={metaTitle ?? title} description={metaDescription} image={socialImage}>
+<Layout title={pageTitle} description={pageDescription} image={pageImage}>
     <div data-sb-object-id={_id}>
         {sections?.length ? (
             sections.map((section, idx) => {

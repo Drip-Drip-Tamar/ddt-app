@@ -1,12 +1,43 @@
 import { fetchData as fetchSiteConfig } from './siteConfig';
 
+// Hand-written rather than generated: the Sanity-generated
+// `monitoringConfiguration` shape (from sanity.types.ts) has every field
+// optional/nullable, since none of it is required in the CMS. This module's
+// whole job is to guarantee callers a fully-populated config (via
+// DEFAULT_CONFIG), so its public types describe that post-fallback shape.
+export interface MonitoringLocation {
+  name: string;
+  center: {
+    lat: number;
+    lng: number;
+  };
+  defaultRadius: number;
+  description?: string;
+}
+
+export interface RiverStations {
+  freshwaterStationId: string;
+  tidalStationId: string;
+}
+
+export interface BathingWater {
+  id: string;
+  label: string;
+}
+
+export interface MonitoringConfig {
+  primaryLocation: MonitoringLocation;
+  riverStations: RiverStations;
+  bathingWaters: BathingWater[];
+}
+
 // Cache the monitoring configuration to avoid repeated Sanity queries
-let configCache = null;
+let configCache: MonitoringConfig | null = null;
 let cacheTimestamp = 0;
 const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
 // Default fallback configuration if Sanity is unavailable
-const DEFAULT_CONFIG = {
+const DEFAULT_CONFIG: MonitoringConfig = {
   primaryLocation: {
     name: 'Calstock',
     center: {
@@ -28,11 +59,10 @@ const DEFAULT_CONFIG = {
 
 /**
  * Fetch monitoring configuration from Sanity with caching
- * @returns {Promise<Object>} The monitoring configuration
  */
-export async function getMonitoringConfig() {
+export async function getMonitoringConfig(): Promise<MonitoringConfig> {
   const now = Date.now();
-  
+
   // Return cached config if still valid
   if (configCache && (now - cacheTimestamp) < CACHE_TTL) {
     return configCache;
@@ -40,13 +70,16 @@ export async function getMonitoringConfig() {
 
   try {
     const siteConfig = await fetchSiteConfig();
-    
+
     if (siteConfig?.monitoringConfiguration) {
-      configCache = siteConfig.monitoringConfiguration;
+      // Cast: see the module-level comment above on why this module's
+      // public types describe the post-fallback shape rather than the
+      // fully-optional generated query type.
+      configCache = siteConfig.monitoringConfiguration as MonitoringConfig;
       cacheTimestamp = now;
       return configCache;
     }
-    
+
     // If no config in Sanity, return defaults
     console.warn('No monitoring configuration found in Sanity, using defaults');
     return DEFAULT_CONFIG;
@@ -59,44 +92,37 @@ export async function getMonitoringConfig() {
 
 /**
  * Get the primary monitoring location
- * @returns {Promise<Object>} Primary location with lat, lng, radius
  */
-export async function getPrimaryLocation() {
+export async function getPrimaryLocation(): Promise<MonitoringLocation> {
   const config = await getMonitoringConfig();
   return config.primaryLocation;
 }
 
 /**
  * Get river monitoring station IDs
- * @returns {Promise<Object>} Object with freshwaterStationId and tidalStationId
  */
-export async function getRiverStations() {
+export async function getRiverStations(): Promise<RiverStations> {
   const config = await getMonitoringConfig();
   return config.riverStations;
 }
 
 /**
  * Get bathing water monitoring points
- * @returns {Promise<Array>} Array of bathing water locations
  */
-export async function getBathingWaters() {
+export async function getBathingWaters(): Promise<BathingWater[]> {
   const config = await getMonitoringConfig();
   return config.bathingWaters || [];
 }
 
 /**
  * Calculate distance between two coordinates using Haversine formula
- * @param {number} lat1 - First latitude
- * @param {number} lon1 - First longitude
- * @param {number} lat2 - Second latitude
- * @param {number} lon2 - Second longitude
- * @returns {number} Distance in kilometers
+ * @returns Distance in kilometers
  */
-export function calculateDistance(lat1, lon1, lat2, lon2) {
+export function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
   const R = 6371; // Earth's radius in km
   const dLat = (lat2 - lat1) * Math.PI / 180;
   const dLon = (lon2 - lon1) * Math.PI / 180;
-  const a = 
+  const a =
     Math.sin(dLat/2) * Math.sin(dLat/2) +
     Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
     Math.sin(dLon/2) * Math.sin(dLon/2);
@@ -105,9 +131,11 @@ export function calculateDistance(lat1, lon1, lat2, lon2) {
 }
 
 /**
- * Clear the configuration cache (useful for testing or forced refresh)
+ * Clear the configuration cache. Kept (not confirmed-dead): used by
+ * tests/unit/location-config.test.ts to bust the in-memory cache between
+ * cases so each test observes a fresh fetch.
  */
-export function clearConfigCache() {
+export function clearConfigCache(): void {
   configCache = null;
   cacheTimestamp = 0;
 }

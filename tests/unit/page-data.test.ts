@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { fetchData, getPageById, getPageBySlug } from '../../src/data/page';
+import { fetchData, getPageBySlug } from '../../src/data/page';
 import { client } from '../../src/utils/sanity-client';
 
 vi.mock('../../src/utils/sanity-client', () => ({
@@ -19,17 +19,6 @@ describe('Page data queries', () => {
     );
     expect(client.fetch).toHaveBeenCalledWith(
       expect.stringContaining('sections')
-    );
-  });
-
-  it('queries a page by id using a parameterised query', async () => {
-    vi.mocked(client.fetch).mockResolvedValueOnce({ _id: 'page-1' } as any);
-
-    await getPageById('page-1');
-
-    expect(client.fetch).toHaveBeenCalledWith(
-      expect.stringContaining('*[_type == "page" && _id == $id]'),
-      { id: 'page-1' }
     );
   });
 
@@ -66,16 +55,10 @@ describe('Page data queries', () => {
     );
   });
 
-  it('does not throw and passes ids containing quotes as a parameter, never interpolated', async () => {
-    const maliciousId = '"; * // ';
-    vi.mocked(client.fetch).mockResolvedValueOnce(null as any);
+  it('propagates a Sanity fetch failure rather than swallowing it (Task 12: page fetches fail loudly, unlike siteConfig/locationConfig)', async () => {
+    const failure = new Error('Sanity down');
+    vi.mocked(client.fetch).mockRejectedValueOnce(failure);
 
-    const result = await getPageById(maliciousId);
-
-    expect(result).toBeNull();
-    expect(client.fetch).toHaveBeenCalledWith(
-      expect.not.stringContaining(maliciousId),
-      { id: maliciousId }
-    );
+    await expect(getPageBySlug('news')).rejects.toThrow('Sanity down');
   });
 });

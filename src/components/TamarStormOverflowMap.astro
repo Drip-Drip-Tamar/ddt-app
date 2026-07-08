@@ -1,7 +1,7 @@
 ---
 import Section from '@components/Section.astro';
 import type { Section as SectionType } from 'types';
-import { getPrimaryLocation } from '@data/locationConfig.js';
+import { getPrimaryLocation } from '@data/locationConfig';
 
 export interface Props extends SectionType {
     centre?: { lat: number; lon: number };

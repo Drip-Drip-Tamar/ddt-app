@@ -1,4 +1,6 @@
-export const IMAGE = `
+import groq from 'groq';
+
+export const IMAGE = groq`
   {
     "_id": image.asset->_id,
     "asset": image.asset,
@@ -9,7 +11,7 @@ export const IMAGE = `
   }
 `;
 
-export const SECTIONS = `{
+export const SECTIONS = groq`{
   ...,
   backgroundImage {
     ...,

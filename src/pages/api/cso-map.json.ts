@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import { getPrimaryLocation, calculateDistance } from '../../data/locationConfig.js';
+import { getPrimaryLocation, calculateDistance } from '../../data/locationConfig';
 import { fetchUpstream } from '@utils/upstream';
 
 // Using the same reliable data source as cso-live.json

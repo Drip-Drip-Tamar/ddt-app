@@ -106,7 +106,7 @@ This document is the working checklist. Tick tasks as they complete; add notes i
 
 ## Batch 3 — Types & queries
 
-### 10. [ ] Adopt Sanity TypeGen; convert data layer to TypeScript
+### 10. [x] Adopt Sanity TypeGen; convert data layer to TypeScript — *done 2026-07-07; `sanity.types.ts` generated, all five `src/data/*.js` → `.ts`.*
 
 - **Files**: `src/data/blocks.js`, `page.js`, `siteConfig.js`, `waterQuality.js`, `locationConfig.js` (all untyped JS, implicit `any` returns); `src/pages/news.astro:11`, `news/[slug].astro:15,28`, `posts/index.astro:10` (fetches typed as bare `SanityDocument`)
 - **Problem**: No `sanity typegen` anywhere (no `sanity.cli.ts` extract, no `sanity.types.ts`). Every Sanity document shape is effectively `any` at every call site — `post.seoTitle`, `post.featuredImage` unchecked. The `groq` package is used only as a highlighting tag. Hand-written `Page` type imported from bare `types` module in `[...slug].astro`.
@@ -114,14 +114,14 @@ This document is the working checklist. Tick tasks as they complete; add notes i
 - **Depends on**: Task 13 (strict tsconfig) makes this land better — do together or 13 first.
 - **Acceptance**: `npm run typecheck` passes; data modules export typed functions; at least the news/post pages consume generated types.
 
-### 11. [ ] Consolidate post queries; replace hand-rolled portable-text renderer
+### 11. [x] Consolidate post queries; replace hand-rolled portable-text renderer — *done 2026-07-07; @portabletext/to-html, links/lists now render.*
 
 - **Files**: `news.astro`, `news/[slug].astro`, `posts/index.astro`, `src/utils/portable-text.ts`
 - **Problem**: Three different "post" projections across three pages, none shared: `featuredImage {...}` block copy-pasted between `news.astro` and `news/[slug].astro`; author projected as string (`author->name`) in one and full object in another; `posts/index.astro` uses a third minimal shape. `portableTextToHtml` is a hand-rolled renderer handling only `strong/em/underline/code` marks and `h1-h4/blockquote/p` — **no links, no lists, no images**: content containing a link silently drops the mark.
 - **Solution**: One `src/data/posts.ts` module owning `POSTS_QUERY`/`POST_QUERY` with shared projection fragments (same pattern `blocks.js` already uses for `IMAGE`/`SECTIONS`). Replace the renderer with `@portabletext/to-html` (or `astro-portabletext` component) configured for the site's block types; keep `extractTextFromPortableText` (used for excerpts, fully tested).
 - **Acceptance**: News list + detail render identically for current content; a post containing a link and a bullet list renders both (add fixture test); one definition of the post projection.
 
-### 12. [ ] Unify data-layer error handling
+### 12. [x] Unify data-layer error handling — *done 2026-07-07; siteConfig now caches+falls back like locationConfig, page fetches deliberately left uncaught.*
 
 - **Files**: `src/data/page.js` + `siteConfig.js` (no try/catch — a Sanity blip 500s the whole page) vs `waterQuality.js` + `locationConfig.js` (try/catch, safe fallbacks; locationConfig additionally has 5-min in-memory cache + `DEFAULT_CONFIG` + warn-on-missing)
 - **Problem**: Four modules, three error philosophies. `page.js`/`siteConfig.js` run in `[...slug].astro` and `Layout.astro` — an unhandled fetch failure is a build/SSR 500.

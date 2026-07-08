@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import { getRiverStations } from '../../data/locationConfig.js';
+import { getRiverStations } from '../../data/locationConfig';
 import { fetchUpstream } from '@utils/upstream';
 
 const EA_API_BASE = 'https://environment.data.gov.uk/flood-monitoring';

@@ -100,7 +100,7 @@ const chartPayload = JSON.stringify({ chartData, chartConfig, chartType }).repla
                   <th>Site</th>
                   <th>E. coli (cfu/100ml)</th>
                   <th>Enterococci (cfu/100ml)</th>
-                  {samples.some((s: { rainfall: number | null }) => s.rainfall !== null) && <th>Rainfall (mm)</th>}
+                  {samples.some((s) => s.rainfall != null) && <th>Rainfall (mm)</th>}
                 </tr>
               </thead>
               <tbody>
@@ -109,20 +109,20 @@ const chartPayload = JSON.stringify({ chartData, chartConfig, chartType }).repla
                     <td>{new Date(sample.date).toLocaleDateString('en-GB')}</td>
                     <td>{sample.siteName}</td>
                     <td class:list={[
-                      sample.ecoli > 1000 ? 'text-error font-semibold' :
-                      sample.ecoli > 500 ? 'text-warning' :
+                      (sample.ecoli ?? 0) > 1000 ? 'text-error font-semibold' :
+                      (sample.ecoli ?? 0) > 500 ? 'text-warning' :
                       'text-success'
                     ]}>
                       {sample.ecoli ?? '—'}
                     </td>
                     <td class:list={[
-                      sample.enterococci > 400 ? 'text-error font-semibold' :
-                      sample.enterococci > 200 ? 'text-warning' :
+                      (sample.enterococci ?? 0) > 400 ? 'text-error font-semibold' :
+                      (sample.enterococci ?? 0) > 200 ? 'text-warning' :
                       'text-success'
                     ]}>
                       {sample.enterococci ?? '—'}
                     </td>
-                    {samples.some((s: { rainfall: number | null }) => s.rainfall !== null) && (
+                    {samples.some((s) => s.rainfall != null) && (
                       <td>{sample.rainfall ?? '—'}</td>
                     )}
                   </tr>

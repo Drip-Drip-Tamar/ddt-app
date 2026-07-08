@@ -1,6 +1,33 @@
 import groq from 'groq'
 import { client } from '@utils/sanity-client'
 
+export interface WaterSample {
+  _id: string;
+  date: string;
+  siteName: string;
+  siteSlug: string;
+  ecoli?: number | null;
+  enterococci?: number | null;
+  rainfall?: number | null;
+  notes?: string | null;
+}
+
+export interface ChartDataset {
+  label: string;
+  data: Array<number | null>;
+  rawValues: Array<number | null>;
+  tension: number;
+  borderWidth: number;
+  pointRadius: number;
+  pointHoverRadius: number;
+  borderDash?: [number, number];
+}
+
+export interface ChartData {
+  labels: string[];
+  datasets: ChartDataset[];
+}
+
 /**
  * Fetch all water samples with site information
  */
@@ -18,69 +45,17 @@ export const SAMPLES_QUERY = groq`
 `
 
 /**
- * Fetch water samples within a date range
+ * Get all water samples.
+ * Error handling: caught here (Task 12) — the water quality chart already
+ * has a documented empty-state, so a Sanity blip degrades to "no samples"
+ * rather than failing the whole page.
  */
-export const SAMPLES_RANGE_QUERY = groq`
-  *[_type == "waterSample" && date >= $startDate && date <= $endDate] | order(date asc) {
-    _id,
-    date,
-    "siteName": site->title,
-    "siteSlug": site->slug.current,
-    ecoli,
-    enterococci,
-    rainfall,
-    notes
-  }
-`
-
-/**
- * Fetch all sampling sites
- */
-export const SITES_QUERY = groq`
-  *[_type == "samplingSite"] | order(title asc) {
-    _id,
-    title,
-    slug,
-    description,
-    coordinates
-  }
-`
-
-/**
- * Get all water samples
- */
-export async function getWaterSamples() {
+export async function getWaterSamples(): Promise<WaterSample[]> {
   try {
-    const samples = await client.fetch(SAMPLES_QUERY)
+    const samples = await client.fetch<WaterSample[]>(SAMPLES_QUERY)
     return samples || []
   } catch (error) {
     console.error('Error fetching water samples:', error)
-    return []
-  }
-}
-
-/**
- * Get water samples within a date range
- */
-export async function getWaterSamplesInRange(startDate, endDate) {
-  try {
-    const samples = await client.fetch(SAMPLES_RANGE_QUERY, { startDate, endDate })
-    return samples || []
-  } catch (error) {
-    console.error('Error fetching water samples in range:', error)
-    return []
-  }
-}
-
-/**
- * Get all sampling sites
- */
-export async function getSamplingSites() {
-  try {
-    const sites = await client.fetch(SITES_QUERY)
-    return sites || []
-  } catch (error) {
-    console.error('Error fetching sampling sites:', error)
     return []
   }
 }
@@ -90,19 +65,19 @@ export async function getSamplingSites() {
  * log10(value + 100) - compresses low values less than standard log
  */
 export const SHIFT_OFFSET = 100
-export const toDisplay = (value) => Math.log10(value + SHIFT_OFFSET)
+export const toDisplay = (value: number): number => Math.log10(value + SHIFT_OFFSET)
 
 /**
  * Transform samples data for Chart.js format
  * Uses shifted logarithmic scale for more balanced visual distribution
  */
-export function transformSamplesToChartData(samples) {
+export function transformSamplesToChartData(samples: WaterSample[]): ChartData {
   // Get unique dates and sites
   const dates = [...new Set(samples.map(s => s.date))].sort()
   const sites = [...new Set(samples.map(s => s.siteName))]
 
   // Prepare datasets for each site and bacteria type
-  const datasets = []
+  const datasets: ChartDataset[] = []
   // Note: Colors are applied client-side in WaterQualityChart.astro
   // after normalizing site names to handle Unicode characters
 
@@ -145,9 +120,9 @@ export function transformSamplesToChartData(samples) {
       pointHoverRadius: 5
     })
   })
-  
+
   return {
-    labels: dates.map(d => new Date(d).toLocaleDateString('en-GB', { 
+    labels: dates.map(d => new Date(d).toLocaleDateString('en-GB', {
       day: 'numeric',
       month: 'short',
       year: '2-digit'
@@ -156,12 +131,33 @@ export function transformSamplesToChartData(samples) {
   }
 }
 
+interface ZoneAnnotation {
+  type: 'box';
+  yMin: number;
+  yMax: number;
+  backgroundColor: string;
+  borderWidth: number;
+  drawTime: string;
+}
+
+interface ThresholdAnnotation {
+  type: 'line';
+  yMin: number;
+  yMax: number;
+  borderColor: string;
+  borderWidth: number;
+  borderDash: number[];
+  label: { display: boolean };
+}
+
+type ChartAnnotation = ZoneAnnotation | ThresholdAnnotation;
+
 /**
  * Get chart configuration with thresholds
  * Uses shifted log scale transformation for annotations
  */
 export function getChartConfig(showThresholds = true) {
-  const annotations = {}
+  const annotations: Record<string, ChartAnnotation> = {}
 
   if (showThresholds) {
     // Background zones for water quality levels (EU Bathing Water Quality thresholds)

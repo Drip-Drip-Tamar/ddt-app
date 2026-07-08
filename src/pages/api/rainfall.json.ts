@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import { getPrimaryLocation, calculateDistance } from '../../data/locationConfig.js';
+import { getPrimaryLocation, calculateDistance } from '../../data/locationConfig';
 import { fetchUpstream } from '@utils/upstream';
 
 const EA_API_BASE = 'https://environment.data.gov.uk/flood-monitoring';

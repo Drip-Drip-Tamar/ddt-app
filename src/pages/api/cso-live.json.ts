@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import { getPrimaryLocation, calculateDistance } from '../../data/locationConfig.js';
+import { getPrimaryLocation, calculateDistance } from '../../data/locationConfig';
 import { fetchUpstream, UpstreamError } from '@utils/upstream';
 
 const SWW_ARCGIS_BASE = 'https://services-eu1.arcgis.com/OMdMOtfhATJPcHe3/arcgis/rest/services/NEH_outlets_PROD/FeatureServer';
