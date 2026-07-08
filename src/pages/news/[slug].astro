@@ -1,5 +1,4 @@
 ---
-import type { SanityDocument } from '@sanity/client';
 import Layout from '@layouts/Layout.astro';
 import Section from '@components/Section.astro';
 import ResponsiveImage from '@components/ResponsiveImage.astro';
@@ -10,13 +9,10 @@ import {
     normalizeNewsImageSizingMode
 } from '@utils/news-image-sizing';
 import { portableTextToHtml } from '@utils/portable-text';
+import { POST_QUERY, POST_SLUGS_QUERY, type Post } from '@data/posts';
 
 export async function getStaticPaths() {
-    const POSTS_QUERY = `*[_type == "post" && defined(slug.current)]{
-    "slug": slug.current
-  }`;
-
-    const posts = await sanityClient.fetch<{ slug: string }[]>(POSTS_QUERY);
+    const posts = await sanityClient.fetch<{ slug: string }[]>(POST_SLUGS_QUERY);
 
     return posts.map((post) => ({
         params: { slug: post.slug }
@@ -25,38 +21,7 @@ export async function getStaticPaths() {
 
 const { slug } = Astro.params;
 
-const POST_QUERY = `*[_type == "post" && slug.current == $slug][0]{
-  _id,
-  title,
-  excerpt,
-  body,
-  publishedAt,
-  "author": author->{
-    name,
-    title,
-    image {
-      image {
-        asset,
-        "dimensions": asset->metadata.dimensions
-      },
-      alt
-    }
-  },
-  featuredImage {
-    image {
-      asset,
-      "dimensions": asset->metadata.dimensions
-    },
-    alt,
-    sizingMode,
-    backgroundColor
-  },
-  seoTitle,
-  seoDescription,
-  seoKeywords
-}`;
-
-const post = await sanityClient.fetch<SanityDocument>(POST_QUERY, { slug });
+const post = await sanityClient.fetch<Post | null>(POST_QUERY, { slug });
 
 if (!post) {
     return Astro.redirect('/404');

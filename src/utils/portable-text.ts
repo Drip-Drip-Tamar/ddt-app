@@ -3,10 +3,13 @@
  * into HTML and plain text.
  */
 
+import { toHTML, escapeHTML, uriLooksSafe, type PortableTextComponents } from '@portabletext/to-html';
+
 export interface PortableTextBlock {
   _type: string;
   style?: string;
   children?: PortableTextSpan[];
+  markDefs?: PortableTextMarkDef[];
   [key: string]: unknown;
 }
 
@@ -14,6 +17,13 @@ export interface PortableTextSpan {
   _type: string;
   text: string;
   marks?: string[];
+}
+
+export interface PortableTextMarkDef {
+  _type: string;
+  _key: string;
+  href?: string;
+  [key: string]: unknown;
 }
 
 /**
@@ -45,73 +55,39 @@ export function extractTextFromPortableText(
 }
 
 /**
- * Apply text marks (formatting) to a text string
+ * Component overrides for @portabletext/to-html.
  *
- * Note: Marks are applied in array order, but because each mark wraps
- * the previous result, the LAST mark in the array becomes the OUTERMOST tag.
- *
- * Example: marks=['strong', 'em'] produces <em><strong>text</strong></em>
- * - 'strong' is applied first: <strong>text</strong>
- * - 'em' wraps the result: <em><strong>text</strong></em>
+ * The library's defaults already cover h1-h6/blockquote/normal blocks,
+ * bullet/number lists, and strong/em/code/strike-through/link marks (matching
+ * Sanity's default block editor config used for `post.body`). We only
+ * override:
+ * - `underline`: library default renders `<span style="text-decoration:underline">`;
+ *   we keep the semantic `<u>` tag the previous hand-rolled renderer used.
+ * - `link`: library default renders a plain `<a href>`; we additionally add
+ *   `rel="noopener noreferrer" target="_blank"` for external links, while
+ *   reusing the library's own protocol allowlist/escaping (`uriLooksSafe`,
+ *   `escapeHTML`) so unsafe URIs (eg. `javascript:`) are still dropped.
  */
-function applyMarks(text: string, marks: string[] = []): string {
-  let result = text;
-  marks.forEach((mark: string) => {
-    switch (mark) {
-      case 'strong':
-        result = `<strong>${result}</strong>`;
-        break;
-      case 'em':
-        result = `<em>${result}</em>`;
-        break;
-      case 'underline':
-        result = `<u>${result}</u>`;
-        break;
-      case 'code':
-        result = `<code>${result}</code>`;
-        break;
+const components: PortableTextComponents = {
+  marks: {
+    underline: ({ children }) => `<u>${children}</u>`,
+    link: ({ children, value }) => {
+      const href = typeof value?.href === 'string' ? value.href : '';
+      if (!href || !uriLooksSafe(href)) return children;
+
+      const isExternal = /^https?:\/\//i.test(href);
+      const externalAttrs = isExternal ? ' rel="noopener noreferrer" target="_blank"' : '';
+      return `<a href="${escapeHTML(href)}"${externalAttrs}>${children}</a>`;
     }
-  });
-  return result;
-}
-
-/**
- * Transform a single portable text block to HTML
- */
-function transformBlock(block: PortableTextBlock): string {
-  if (block._type !== 'block') return '';
-
-  const children = (block.children || [])
-    .map((child: PortableTextSpan) => {
-      if (child._type === 'span') {
-        return applyMarks(child.text, child.marks);
-      }
-      return '';
-    })
-    .join('');
-
-  switch (block.style) {
-    case 'h1':
-      return `<h1>${children}</h1>`;
-    case 'h2':
-      return `<h2>${children}</h2>`;
-    case 'h3':
-      return `<h3>${children}</h3>`;
-    case 'h4':
-      return `<h4>${children}</h4>`;
-    case 'blockquote':
-      return `<blockquote>${children}</blockquote>`;
-    default:
-      return `<p>${children}</p>`;
   }
-}
+};
 
 /**
- * Transform portable text blocks array to HTML string
- * This is a custom implementation for simple portable text rendering
+ * Transform portable text blocks array to HTML string.
+ * Backed by @portabletext/to-html; see `components` above for overrides.
  */
 export function portableTextToHtml(blocks: PortableTextBlock[]): string {
   if (!blocks || !Array.isArray(blocks)) return '';
 
-  return blocks.map((block) => transformBlock(block)).join('');
+  return toHTML(blocks, { components });
 }

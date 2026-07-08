@@ -21,7 +21,11 @@
         "test:ui": "vitest --ui",
         "lint": "eslint .",
         "typecheck": "astro check && tsc --noEmit",
-        "test:all": "npm run lint && npm run typecheck && npm run build && npm run test",
+        "typegen:extract": "npm --prefix studio exec -- sanity schemas extract --path schema.json",
+        "typegen:generate": "npm --prefix studio exec -- sanity typegen generate",
+        "typegen": "npm run typegen:extract && npm run typegen:generate",
+        "typegen:check": "npm run typegen && git diff --exit-code -- src/sanity.types.ts studio/schema.json",
+        "test:all": "npm run lint && npm run typecheck && npm run typegen:check && npm run build && npm run test",
         "check:node": "node ./scripts/check-node-version.mjs",
         "check:prod": "npm run check:node && npm ci && npm --prefix studio ci && npm run test:all && npm --prefix studio run build"
     },
@@ -31,6 +35,7 @@
     "dependencies": {
         "@astrojs/netlify": "^7.0.8",
         "@astrojs/react": "^5.0.4",
+        "@portabletext/to-html": "^5.0.2",
         "@sanity/astro": "^3.4.0",
         "@sanity/client": "^7.14.1",
         "@sanity/image-url": "^2.0.3",

@@ -1,13 +1,9 @@
 ---
-import type { SanityDocument } from '@sanity/client';
 import { client as sanityClient } from '@utils/sanity-client';
+import { POSTS_QUERY, type Post } from '@data/posts';
 
-const POSTS_QUERY = `*[
-  _type == "post"
-  && defined(slug.current)
-]|order(publishedAt desc)[0...12]{_id, title, slug, publishedAt}`;
-
-const posts = await sanityClient.fetch<SanityDocument[]>(POSTS_QUERY);
+const allPosts = await sanityClient.fetch<Post[]>(POSTS_QUERY);
+const posts = allPosts.slice(0, 12);
 ---
 
 <main class="container mx-auto min-h-screen max-w-3xl p-8">
@@ -18,7 +14,7 @@ const posts = await sanityClient.fetch<SanityDocument[]>(POSTS_QUERY);
                 <li class="hover:underline">
                     <a href={`/posts/${post.slug.current}`}>
                         <h2 class="text-xl font-semibold">{post.title}</h2>
-                        <p>{new Date(post.publishedAt).toLocaleDateString()}</p>
+                        <p>{post.publishedAt ? new Date(post.publishedAt).toLocaleDateString() : ''}</p>
                     </a>
                 </li>
             ))

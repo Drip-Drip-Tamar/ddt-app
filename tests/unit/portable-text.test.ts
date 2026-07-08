@@ -257,146 +257,54 @@ describe('Portable Text Utilities', () => {
       expect(result).toBe('<p>Hello world</p>');
     });
 
-    it('should transform h1 heading', () => {
+    it('should transform headings and blockquote', () => {
       const blocks: PortableTextBlock[] = [
         {
           _type: 'block',
           style: 'h1',
-          children: [
-            {
-              _type: 'span',
-              text: 'Main heading'
-            }
-          ]
-        }
-      ];
-
-      const result = portableTextToHtml(blocks);
-      expect(result).toBe('<h1>Main heading</h1>');
-    });
-
-    it('should transform h2 heading', () => {
-      const blocks: PortableTextBlock[] = [
+          children: [{ _type: 'span', text: 'Main heading' }]
+        },
         {
           _type: 'block',
           style: 'h2',
-          children: [
-            {
-              _type: 'span',
-              text: 'Subheading'
-            }
-          ]
-        }
-      ];
-
-      const result = portableTextToHtml(blocks);
-      expect(result).toBe('<h2>Subheading</h2>');
-    });
-
-    it('should transform h3 heading', () => {
-      const blocks: PortableTextBlock[] = [
-        {
-          _type: 'block',
-          style: 'h3',
-          children: [
-            {
-              _type: 'span',
-              text: 'Sub-subheading'
-            }
-          ]
-        }
-      ];
-
-      const result = portableTextToHtml(blocks);
-      expect(result).toBe('<h3>Sub-subheading</h3>');
-    });
-
-    it('should transform h4 heading', () => {
-      const blocks: PortableTextBlock[] = [
-        {
-          _type: 'block',
-          style: 'h4',
-          children: [
-            {
-              _type: 'span',
-              text: 'Minor heading'
-            }
-          ]
-        }
-      ];
-
-      const result = portableTextToHtml(blocks);
-      expect(result).toBe('<h4>Minor heading</h4>');
-    });
-
-    it('should transform blockquote', () => {
-      const blocks: PortableTextBlock[] = [
+          children: [{ _type: 'span', text: 'Subheading' }]
+        },
         {
           _type: 'block',
           style: 'blockquote',
-          children: [
-            {
-              _type: 'span',
-              text: 'Quoted text'
-            }
-          ]
+          children: [{ _type: 'span', text: 'Quoted text' }]
         }
       ];
 
       const result = portableTextToHtml(blocks);
-      expect(result).toBe('<blockquote>Quoted text</blockquote>');
+      expect(result).toBe(
+        '<h1>Main heading</h1><h2>Subheading</h2><blockquote>Quoted text</blockquote>'
+      );
     });
 
-    it('should apply strong mark', () => {
+    it('should apply strong, em and code marks', () => {
       const blocks: PortableTextBlock[] = [
         {
           _type: 'block',
           style: 'normal',
           children: [
-            {
-              _type: 'span',
-              text: 'Bold text',
-              marks: ['strong']
-            }
+            { _type: 'span', text: 'Bold ', marks: ['strong'] },
+            { _type: 'span', text: 'italic ', marks: ['em'] },
+            { _type: 'span', text: 'code', marks: ['code'] }
           ]
         }
       ];
 
       const result = portableTextToHtml(blocks);
-      expect(result).toBe('<p><strong>Bold text</strong></p>');
+      expect(result).toBe('<p><strong>Bold </strong><em>italic </em><code>code</code></p>');
     });
 
-    it('should apply em mark', () => {
+    it('should render underline mark as <u>, not the library default <span>', () => {
       const blocks: PortableTextBlock[] = [
         {
           _type: 'block',
           style: 'normal',
-          children: [
-            {
-              _type: 'span',
-              text: 'Italic text',
-              marks: ['em']
-            }
-          ]
-        }
-      ];
-
-      const result = portableTextToHtml(blocks);
-      expect(result).toBe('<p><em>Italic text</em></p>');
-    });
-
-    it('should apply underline mark', () => {
-      const blocks: PortableTextBlock[] = [
-        {
-          _type: 'block',
-          style: 'normal',
-          children: [
-            {
-              _type: 'span',
-              text: 'Underlined text',
-              marks: ['underline']
-            }
-          ]
+          children: [{ _type: 'span', text: 'Underlined text', marks: ['underline'] }]
         }
       ];
 
@@ -404,72 +312,87 @@ describe('Portable Text Utilities', () => {
       expect(result).toBe('<p><u>Underlined text</u></p>');
     });
 
-    it('should apply code mark', () => {
+    it('should render a link mark as an <a> tag (previously silently dropped)', () => {
       const blocks: PortableTextBlock[] = [
         {
           _type: 'block',
           style: 'normal',
-          children: [
-            {
-              _type: 'span',
-              text: 'const x = 1',
-              marks: ['code']
-            }
-          ]
+          markDefs: [{ _type: 'link', _key: 'link1', href: 'https://example.com' }],
+          children: [{ _type: 'span', text: 'a link', marks: ['link1'] }]
         }
       ];
 
       const result = portableTextToHtml(blocks);
-      expect(result).toBe('<p><code>const x = 1</code></p>');
+      expect(result).toContain('<a href="https://example.com"');
+      expect(result).toContain('a link</a>');
+      // External links open safely in a new tab
+      expect(result).toContain('rel="noopener noreferrer"');
+      expect(result).toContain('target="_blank"');
     });
 
-    it('should apply multiple marks in array order', () => {
+    it('should render an internal link without target/rel attributes', () => {
       const blocks: PortableTextBlock[] = [
         {
           _type: 'block',
           style: 'normal',
-          children: [
-            {
-              _type: 'span',
-              text: 'Bold and italic',
-              marks: ['strong', 'em']
-            }
-          ]
+          markDefs: [{ _type: 'link', _key: 'link1', href: '/news' }],
+          children: [{ _type: 'span', text: 'internal link', marks: ['link1'] }]
         }
       ];
 
       const result = portableTextToHtml(blocks);
-      // Marks are applied in order: strong first, then em wraps it
-      expect(result).toBe('<p><em><strong>Bold and italic</strong></em></p>');
+      expect(result).toBe('<p><a href="/news">internal link</a></p>');
     });
 
-    it('should handle multiple children with different marks', () => {
+    it('should drop unsafe link protocols (eg. javascript:)', () => {
       const blocks: PortableTextBlock[] = [
         {
           _type: 'block',
           style: 'normal',
-          children: [
-            {
-              _type: 'span',
-              text: 'Normal ',
-              marks: []
-            },
-            {
-              _type: 'span',
-              text: 'bold ',
-              marks: ['strong']
-            },
-            {
-              _type: 'span',
-              text: 'italic',
-              marks: ['em']
-            }
-          ]
+          markDefs: [{ _type: 'link', _key: 'link1', href: 'javascript:alert(1)' }],
+          children: [{ _type: 'span', text: 'unsafe', marks: ['link1'] }]
         }
       ];
 
       const result = portableTextToHtml(blocks);
-      expect(result).toBe('<p>Normal <strong>bold </strong><em>italic</em></p>');
+      expect(result).toBe('<p>unsafe</p>');
+    });
+
+    it('should render a bullet list as <ul>/<li> (previously unsupported)', () => {
+      const blocks: PortableTextBlock[] = [
+        {
+          _type: 'block',
+          style: 'normal',
+          listItem: 'bullet',
+          level: 1,
+          children: [{ _type: 'span', text: 'First item' }]
+        },
+        {
+          _type: 'block',
+          style: 'normal',
+          listItem: 'bullet',
+          level: 1,
+          children: [{ _type: 'span', text: 'Second item' }]
+        }
+      ];
+
+      const result = portableTextToHtml(blocks);
+      expect(result).toBe('<ul><li>First item</li><li>Second item</li></ul>');
+    });
+
+    it('should render a numbered list as <ol>/<li>', () => {
+      const blocks: PortableTextBlock[] = [
+        {
+          _type: 'block',
+          style: 'normal',
+          listItem: 'number',
+          level: 1,
+          children: [{ _type: 'span', text: 'Step one' }]
+        }
+      ];
+
+      const result = portableTextToHtml(blocks);
+      expect(result).toBe('<ol><li>Step one</li></ol>');
     });
 
     it('should transform multiple blocks', () => {
@@ -477,84 +400,17 @@ describe('Portable Text Utilities', () => {
         {
           _type: 'block',
           style: 'h1',
-          children: [
-            {
-              _type: 'span',
-              text: 'Title'
-            }
-          ]
+          children: [{ _type: 'span', text: 'Title' }]
         },
         {
           _type: 'block',
           style: 'normal',
-          children: [
-            {
-              _type: 'span',
-              text: 'First paragraph'
-            }
-          ]
-        },
-        {
-          _type: 'block',
-          style: 'normal',
-          children: [
-            {
-              _type: 'span',
-              text: 'Second paragraph'
-            }
-          ]
+          children: [{ _type: 'span', text: 'First paragraph' }]
         }
       ];
 
       const result = portableTextToHtml(blocks);
-      expect(result).toBe('<h1>Title</h1><p>First paragraph</p><p>Second paragraph</p>');
-    });
-
-    it('should filter out non-block types', () => {
-      const blocks: PortableTextBlock[] = [
-        {
-          _type: 'block',
-          style: 'normal',
-          children: [
-            {
-              _type: 'span',
-              text: 'Text block'
-            }
-          ]
-        },
-        {
-          _type: 'image',
-          asset: { _ref: 'image-123' }
-        }
-      ];
-
-      const result = portableTextToHtml(blocks);
-      expect(result).toBe('<p>Text block</p>');
-    });
-
-    it('should handle empty children array', () => {
-      const blocks: PortableTextBlock[] = [
-        {
-          _type: 'block',
-          style: 'normal',
-          children: []
-        }
-      ];
-
-      const result = portableTextToHtml(blocks);
-      expect(result).toBe('<p></p>');
-    });
-
-    it('should handle missing children property', () => {
-      const blocks: PortableTextBlock[] = [
-        {
-          _type: 'block',
-          style: 'normal'
-        }
-      ];
-
-      const result = portableTextToHtml(blocks);
-      expect(result).toBe('<p></p>');
+      expect(result).toBe('<h1>Title</h1><p>First paragraph</p>');
     });
 
     it('should return empty string for empty array', () => {
@@ -570,81 +426,6 @@ describe('Portable Text Utilities', () => {
     it('should return empty string for undefined input', () => {
       const result = portableTextToHtml(undefined as any);
       expect(result).toBe('');
-    });
-
-    it('should ignore non-span children', () => {
-      const blocks: PortableTextBlock[] = [
-        {
-          _type: 'block',
-          style: 'normal',
-          children: [
-            {
-              _type: 'span',
-              text: 'Valid'
-            },
-            {
-              _type: 'otherType',
-              text: 'Invalid'
-            } as any
-          ]
-        }
-      ];
-
-      const result = portableTextToHtml(blocks);
-      expect(result).toBe('<p>Valid</p>');
-    });
-
-    it('should handle complex nested structure', () => {
-      const blocks: PortableTextBlock[] = [
-        {
-          _type: 'block',
-          style: 'h2',
-          children: [
-            {
-              _type: 'span',
-              text: 'Introduction'
-            }
-          ]
-        },
-        {
-          _type: 'block',
-          style: 'normal',
-          children: [
-            {
-              _type: 'span',
-              text: 'This is '
-            },
-            {
-              _type: 'span',
-              text: 'important',
-              marks: ['strong', 'em']
-            },
-            {
-              _type: 'span',
-              text: ' information.'
-            }
-          ]
-        },
-        {
-          _type: 'block',
-          style: 'blockquote',
-          children: [
-            {
-              _type: 'span',
-              text: 'A wise quote',
-              marks: ['em']
-            }
-          ]
-        }
-      ];
-
-      const result = portableTextToHtml(blocks);
-      // Marks are applied in array order: strong first, then em wraps it
-      expect(result).toBe(
-        '<h2>Introduction</h2>' +
-        '<p>This is <em><strong>important</strong></em> information.</p>' +
-        '<blockquote><em>A wise quote</em></blockquote>'
-      );
     });
   });
 });

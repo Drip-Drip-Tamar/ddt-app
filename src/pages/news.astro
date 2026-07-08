@@ -1,34 +1,12 @@
 ---
-import type { SanityDocument } from '@sanity/client';
 import Layout from '@layouts/Layout.astro';
 import Section from '@components/Section.astro';
 import PostListItem from '@components/PostListItem.astro';
 import { client as sanityClient } from '@utils/sanity-client';
 import { extractTextFromPortableText } from '@utils/portable-text';
+import { POSTS_QUERY, type Post } from '@data/posts';
 
-const POSTS_QUERY = `*[
-  _type == "post"
-  && defined(slug.current)
-]|order(publishedAt desc){
-  _id,
-  title,
-  slug,
-  excerpt,
-  body,
-  publishedAt,
-  "author": author->name,
-  featuredImage {
-    image {
-      asset,
-      "dimensions": asset->metadata.dimensions
-    },
-    alt,
-    sizingMode,
-    backgroundColor
-  }
-}`;
-
-const posts = await sanityClient.fetch<SanityDocument[]>(POSTS_QUERY);
+const posts = await sanityClient.fetch<Post[]>(POSTS_QUERY);
 
 const publishedDates = posts.map((post) =>
     post.publishedAt
@@ -78,7 +56,7 @@ const publishedDates = posts.map((post) =>
                                     title={post.title}
                                     body={contentSnippet}
                                     image={postImage}
-                                    author={post.author}
+                                    author={post.author?.name}
                                     date={publishedDates[idx]}
                                     slug={post.slug.current}
                                     class="w-full"
