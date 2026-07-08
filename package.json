@@ -8,11 +8,8 @@
         "build": "astro build",
         "preview": "astro preview",
         "astro": "astro",
-        "create-project": "node ./sanity-export/create-project.js",
-        "import": "node ./sanity-export/import.js",
         "export": "npm run backup:sanity",
         "backup:sanity": "node ./scripts/sanity-backup.mjs",
-        "import-content": "node ./sanity-export/import-content.js",
         "test": "vitest run",
         "test:unit": "vitest run tests/unit",
         "test:integration": "vitest run tests/integration",
@@ -35,6 +32,7 @@
     "dependencies": {
         "@astrojs/netlify": "^7.0.8",
         "@astrojs/react": "^5.0.4",
+        "@fontsource-variable/mulish": "^5.2.8",
         "@portabletext/to-html": "^5.0.2",
         "@sanity/astro": "^3.4.0",
         "@sanity/client": "^7.14.1",
@@ -47,7 +45,6 @@
         "chart.js": "^4.5.0",
         "chartjs-plugin-annotation": "^3.1.0",
         "dotenv": "^17.2.4",
-        "fs-extra": "^11.2.0",
         "groq": "^5.8.1",
         "leaflet": "^1.9.4",
         "marked": "^17.0.1",
@@ -60,11 +57,8 @@
     },
     "devDependencies": {
         "@astrojs/check": "^0.9.9",
-        "@sanity/export": "^6.0.5",
-        "@sanity/import": "^4.1.0",
         "@testing-library/jest-dom": "^6.8.0",
         "@testing-library/react": "^16.3.2",
-        "@types/fs-extra": "^11.0.4",
         "@types/leaflet": "^1.9.21",
         "@types/react": "^19.2.13",
         "@types/react-dom": "^19.2.3",
@@ -72,7 +66,6 @@
         "@typescript-eslint/parser": "^8.54.0",
         "@vitest/coverage-v8": "^4.0.18",
         "@vitest/ui": "^4.0.18",
-        "configstore": "^8.0.0",
         "daisyui": "^5.5.18",
         "eslint": "^9.39.2",
         "eslint-config-prettier": "^10.1.8",
@@ -80,8 +73,5 @@
         "jsdom": "^28.0.0",
         "typescript": "^5.9.2",
         "vitest": "^4.0.18"
-    },
-    "overrides": {
-        "rollup": "npm:@rollup/wasm-node"
     }
 }

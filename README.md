@@ -158,4 +158,4 @@ See [docs/deployment.md](docs/deployment.md) for the deployment checklist and en
 
 ## Dangerous Operations
 
-Scripts under `sanity-export/` and `scripts/migrate-post-images.js` can write to Sanity. Treat them as migration/import tools, not routine commands. Take a fresh backup and review the target dataset before running any import or migration against `production`.
+`scripts/migrate-post-images.js` can write to Sanity. Treat it as a migration tool, not a routine command. Take a fresh backup and review the target dataset before running any import or migration against `production`.

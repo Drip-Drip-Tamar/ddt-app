@@ -1,6 +1,15 @@
 @import 'tailwindcss';
+@import '@fontsource-variable/mulish/wght.css';
 @import './brand.css';
 @plugin "daisyui";
+
+@theme {
+    /* Self-hosted Mulish (see @fontsource-variable import above). The old
+       Google Fonts stylesheet was render-blocking and — because Tailwind's
+       default --font-sans never referenced Mulish — the font was downloaded
+       but never applied. Registering it here makes it the site sans font. */
+    --font-sans: 'Mulish Variable', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+}
 
 @layer theme {
     :root {

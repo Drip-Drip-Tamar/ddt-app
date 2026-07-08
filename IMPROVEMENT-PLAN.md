@@ -163,7 +163,7 @@ This document is the working checklist. Tick tasks as they complete; add notes i
 
 ## Batch 5 — Modernity & hygiene
 
-### 16. [ ] Fonts + per-page loader mounting + visual-editing token audit
+### 16. [x] Fonts + per-page loader mounting + visual-editing token audit — *done 2026-07-07; self-hosted @fontsource-variable/mulish (roman-only, wired into --font-sans — previously Mulish was fetched but never applied), Google Fonts dropped from Layout + CSP. Loader half obsolete since Task 6.*
 
 - **Files**: `src/layouts/Layout.astro:64-66` (fonts), `:90-91` (loaders), `:95` (SanityVisualEditing)
 - **Problem**: Render-blocking Google Fonts stylesheet pulling the full Mulish 400-900 italic+roman axis. `ChartLoader` + `LeafletLoader` mounted on every page's `<body>` regardless of whether the page has a chart/map. (Token audit resolved — confirmed leak, escalated to Task 0.)
@@ -194,7 +194,7 @@ This document is the working checklist. Tick tasks as they complete; add notes i
 - **Solution**: Delete `stackbit.config.ts`, `.stackbit/`, both `@stackbit/*` deps, all `data-sb-field-path` attributes, the legacy reload listener, and Stackbit references in docs (`CLAUDE.md`, `README.md`, `AI-REFERENCE.md`).
 - **Acceptance**: Presentation tool still works end-to-end (edit → preview updates); no `stackbit`/`data-sb` references outside git history.
 
-### 20. [ ] Repo hygiene sweep
+### 20. [x] Repo hygiene sweep — *done 2026-07-07; sanity-export/ (46 files), 28 .pyc, root CSV deleted; __pycache__ gitignored; create-project/import/import-content scripts and fs-extra/configstore/@types/fs-extra/@sanity/export/@sanity/import deps removed; CSV provenance noted in docs/backups.md.*
 
 - **Files/dirs**:
   - `sanity-export/` — 46 tracked files ~1.1 MB incl. `export.tar.gz` (440 KB binary) and a May-2024 content dump with 31 committed images. Point-in-time content in source control.
@@ -206,14 +206,14 @@ This document is the working checklist. Tick tasks as they complete; add notes i
 - **Caution**: Confirm nothing still imports the export scripts before deleting; keep `scripts/sanity-backup.mjs` path intact (`npm run export` aliases it).
 - **Acceptance**: `git ls-files | grep -E 'pyc|sanity-export'` empty; `npm ls fs-extra configstore` shows nothing at root; all remaining npm scripts run.
 
-### 21. [ ] Retest Rollup WASM override
+### 21. [x] Retest Rollup WASM override — *done 2026-07-07; override removed, native rollup 4.62.2 resolved with all platform binaries (incl. linux-x64-gnu) in lockfile; local build green. WATCH CI + Netlify on the PR — cannot be tested locally.*
 
 - **Files**: `package.json` `overrides: { "rollup": "npm:@rollup/wasm-node" }`
 - **Problem**: Workaround for the old npm optional-deps bug (`Cannot find module @rollup/rollup-linux-x64-gnu` on CI). Forces pure-WASM Rollup — slower builds everywhere. Underlying npm bug largely resolved.
 - **Solution**: Remove override, regenerate lockfile, verify local + CI + Netlify builds. If Netlify still hits the bug, restore and document why with a link.
 - **Acceptance**: Green build on all three environments without the override, or override restored with an explanatory comment/doc.
 
-### 22. [ ] Small config alignments
+### 22. [x] Small config alignments — *done 2026-07-07; studio `media` + `@sanity/presentation` removed (studio builds), studio prettier block dropped (root .prettierrc applies), sanity-export eslint/tsconfig ignores removed, renovate lockFileMaintenance enabled (remote preset resolution not verifiable offline). Workspaces skipped as optional.*
 
 - **ESLint**: root `eslint .` never lints `studio/` (it has its own config — either wire a root script `lint:studio` into `test:all`, or leave and document). `sanity-export/**` ignore disappears with Task 20.
 - **Prettier**: root `.prettierrc` (printWidth 160, tabWidth 4, semi) vs `studio/package.json` prettier (printWidth 100, no semi) — pick one style, apply to both halves.
@@ -222,7 +222,7 @@ This document is the working checklist. Tick tasks as they complete; add notes i
 - **npm workspaces** (optional, larger): root + studio are separate installs with two lockfiles; workspaces would deduplicate React/TS/ESLint. Only do if CI/Netlify story stays simple.
 - **Acceptance**: lint/format run clean across both halves; studio builds after dep removals.
 
-### 23. [ ] Accessibility touch-ups
+### 23. [x] Accessibility touch-ups — *done 2026-07-07; src/scripts/mobile-nav.ts, 6 keyboard tests.*
 
 - **Files**: `Header.astro` (mobile nav)
 - **Problem**: Mobile nav panel has no focus trap and no Escape-to-close; otherwise decent (aria-label/expanded/controls present, `lang="en"` set).

@@ -46,8 +46,7 @@ export default [
       'studio/node_modules/',
       '.netlify/',
       'coverage/',
-      '*.min.js',
-      'sanity-export/**/*.js'  // These are utility scripts, console.log is fine
+      '*.min.js'
     ]
   }
 ];

@@ -24,9 +24,7 @@ sanity dev          # Run studio locally on port 3333
 
 ### Sanity Data Management
 ```bash
-npm run create-project    # Create new Sanity project
-npm run import {projectId}  # Import content to Sanity
-npm run export            # Export Sanity content
+npm run export            # Export Sanity content (backups/sanity/<timestamp>/)
 node scripts/migrate-post-images.js  # Migrate old post image structure
 ```
 
@@ -191,7 +189,7 @@ Each section type extends from `sectionBase` providing consistent structure for 
 
 ## Visual Editing System
 
-The Sanity Presentation tool is the sole visual-editing path, integrated directly into Sanity Studio via `@sanity/presentation`:
+The Sanity Presentation tool is the sole visual-editing path, integrated directly into Sanity Studio via the bundled `sanity/presentation` module:
 - **Configuration**: `studio/sanity.config.ts:19-51` - presentationTool configuration
 - **Preview URL**: Configurable via `SANITY_STUDIO_PREVIEW_URL` environment variable
 - **Document Resolution**: Maps pages by slug with automatic navigation
@@ -217,7 +215,7 @@ The Sanity Presentation tool is the sole visual-editing path, integrated directl
 - `SANITY_PREVIEW_DRAFTS`: Enables draft content in preview mode
 
 ### Dependencies Added
-- **Studio**: `@sanity/presentation: ^2.0.0`
+- **Studio**: presentation tool ships bundled with `sanity` (no separate `@sanity/presentation` dependency)
 - **Frontend**: `@sanity/visual-editing: ^3.0.3`
 - **Testing**: `vitest: ^3.2.4`, `@vitest/ui: ^3.2.4`, `@vitest/coverage-v8: ^3.2.4`
 - **Testing Libraries**: `@testing-library/jest-dom: ^6.8.0`, `@testing-library/react: ^16.3.0`, `jsdom: ^26.1.0`
