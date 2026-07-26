@@ -2,7 +2,7 @@ import type { SanityClient } from '@sanity/client';
 import type { AstroIntegration } from 'astro';
 
 export function createSanityDevRefreshIntegration(
-    createClient: () => Pick<SanityClient, 'listen'>
+    createClient: () => SanityClient
 ): AstroIntegration {
     return {
         name: 'sanity-dev-refresh',
@@ -10,7 +10,7 @@ export function createSanityDevRefreshIntegration(
             'astro:server:setup': ({ server, logger }) => {
                 const client = createClient();
                 const subscription = client
-                    .listen.call(client as SanityClient, '*[_type in ["page"]]', {}, { visibility: 'query' })
+                    .listen('*[_type in ["page"]]', {}, { visibility: 'query' })
                     .subscribe({
                         next: () => server.ws.send({ type: 'full-reload' }),
                         error: (error) =>

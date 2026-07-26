@@ -975,7 +975,7 @@ git commit -m "test(ci): exercise the production Netlify runtime" -m "Enforce co
 
 **Interfaces:**
 - Produces `createSanityDevRefreshIntegration(createClient)`, an `AstroIntegration` whose `astro:server:setup` hook starts the listener only after Astro creates a Vite development server.
-- Consumes a zero-argument `createClient` factory returning `Pick<SanityClient, 'listen'>`; the factory must not run during builds, SSR requests, or Vitest module imports.
+- Consumes a zero-argument `createClient` factory returning `SanityClient`; the factory must not run during builds, SSR requests, or Vitest module imports.
 
 - [ ] **Step 1: Write the failing listener-lifecycle test**
 
@@ -1021,7 +1021,7 @@ import type { SanityClient } from '@sanity/client';
 import type { AstroIntegration } from 'astro';
 
 export function createSanityDevRefreshIntegration(
-  createClient: () => Pick<SanityClient, 'listen'>,
+  createClient: () => SanityClient,
 ): AstroIntegration {
   return {
     name: 'sanity-dev-refresh',

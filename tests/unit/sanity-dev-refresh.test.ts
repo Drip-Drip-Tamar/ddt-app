@@ -14,7 +14,7 @@ describe('Sanity development refresh integration', () => {
                     return subscription;
                 })
             }))
-        } as unknown as Pick<SanityClient, 'listen'>;
+        } as unknown as SanityClient;
         const server = {
             ws: { send: vi.fn() },
             httpServer: new EventEmitter()
