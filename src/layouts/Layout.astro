@@ -11,11 +11,12 @@ import '../styles/globals.css';
 interface Props {
     title: string;
     addTitleSuffix?: boolean;
+    includeCanonical?: boolean;
     description?: string;
     image?: CustomImage;
 }
 
-const { addTitleSuffix, description, image } = Astro.props;
+const { addTitleSuffix, includeCanonical = true, description, image } = Astro.props;
 
 const configData: SiteConfig = (await fetchData(Astro.locals.sanityClient)) || {};
 const titleSuffix = configData.titleSuffix && addTitleSuffix !== false ? configData.titleSuffix : undefined;
@@ -32,7 +33,7 @@ if (image) {
         resolvedImage = { src: new URL(image.src, Astro.site).toString() };
     }
 }
-const canonicalURL = new URL(Astro.request.url, Astro.site);
+const canonicalURL = includeCanonical ? new URL(Astro.request.url, Astro.site) : undefined;
 
 /**
  * Enforce some standard canonical URL formatting across the site.
@@ -63,18 +64,18 @@ function formatCanonicalURL(url: string | URL) {
         <link rel="sitemap" href="/sitemap-index.xml" />
 
         <!-- Page Metadata -->
-        <link rel="canonical" href={formatCanonicalURL(canonicalURL)} />
+        {canonicalURL && <link rel="canonical" href={formatCanonicalURL(canonicalURL)} />}
         <meta name="description" content={description} />
 
         <!-- Open Graph / Facebook -->
-        <meta property="og:url" content={formatCanonicalURL(canonicalURL)} />
+        {canonicalURL && <meta property="og:url" content={formatCanonicalURL(canonicalURL)} />}
         <meta property="og:title" content={title} />
         <meta property="og:description" content={description} />
         {resolvedImage?.src && <meta property="og:image" content={resolvedImage.src} />}
 
         <!-- X/Twitter -->
         <meta property="twitter:card" content="summary_large_image" />
-        <meta property="twitter:url" content={formatCanonicalURL(canonicalURL)} />
+        {canonicalURL && <meta property="twitter:url" content={formatCanonicalURL(canonicalURL)} />}
         <meta property="twitter:title" content={title} />
         <meta property="twitter:description" content={description} />
         {resolvedImage?.src && <meta property="twitter:image" content={resolvedImage.src} />}

@@ -40,13 +40,14 @@ describe('mobile-nav.ts', () => {
   });
 
   it('opens the panel and sets aria-expanded on toggle click', () => {
-    const { toggle, panel } = renderNav();
+    const { toggle, panel, first } = renderNav();
     mountMobileNav();
 
     openNav(toggle);
 
     expect(toggle.getAttribute('aria-expanded')).toBe('true');
     expect(panel.classList.contains('is-visible')).toBe(true);
+    expect(document.activeElement).toBe(first);
   });
 
   it('Escape closes the open panel and returns focus to the toggle button', () => {
@@ -71,39 +72,24 @@ describe('mobile-nav.ts', () => {
     expect(document.activeElement).not.toBe(toggle);
   });
 
-  it('Tab on the last focusable element wraps focus to the first', () => {
-    const { toggle, panel, first, last } = renderNav();
+  it('does not intercept Tab or Shift+Tab while the disclosure is open', () => {
+    const { toggle, first, last } = renderNav();
     mountMobileNav();
 
     openNav(toggle);
-    last.focus();
 
-    const event = dispatchKeydown(panel, { key: 'Tab' });
-
-    expect(event.defaultPrevented).toBe(true);
-    expect(document.activeElement).toBe(first);
+    expect(dispatchKeydown(first, { key: 'Tab', shiftKey: true }).defaultPrevented).toBe(false);
+    expect(dispatchKeydown(last, { key: 'Tab' }).defaultPrevented).toBe(false);
   });
 
-  it('Shift+Tab on the first focusable element wraps focus to the last', () => {
-    const { toggle, panel, first, last } = renderNav();
+  it('closes the open panel when clicking outside the disclosure', () => {
+    const { toggle, panel } = renderNav();
     mountMobileNav();
 
     openNav(toggle);
-    first.focus();
+    document.body.click();
 
-    const event = dispatchKeydown(panel, { key: 'Tab', shiftKey: true });
-
-    expect(event.defaultPrevented).toBe(true);
-    expect(document.activeElement).toBe(last);
-  });
-
-  it('does not trap Tab when the panel is closed', () => {
-    const { panel, first } = renderNav();
-    mountMobileNav();
-
-    first.focus();
-    const event = dispatchKeydown(panel, { key: 'Tab' });
-
-    expect(event.defaultPrevented).toBe(false);
+    expect(toggle.getAttribute('aria-expanded')).toBe('false');
+    expect(panel.classList.contains('is-visible')).toBe(false);
   });
 });
