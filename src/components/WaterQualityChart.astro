@@ -18,8 +18,8 @@ const {
   ...sectionProps 
 } = Astro.props;
 
-// Fetch water quality data at build time
-const samples = await getWaterSamples();
+// Fetch water quality data with the request-scoped Sanity client.
+const samples = await getWaterSamples(Astro.locals.sanityClient);
 const chartData = transformSamplesToChartData(samples);
 const chartConfig = getChartConfig(showThresholds);
 

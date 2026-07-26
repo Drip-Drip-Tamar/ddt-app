@@ -1,11 +1,20 @@
-import { describe, expect, it, vi } from 'vitest';
-import { getPageBySlug } from '@data/page';
-import { fetchData as fetchSiteConfig } from '@data/siteConfig';
-import { getWaterSamples } from '@data/waterQuality';
 import type { SanityClient } from '@sanity/client';
+import { readFile } from 'node:fs/promises';
+import { fileURLToPath } from 'node:url';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 describe('Sanity data client injection', () => {
-    it('uses the supplied request-scoped client for Sanity-backed data', async () => {
+    beforeEach(() => {
+        vi.resetModules();
+    });
+
+    it('sends each data query through the supplied request-scoped client', async () => {
+        const [{ getPageBySlug, PAGE_BY_SLUG_QUERY }, { fetchData, SITE_CONFIG_QUERY }, { getWaterSamples, SAMPLES_QUERY }] =
+            await Promise.all([
+                import('@data/page'),
+                import('@data/siteConfig'),
+                import('@data/waterQuality')
+            ]);
         const fetch = vi.fn()
             .mockResolvedValueOnce([])
             .mockResolvedValueOnce(null)
@@ -13,10 +22,18 @@ describe('Sanity data client injection', () => {
         const sanityClient = { fetch } as unknown as SanityClient;
 
         await getPageBySlug('results', sanityClient);
-        await fetchSiteConfig(sanityClient);
+        await fetchData(sanityClient);
         await getWaterSamples(sanityClient);
 
-        expect(fetch).toHaveBeenCalledTimes(3);
-        expect(fetch.mock.calls[0][1]).toEqual({ slug: 'results' });
+        expect(fetch).toHaveBeenNthCalledWith(1, PAGE_BY_SLUG_QUERY, { slug: 'results' });
+        expect(fetch).toHaveBeenNthCalledWith(2, SITE_CONFIG_QUERY);
+        expect(fetch).toHaveBeenNthCalledWith(3, SAMPLES_QUERY);
+    });
+
+    it('passes the request-scoped client from WaterQualityChart to its data loader', async () => {
+        const componentPath = fileURLToPath(new URL('../../src/components/WaterQualityChart.astro', import.meta.url));
+        const componentSource = await readFile(componentPath, 'utf8');
+
+        expect(componentSource).toContain('getWaterSamples(Astro.locals.sanityClient)');
     });
 });
