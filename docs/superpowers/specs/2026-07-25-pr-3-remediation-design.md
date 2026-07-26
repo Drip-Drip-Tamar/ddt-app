@@ -38,6 +38,8 @@ The resulting branch must:
 - Published requests keep the existing public edge-cache behavior.
 - Existing GROQ projections and page behavior remain unchanged outside preview
   client selection.
+- Use framework and platform primitives instead of custom session formats,
+  patched internals, global request state, or test-only product hooks.
 - All behavior changes are implemented test-first.
 
 ## Architecture
@@ -49,22 +51,23 @@ Sanity Studio will enable preview through `/api/draft` rather than by appending
 
 The enable endpoint will:
 
-1. require the read token and preview-session secret;
+1. require the read token;
 2. validate the Sanity-generated preview URL using
    `@sanity/preview-url-secret`;
-3. set a short-lived, HttpOnly, SameSite=Lax, Secure-in-production cookie;
+3. store a short-lived preview flag using Astro's built-in Sessions API;
 4. redirect only to the validated `redirectTo` path.
 
-The cookie is an authenticated session marker, not a plain boolean. A small
-preview-session utility will create and verify a versioned HMAC-SHA256 value
-with an expiry. Verification uses a timing-safe comparison. The signing key is
-the new `SANITY_PREVIEW_SESSION_SECRET`, which must contain at least 32 bytes of
-high-entropy material.
+Astro owns the session ID cookie and keeps session data server-side. The
+official Netlify adapter automatically uses Netlify Blobs as its session
+storage, so the application does not implement cookie signing, session
+serialization, or a custom storage driver. Session cookie lifetime and
+security attributes are configured through Astro's standard `session.cookie`
+configuration.
 
-`/api/disable-draft` deletes the cookie and redirects to `/`.
+`/api/disable-draft` destroys the Astro session and redirects to `/`.
 
-Global Astro middleware verifies the cookie on every request and writes these
-request-scoped values to `Astro.locals`:
+Global Astro middleware reads the preview flag from `context.session` on every
+request and writes these request-scoped values to `Astro.locals`:
 
 ```ts
 interface Locals {
@@ -74,9 +77,9 @@ interface Locals {
 ```
 
 Local development may enable preview automatically when its read token is
-available. Production enables preview only through a valid cookie. The current
-raw query parameter and production-wide `SANITY_PREVIEW_DRAFTS` decision are
-removed from request behavior.
+available. Production enables preview only through an active Astro session.
+The current raw query parameter and production-wide
+`SANITY_PREVIEW_DRAFTS` decision are removed from request behavior.
 
 The Sanity client module will expose explicit factories:
 
@@ -140,9 +143,10 @@ Production requires:
 - `SANITY_WRITE_TOKEN`;
 - `IP_HASH_SALT`.
 
-Missing or blank values produce a typed configuration error and an HTTP 503
-JSON response. The error is logged without secret values. The write-client
-factory no longer reads or falls back to `SANITY_TOKEN`.
+The request handler uses a direct guard for missing or blank values and returns
+an HTTP 503 JSON response. It logs the configuration failure without secret
+values. The write-client factory no longer reads or falls back to
+`SANITY_TOKEN`.
 
 IP identifiers will use HMAC-SHA256:
 
@@ -159,22 +163,22 @@ and contributor guidance will describe:
 - read-only `SANITY_TOKEN`;
 - dedicated `SANITY_WRITE_TOKEN`;
 - high-entropy `IP_HASH_SALT`;
-- `SANITY_PREVIEW_SESSION_SECRET`;
 - required pre-deploy token rotation and minimum privileges.
 
 ### 4. Complete upstream timeout coverage
 
-`fetchUpstream()` will retain its timer and external abort listener until all
-of these operations finish:
+`fetchUpstream()` will use the Node 22 platform primitives
+`AbortSignal.timeout()` and `AbortSignal.any()` rather than managing its own
+timer and listener. The combined signal remains attached to the fetch response
+while all of these operations finish:
 
 1. initial fetch;
 2. status validation;
 3. JSON body consumption.
 
-Cleanup moves to an outer `finally`. If the controller aborts while parsing the
-body, the helper reports a timeout rather than invalid JSON. A regression test
-will return response headers immediately and stall `json()` until the signal
-aborts.
+If the timeout signal aborts while parsing the body, the helper reports a
+timeout rather than invalid JSON. A regression test will return response
+headers immediately and stall `json()` until the signal aborts.
 
 ### 5. Mobile navigation keyboard behavior
 
@@ -204,8 +208,9 @@ BROWSER=none netlify serve --offline --context production --port 3100
 
 `netlify serve` builds and serves the production Netlify output, including SSR
 functions. The default base URL moves to port 3100 and
-`reuseExistingServer` defaults to false. Reuse is available only through an
-explicit opt-in environment variable and a project-specific identity check.
+`reuseExistingServer` is disabled. Developers who intentionally want to reuse
+a server can supply Playwright's base URL explicitly rather than relying on
+implicit port detection.
 
 Representative smoke tests will assert successful responses for `/`,
 `/results`, `/map`, `/news`, and one JSON API route, covering the runtime graph
@@ -213,12 +218,12 @@ that previously produced deploy-only 502s.
 
 #### Chart initialization
 
-The shared `mountPanel` envelope will set a deterministic
-`data-panel-state="ready"` marker only after successful initialization and
-`data-panel-state="error"` on failure. The results E2E test will:
+The results E2E test will use browser-observable behavior without adding
+test-only state to production code. It will:
 
-- wait for every expected panel to report `ready`;
-- assert the stubbed data routes were requested;
+- wait for the expected stubbed data routes;
+- assert each Chart.js canvas has a non-zero backing size and rendered,
+  non-transparent pixels;
 - fail on page errors and unexpected console errors.
 
 Static canvas/container presence alone is no longer considered success.
@@ -234,16 +239,14 @@ Static canvas/container presence alone is no longer considered success.
 
 ## Error Handling
 
-- Invalid Sanity preview URLs return 401 and do not set a cookie.
-- Missing preview configuration returns 503 without revealing which secret
-  value was supplied.
-- Expired or invalid preview cookies are deleted and treated as published
-  requests.
+- Invalid Sanity preview URLs return 401 and do not create an Astro session.
+- Missing preview configuration returns 503 without revealing token values.
+- Missing or expired Astro sessions are treated as published requests.
 - Missing contact security configuration returns 503 before upstream calls.
 - Upstream aborts during either fetch or body parsing produce the existing
   timeout error kind.
-- Chart mount failures set an error marker, render the existing fallback UI,
-  and surface a browser error that E2E observes.
+- Chart mount failures render the existing fallback UI and surface a browser
+  error that E2E observes.
 
 ## Test Strategy
 
@@ -251,10 +254,9 @@ Each behavior follows a red-green cycle.
 
 ### Unit and integration tests
 
-- preview session signing, expiry, tamper rejection, and timing-safe
-  verification;
-- `/api/draft` valid, invalid, and missing-config paths;
-- `/api/disable-draft` cookie deletion;
+- `/api/draft` valid, invalid, and missing-read-token paths using Astro
+  sessions;
+- `/api/disable-draft` session destruction;
 - middleware published versus preview locals, headers, and cache policy;
 - published and preview Sanity client configuration;
 - data helpers using an injected request client;
@@ -262,7 +264,7 @@ Each behavior follows a red-green cycle.
 - dedicated write-token usage and HMAC IP hashing;
 - stalled response-body timeout;
 - native mobile-menu focus order;
-- chart ready/error state markers;
+- rendered Chart.js canvas output and browser-error detection;
 - 404 metadata omission.
 
 ### Full verification
@@ -289,12 +291,13 @@ before deployment:
 1. revoke the previously exposed write-capable `SANITY_TOKEN`;
 2. create a least-privilege read token for `SANITY_TOKEN`;
 3. create a least-privilege contact-write token for `SANITY_WRITE_TOKEN`;
-4. generate and configure high-entropy values for `IP_HASH_SALT` and
-   `SANITY_PREVIEW_SESSION_SECRET`;
+4. generate and configure a high-entropy value for `IP_HASH_SALT`;
 5. configure the variables for Netlify runtime and relevant GitHub Actions
    contexts;
 6. verify Sanity Studio points to the deployed `/api/draft` endpoint;
-7. run one real Presentation session and one real contact submission after
+7. confirm Netlify Blobs session storage is available to the deployed Astro
+   runtime;
+8. run one real Presentation session and one real contact submission after
    deployment.
 
 Until those actions are complete, the contact endpoint intentionally returns
