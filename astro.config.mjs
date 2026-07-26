@@ -2,8 +2,10 @@ import { defineConfig } from 'astro/config';
 import { loadEnv } from 'vite';
 import tailwindcss from '@tailwindcss/vite';
 import sanity from '@sanity/astro';
+import { createClient } from '@sanity/client';
 import netlify from '@astrojs/netlify';
 import react from '@astrojs/react';
+import { createSanityDevRefreshIntegration } from './src/integrations/sanity-dev-refresh';
 import { buildSanityConfig } from './src/utils/sanity-config';
 
 // loadEnv is safe here (config files are build-time only, never bundled into
@@ -45,7 +47,11 @@ export default defineConfig({
     image: {
         domains: ['cdn.sanity.io']
     },
-    integrations: [sanity(sanityConfig), react()],
+    integrations: [
+        sanity(sanityConfig),
+        react(),
+        createSanityDevRefreshIntegration(() => createClient({ ...sanityConfig, useCdn: false }))
+    ],
     vite: {
         plugins: [tailwindcss()],
         server: {

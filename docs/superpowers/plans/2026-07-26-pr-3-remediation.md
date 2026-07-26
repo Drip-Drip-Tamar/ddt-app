@@ -965,6 +965,122 @@ git commit -m "test(ci): exercise the production Netlify runtime" -m "Enforce co
 
 ---
 
+### Task 6: Isolate the Sanity development refresh listener from tests
+
+**Files:**
+- Create: `src/integrations/sanity-dev-refresh.ts`
+- Create: `tests/unit/sanity-dev-refresh.test.ts`
+- Modify: `astro.config.mjs`
+- Modify: `src/utils/sanity-client.ts`
+
+**Interfaces:**
+- Produces `createSanityDevRefreshIntegration(createClient)`, an `AstroIntegration` whose `astro:server:setup` hook starts the listener only after Astro creates a Vite development server.
+- Consumes a zero-argument `createClient` factory returning `Pick<SanityClient, 'listen'>`; the factory must not run during builds, SSR requests, or Vitest module imports.
+
+- [ ] **Step 1: Write the failing listener-lifecycle test**
+
+Create `tests/unit/sanity-dev-refresh.test.ts`. Use a fake Sanity client that captures the observer passed to `listen(...).subscribe(...)`, a fake Vite WebSocket with `send`, and an `EventEmitter` as `httpServer`. Assert all of the following behavior:
+
+```ts
+expect(client.listen).toHaveBeenCalledWith(
+  '*[_type in ["page"]]',
+  {},
+  { visibility: 'query' },
+);
+
+observer.next({ type: 'mutation' });
+expect(server.ws.send).toHaveBeenCalledWith({ type: 'full-reload' });
+
+observer.error(new Error('Dataset not found'));
+expect(logger.error).toHaveBeenCalledWith(
+  expect.stringContaining('Dataset not found'),
+);
+
+httpServer.emit('close');
+expect(subscription.unsubscribe).toHaveBeenCalledOnce();
+```
+
+This test names the production break it catches: starting an unhandled Sanity EventSource during a test import, or leaking its subscription when the development server closes.
+
+- [ ] **Step 2: Verify RED**
+
+Run:
+
+```bash
+npm exec vitest run tests/unit/sanity-dev-refresh.test.ts
+```
+
+Expected: FAIL because `src/integrations/sanity-dev-refresh.ts` does not yet exist.
+
+- [ ] **Step 3: Implement the framework-native development integration**
+
+Create `src/integrations/sanity-dev-refresh.ts` with a narrowly scoped integration equivalent to:
+
+```ts
+import type { SanityClient } from '@sanity/client';
+import type { AstroIntegration } from 'astro';
+
+export function createSanityDevRefreshIntegration(
+  createClient: () => Pick<SanityClient, 'listen'>,
+): AstroIntegration {
+  return {
+    name: 'sanity-dev-refresh',
+    hooks: {
+      'astro:server:setup': ({ server, logger }) => {
+        const subscription = createClient()
+          .listen('*[_type in ["page"]]', {}, { visibility: 'query' })
+          .subscribe({
+            next: () => server.ws.send({ type: 'full-reload' }),
+            error: (error) => logger.error(`Sanity dev refresh listener failed: ${String(error)}`),
+          });
+
+        server.httpServer?.once('close', () => subscription.unsubscribe());
+      },
+    },
+  };
+}
+```
+
+In `astro.config.mjs`, import `createClient` from `@sanity/client` and this integration. Add it to `integrations` with a lazy factory that creates the existing `sanityConfig` client only from `astro:server:setup`:
+
+```ts
+createSanityDevRefreshIntegration(() => createClient({ ...sanityConfig, useCdn: false }))
+```
+
+Remove `fs`, `path`, `fileURLToPath`, `startDevContentListener`, and the top-level `if (import.meta.env.DEV)` block from `src/utils/sanity-client.ts`. Do not add `import.meta.vitest`, global mutable state, a touched-file reload workaround, a test-only production hook, or any network call during module evaluation.
+
+- [ ] **Step 4: Verify GREEN**
+
+Run:
+
+```bash
+npm exec vitest run tests/unit/sanity-dev-refresh.test.ts tests/unit/water-quality-chart-client-injection.test.ts
+```
+
+Expected: both files pass with no unhandled `ChannelError` or outgoing Sanity listener from the water-quality test import.
+
+- [ ] **Step 5: Run the relevant quality gate**
+
+Run:
+
+```bash
+npm run lint
+npm run typecheck
+npm run test:coverage
+npm run build
+```
+
+Expected: zero lint errors, typecheck success, coverage thresholds met, and build success.
+
+- [ ] **Step 6: Commit Task 6**
+
+```bash
+git add astro.config.mjs src/utils/sanity-client.ts src/integrations/sanity-dev-refresh.ts tests/unit/sanity-dev-refresh.test.ts docs/superpowers/plans/2026-07-26-pr-3-remediation.md
+git commit -m "fix(dev): scope Sanity refresh listener to Astro server" -m "Start Sanity's page mutation listener only from Astro's development-server lifecycle, reload through Vite's supported channel, and close the subscription when the server stops. This prevents Vitest imports from opening an unhandled EventSource connection."
+```
+
+---
+
 ## Final Review and Merge Gate
 
 - [ ] Generate a whole-branch review package from PR head `143038a0cf08c0a257231c895578f89bf6ecc5cb` to the final remediation head.

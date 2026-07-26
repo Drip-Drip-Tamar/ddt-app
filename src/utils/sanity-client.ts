@@ -1,6 +1,3 @@
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
 import { createClient, type SanityClient } from '@sanity/client';
 import { buildSanityConfig, SANITY_API_VERSION } from './sanity-config';
 
@@ -53,19 +50,3 @@ export function createSanityWriteClient(): SanityClient {
 }
 
 export const client = createSanityReadClient({ preview: false });
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-export function startDevContentListener(sanityClient: SanityClient = client) {
-    sanityClient.listen('*[_type in ["page"]]', {}, { visibility: 'query' }).subscribe(async (event) => {
-        if ('transition' in event && (event.transition === 'appear' || event.transition === 'disappear')) {
-            const filePath = path.join(__dirname, '../layouts/Layout.astro');
-            await fs.promises.utimes(filePath, new Date(), new Date());
-        }
-    });
-}
-
-if (import.meta.env.DEV) {
-    startDevContentListener();
-}
