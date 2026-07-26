@@ -4,7 +4,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { createSanityDevRefreshIntegration } from '../../src/integrations/sanity-dev-refresh';
 
 describe('Sanity development refresh integration', () => {
-    it('reloads on mutations, reports listener errors, and closes its subscription', () => {
+    it('starts lazily, reloads on mutations, reports listener errors, and closes its subscription', () => {
         const subscription = { unsubscribe: vi.fn() };
         const observer = { next: vi.fn(), error: vi.fn() };
         const client = {
@@ -20,10 +20,16 @@ describe('Sanity development refresh integration', () => {
             httpServer: new EventEmitter()
         };
         const logger = { error: vi.fn() };
-        const integration = createSanityDevRefreshIntegration(() => client);
+        const createClient = vi.fn(() => client);
+        const integration = createSanityDevRefreshIntegration(createClient);
+
+        expect(createClient).not.toHaveBeenCalled();
+        expect(client.listen).not.toHaveBeenCalled();
 
         integration.hooks['astro:server:setup']?.({ server, logger } as never);
 
+        expect(createClient).toHaveBeenCalledOnce();
+        expect(client.listen).toHaveBeenCalledOnce();
         expect(client.listen).toHaveBeenCalledWith(
             '*[_type in ["page"]]',
             {},
