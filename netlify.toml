@@ -5,8 +5,8 @@
 [dev]
   targetPort = 3000
 
-# Security headers. Applied to every response (including the /api/*.json
-# routes) since none of these headers interfere with JSON consumption.
+# Security headers for static and prerendered responses. Astro middleware
+# applies the equivalent headers to SSR and API runtime responses.
 #
 # Chart.js and Leaflet are bundled from npm (see src/scripts/charts/), so no
 # CDN origins are needed for scripts, styles, fonts or marker images.
