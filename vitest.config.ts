@@ -1,7 +1,8 @@
-import { defineConfig } from 'vitest/config';
+/// <reference types="vitest/config" />
+import { getViteConfig } from 'astro/config';
 import path from 'path';
 
-export default defineConfig({
+export default getViteConfig({
   resolve: {
     alias: {
       '@pages': path.resolve(__dirname, './src/pages'),
@@ -30,6 +31,9 @@ export default defineConfig({
         '*.config.*',
         'tests/**',
         'src/env.d.ts',
+        // Astro component behavior is exercised by container tests, while
+        // this ratchet tracks the existing script/API/data instrumentation.
+        'src/components/**/*.astro',
         'src/components/SanityVisualEditing.tsx'
       ],
       // Ratchet, not gate: set a few points below the levels measured on

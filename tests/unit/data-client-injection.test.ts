@@ -1,6 +1,4 @@
 import type { SanityClient } from '@sanity/client';
-import { readFile } from 'node:fs/promises';
-import { fileURLToPath } from 'node:url';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 describe('Sanity data client injection', () => {
@@ -28,12 +26,5 @@ describe('Sanity data client injection', () => {
         expect(fetch).toHaveBeenNthCalledWith(1, PAGE_BY_SLUG_QUERY, { slug: 'results' });
         expect(fetch).toHaveBeenNthCalledWith(2, SITE_CONFIG_QUERY);
         expect(fetch).toHaveBeenNthCalledWith(3, SAMPLES_QUERY);
-    });
-
-    it('passes the request-scoped client from WaterQualityChart to its data loader', async () => {
-        const componentPath = fileURLToPath(new URL('../../src/components/WaterQualityChart.astro', import.meta.url));
-        const componentSource = await readFile(componentPath, 'utf8');
-
-        expect(componentSource).toContain('getWaterSamples(Astro.locals.sanityClient)');
     });
 });
