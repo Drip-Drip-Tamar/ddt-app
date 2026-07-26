@@ -1,13 +1,10 @@
 import type { APIRoute } from 'astro';
-import crypto from 'crypto';
-import { createSanityWriteClient } from '@utils/sanity-client';
+import { createHmac } from 'crypto';
+import { createSanityWriteClient, getSanityWriteToken } from '@utils/sanity-client';
 import { fetchUpstream, UpstreamError } from '@utils/upstream';
 
 // Mark this endpoint as server-rendered (not pre-rendered)
 export const prerender = false;
-
-// Write-capable Sanity client for creating contact form submissions
-const sanityClient = createSanityWriteClient();
 
 const TURNSTILE_VERIFY_URL = 'https://challenges.cloudflare.com/turnstile/v0/siteverify';
 const TURNSTILE_ACTION = 'contact';
@@ -20,8 +17,6 @@ const FIELD_LENGTH_LIMITS = {
   subject: 300,
   message: 5000
 } as const;
-
-let warnedAboutMissingIpHashSalt = false;
 
 type TurnstileSiteverifyResponse = {
   success?: boolean;
@@ -36,6 +31,11 @@ function jsonResponse(body: Record<string, unknown>, status: number) {
     status,
     headers: { 'Content-Type': 'application/json' }
   });
+}
+
+function readRuntimeEnv(name: string): string | undefined {
+  const value = (import.meta.env as Record<string, unknown>)[name] ?? process.env[name];
+  return typeof value === 'string' && value.trim() ? value.trim() : undefined;
 }
 
 function getClientIp(request: Request) {
@@ -114,15 +114,8 @@ function getLengthViolations(fields: { name: string; email: string; topic: strin
   return violations;
 }
 
-function hashIp(ip: string): string {
-  const salt = import.meta.env.IP_HASH_SALT || '';
-
-  if (!salt && !warnedAboutMissingIpHashSalt) {
-    warnedAboutMissingIpHashSalt = true;
-    console.warn('IP_HASH_SALT is not set; IP hashes are unsalted and rainbow-tableable. Set IP_HASH_SALT to harden this.');
-  }
-
-  return crypto.createHash('sha256').update(`${salt}${ip}`).digest('hex');
+export function hashIp(ip: string, salt: string): string {
+  return createHmac('sha256', salt).update(ip).digest('hex');
 }
 
 function getSpamReasons(message: string, formStartedAt: string | undefined) {
@@ -142,6 +135,14 @@ function getSpamReasons(message: string, formStartedAt: string | undefined) {
 }
 
 export const POST: APIRoute = async ({ request }) => {
+  const writeToken = getSanityWriteToken();
+  const ipHashSalt = readRuntimeEnv('IP_HASH_SALT');
+  if (!writeToken || !ipHashSalt) {
+    console.error('Contact endpoint is unavailable because required runtime configuration is missing');
+    return jsonResponse({ ok: false, error: 'Contact form is temporarily unavailable.' }, 503);
+  }
+  const sanityClient = createSanityWriteClient();
+
   try {
     // Parse form data
     const contentType = request.headers.get('content-type');
@@ -231,7 +232,7 @@ export const POST: APIRoute = async ({ request }) => {
     }
     
     // Hash IP for privacy
-    const ipHash = hashIp(ip);
+    const ipHash = hashIp(ip, ipHashSalt);
     const spamReasons = getSpamReasons(message, formStartedAt);
     
     // Create Sanity document

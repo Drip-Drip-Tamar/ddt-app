@@ -48,41 +48,46 @@ export async function fetchUpstream<T = unknown>(
   opts: FetchUpstreamOptions = {}
 ): Promise<T> {
   const { timeoutMs = DEFAULT_TIMEOUT_MS, signal: externalSignal, ...init } = opts;
+  const timeoutSignal = AbortSignal.timeout(timeoutMs);
+  const signal = externalSignal
+    ? AbortSignal.any([externalSignal, timeoutSignal])
+    : timeoutSignal;
 
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
-  const onExternalAbort = () => controller.abort();
-  externalSignal?.addEventListener('abort', onExternalAbort);
-
-  let response: Response;
+  let response: Response | undefined;
   try {
-    response = await fetch(url, { ...init, signal: controller.signal });
+    response = await fetch(url, { ...init, signal });
+    if (!response.ok) {
+      throw new UpstreamError(
+        'non-ok',
+        `Upstream request to ${url} failed with status ${response.status}`,
+        url,
+        response.status
+      );
+    }
+
+    return (await response.json()) as T;
   } catch (error) {
-    if (controller.signal.aborted) {
+    if (timeoutSignal.aborted) {
       throw new UpstreamError('timeout', `Request to ${url} timed out after ${timeoutMs}ms`, url);
+    }
+    if (error instanceof UpstreamError) {
+      throw error;
+    }
+    if (signal.aborted) {
+      throw new UpstreamError('network', 'Request was aborted', url);
+    }
+    if (error instanceof SyntaxError) {
+      throw new UpstreamError(
+        'invalid-json',
+        `Upstream response from ${url} was not valid JSON`,
+        url,
+        response?.status
+      );
     }
     throw new UpstreamError(
       'network',
       error instanceof Error ? error.message : 'Network request failed',
       url
     );
-  } finally {
-    clearTimeout(timeoutId);
-    externalSignal?.removeEventListener('abort', onExternalAbort);
-  }
-
-  if (!response.ok) {
-    throw new UpstreamError(
-      'non-ok',
-      `Upstream request to ${url} failed with status ${response.status}`,
-      url,
-      response.status
-    );
-  }
-
-  try {
-    return (await response.json()) as T;
-  } catch {
-    throw new UpstreamError('invalid-json', `Upstream response from ${url} was not valid JSON`, url, response.status);
   }
 }

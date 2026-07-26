@@ -1,28 +1,26 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { APIContext } from 'astro';
+import { createHmac } from 'node:crypto';
 
 // Mock Sanity client to prevent actual database writes
-const mockCreate = vi.fn(() => Promise.resolve({ _id: 'test-message-123' }));
-vi.mock('@utils/sanity-client', () => ({
-  createSanityWriteClient: vi.fn(() => ({
-    create: mockCreate
-  }))
+const mockCreate = vi.fn<(document: Record<string, unknown>) => Promise<{ _id: string }>>(
+  () => Promise.resolve({ _id: 'test-message-123' })
+);
+const createSanityWriteClient = vi.fn(() => ({
+  create: mockCreate
 }));
-
-// Mock crypto for IP hashing
-vi.mock('crypto', () => ({
-  default: {
-    createHash: vi.fn(() => ({
-      update: vi.fn().mockReturnThis(),
-      digest: vi.fn(() => 'mock-hash-abc123')
-    }))
-  }
+vi.mock('@utils/sanity-client', () => ({
+  createSanityWriteClient,
+  getSanityWriteToken: vi.fn(() => process.env.SANITY_WRITE_TOKEN?.trim() || undefined)
 }));
 
 describe('Contact Form API Endpoint', () => {
   beforeEach(() => {
+    vi.resetModules();
     vi.clearAllMocks();
     vi.stubEnv('TURNSTILE_SECRET_KEY', 'test-turnstile-secret');
+    vi.stubEnv('SANITY_WRITE_TOKEN', 'write-token');
+    vi.stubEnv('IP_HASH_SALT', 'test-salt');
     global.fetch = vi.fn(() => Promise.resolve(new Response(JSON.stringify({
       success: true,
       action: 'contact',
@@ -32,6 +30,66 @@ describe('Contact Form API Endpoint', () => {
       status: 200,
       headers: { 'Content-Type': 'application/json' }
     })));
+  });
+
+  it('fails closed before external calls when the write token is missing', async () => {
+    vi.stubEnv('SANITY_WRITE_TOKEN', '');
+    vi.stubEnv('IP_HASH_SALT', 'test-salt');
+    const { POST } = await import('../../src/pages/api/contact');
+    const context = { request: new Request('http://localhost/api/contact', { method: 'POST' }) } as APIContext;
+
+    const response = await POST(context);
+
+    expect(response.status).toBe(503);
+    expect(global.fetch).not.toHaveBeenCalled();
+    expect(createSanityWriteClient).not.toHaveBeenCalled();
+  });
+
+  it('fails closed before external calls when the IP hash salt is missing', async () => {
+    vi.stubEnv('SANITY_WRITE_TOKEN', 'write-token');
+    vi.stubEnv('IP_HASH_SALT', '');
+    const { POST } = await import('../../src/pages/api/contact');
+    const context = { request: new Request('http://localhost/api/contact', { method: 'POST' }) } as APIContext;
+
+    const response = await POST(context);
+
+    expect(response.status).toBe(503);
+    expect(global.fetch).not.toHaveBeenCalled();
+    expect(createSanityWriteClient).not.toHaveBeenCalled();
+  });
+
+  it('stores HMAC-SHA256 IP hashes keyed by the configured salt', async () => {
+    const { POST } = await import('../../src/pages/api/contact');
+    const createContext = () => ({
+      request: new Request('http://localhost/api/contact', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-forwarded-for': '203.0.113.1'
+        },
+        body: JSON.stringify({
+          name: 'Hash User',
+          email: 'hash@example.com',
+          message: 'Please hash my IP address.',
+          consent: 'true',
+          'cf-turnstile-response': 'valid-turnstile-token',
+          form_started_at: String(Date.now() - 5000)
+        })
+      })
+    }) as APIContext;
+
+    vi.stubEnv('IP_HASH_SALT', 'known-salt');
+    await POST(createContext());
+    const firstHash = mockCreate.mock.calls[0]?.[0].ipHash;
+
+    expect(firstHash).toBe(createHmac('sha256', 'known-salt').update('203.0.113.1').digest('hex'));
+
+    mockCreate.mockClear();
+    vi.stubEnv('IP_HASH_SALT', 'different-salt');
+    await POST(createContext());
+    const secondHash = mockCreate.mock.calls[0]?.[0].ipHash;
+
+    expect(secondHash).not.toBe(firstHash);
   });
 
   it('should successfully process valid contact form submission', async () => {
@@ -73,7 +131,7 @@ describe('Contact Form API Endpoint', () => {
         topic: 'General enquiry',
         message: 'This is a test message',
         consent: true,
-        ipHash: 'mock-hash-abc123',
+        ipHash: createHmac('sha256', 'test-salt').update('192.168.1.1').digest('hex'),
         spamStatus: 'clean',
         spamReasons: [],
         turnstileOutcome: 'success'

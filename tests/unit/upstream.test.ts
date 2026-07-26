@@ -75,6 +75,23 @@ describe('fetchUpstream', () => {
     });
   });
 
+  it('throws a timeout UpstreamError when the response body stalls past timeoutMs', async () => {
+    vi.mocked(global.fetch).mockImplementationOnce(async (_url, init) => {
+      const signal = (init as RequestInit | undefined)?.signal as AbortSignal;
+      return {
+        ok: true,
+        status: 200,
+        json: () => new Promise((_resolve, reject) => {
+          signal.addEventListener('abort', () => reject(signal.reason), { once: true });
+        })
+      } as Response;
+    });
+
+    await expect(fetchUpstream('/slow-body', { timeoutMs: 20 })).rejects.toMatchObject({
+      kind: 'timeout'
+    });
+  });
+
   it('is an instance of UpstreamError', async () => {
     vi.mocked(global.fetch).mockResolvedValueOnce(new Response('nope', { status: 404 }));
 
