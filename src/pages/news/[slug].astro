@@ -2,7 +2,6 @@
 import Layout from '@layouts/Layout.astro';
 import Section from '@components/Section.astro';
 import ResponsiveImage from '@components/ResponsiveImage.astro';
-import { client as sanityClient } from '@utils/sanity-client';
 import {
     getNewsImageBackgroundStyle,
     getNewsImageSizingClasses,
@@ -10,11 +9,10 @@ import {
 } from '@utils/news-image-sizing';
 import { portableTextToHtml } from '@utils/portable-text';
 import { POST_QUERY, type Post } from '@data/posts';
-import { isPreviewContext } from '@utils/sanity-client';
 
 const { slug } = Astro.params;
 
-const post = await sanityClient.fetch<Post | null>(POST_QUERY, { slug });
+const post = await Astro.locals.sanityClient.fetch<Post | null>(POST_QUERY, { slug });
 
 if (!post) {
     return Astro.redirect('/404');
@@ -22,7 +20,7 @@ if (!post) {
 
 // Edge-cache published post pages; never cache in preview contexts so
 // visual editing (draft content, stega) always sees fresh data.
-if (!isPreviewContext) {
+if (!Astro.locals.isPreview) {
     Astro.response.headers.set('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=3600');
 }
 

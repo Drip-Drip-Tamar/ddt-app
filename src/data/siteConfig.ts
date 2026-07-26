@@ -1,6 +1,7 @@
 import groq from 'groq';
 import type { CustomImage, Footer, Header } from 'types';
 import { client } from '@utils/sanity-client';
+import type { SanityClient } from '@sanity/client';
 import { IMAGE } from './blocks';
 import type { SITE_CONFIG_QUERY_RESULT } from '../sanity.types';
 
@@ -88,25 +89,28 @@ const DEFAULT_SITE_CONFIG: SiteConfigData = {
  * Fetch global site configuration from Sanity, with a 5-minute in-memory
  * cache and a safe fallback if Sanity is unavailable.
  */
-export async function fetchData(): Promise<SiteConfigData> {
+export async function fetchData(sanityClient: SanityClient = client): Promise<SiteConfigData> {
     const now = Date.now();
+    const shouldUseCache = sanityClient === client;
 
-    if (configCache && now - cacheTimestamp < CACHE_TTL) {
+    if (shouldUseCache && configCache && now - cacheTimestamp < CACHE_TTL) {
         return configCache;
     }
 
     try {
         // Cast: see the module-level comment on SiteConfigData above for why
         // the public return type isn't the raw (fully nullable) query type.
-        const config = (await client.fetch<SITE_CONFIG_QUERY_RESULT>(SITE_CONFIG_QUERY)) as SiteConfigData | null;
+        const config = (await sanityClient.fetch<SITE_CONFIG_QUERY_RESULT>(SITE_CONFIG_QUERY)) as SiteConfigData | null;
 
         if (!config) {
             console.warn('No site configuration found in Sanity, using defaults');
             return DEFAULT_SITE_CONFIG;
         }
 
-        configCache = config;
-        cacheTimestamp = now;
+        if (shouldUseCache) {
+            configCache = config;
+            cacheTimestamp = now;
+        }
         return config;
     } catch (error) {
         console.error('Error fetching site configuration:', error);

@@ -14,16 +14,16 @@ const sanityConfig = buildSanityConfig(
         projectId: env.SANITY_PROJECT_ID,
         dataset: env.SANITY_DATASET,
         token: env.SANITY_TOKEN,
-        previewDrafts: env.SANITY_PREVIEW_DRAFTS
-    },
-    process.env.NODE_ENV !== 'production'
+        preview: false,
+        studioUrl: env.SANITY_STUDIO_URL || '/studio'
+    }
 );
 
 // https://astro.build/config
 //
 // output: 'server' is required, not incidental. The Sanity Presentation
 // tool needs per-request rendering of Sanity-backed pages
-// (previewDrafts perspective, stega-encoded fields)
+// (draft perspective, stega-encoded fields)
 // so editors see unpublished changes without a rebuild. A full static
 // (`output: 'static'`) build was evaluated and rejected for this reason —
 // see IMPROVEMENT-PLAN.md Task 17. Pages with no editable Sanity content
@@ -33,6 +33,14 @@ const sanityConfig = buildSanityConfig(
 export default defineConfig({
     output: 'server', // Enable server-side rendering
     adapter: netlify(),
+    session: {
+        cookie: {
+            name: 'ddt-preview',
+            sameSite: 'lax',
+            secure: true
+        },
+        ttl: 3600
+    },
     image: {
         domains: ['cdn.sanity.io']
     },

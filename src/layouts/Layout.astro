@@ -2,10 +2,9 @@
 import { type SiteConfig, type CustomImage } from 'types';
 import Footer from '@components/Footer.astro';
 import Header from '@components/Header.astro';
-import { SanityVisualEditing } from '@components/SanityVisualEditing';
+import { VisualEditing } from '@sanity/astro/visual-editing';
 import { fetchData } from '@data/siteConfig';
 import { getImageUrl, isSanityImage } from '@utils/sanity-image';
-import { isPreviewContext } from '@utils/sanity-client';
 
 import '../styles/globals.css';
 
@@ -18,7 +17,7 @@ interface Props {
 
 const { addTitleSuffix, description, image } = Astro.props;
 
-const configData: SiteConfig = (await fetchData()) || {};
+const configData: SiteConfig = (await fetchData(Astro.locals.sanityClient)) || {};
 const titleSuffix = configData.titleSuffix && addTitleSuffix !== false ? configData.titleSuffix : undefined;
 const title = [Astro.props.title, titleSuffix].filter(Boolean).join(' | ');
 
@@ -84,6 +83,6 @@ function formatCanonicalURL(url: string | URL) {
         <Header {...configData.header} />
         <slot />
         <Footer {...configData.footer} />
-        {isPreviewContext && <SanityVisualEditing client:only="react" />}
+        <VisualEditing enabled={Astro.locals.isPreview} />
     </body>
 </html>

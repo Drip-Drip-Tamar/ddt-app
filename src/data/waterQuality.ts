@@ -1,5 +1,6 @@
 import groq from 'groq'
 import { client } from '@utils/sanity-client'
+import type { SanityClient } from '@sanity/client'
 
 export interface WaterSample {
   _id: string;
@@ -50,9 +51,9 @@ export const SAMPLES_QUERY = groq`
  * has a documented empty-state, so a Sanity blip degrades to "no samples"
  * rather than failing the whole page.
  */
-export async function getWaterSamples(): Promise<WaterSample[]> {
+export async function getWaterSamples(sanityClient: SanityClient = client): Promise<WaterSample[]> {
   try {
-    const samples = await client.fetch<WaterSample[]>(SAMPLES_QUERY)
+    const samples = await sanityClient.fetch<WaterSample[]>(SAMPLES_QUERY)
     return samples || []
   } catch (error) {
     console.error('Error fetching water samples:', error)

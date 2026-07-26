@@ -18,11 +18,10 @@ export default defineConfig({
     visionTool(),
     markdownSchema(),
     presentationTool({
-      // Use existing preview infrastructure that works with Netlify Visual Editor
       previewUrl: {
-        origin: process.env.SANITY_STUDIO_PREVIEW_URL || 'http://localhost:3000',
+        initial: process.env.SANITY_STUDIO_PREVIEW_URL || 'http://localhost:3000',
         previewMode: {
-          enable: '/?SANITY_PREVIEW_DRAFTS=true'
+          enable: '/api/draft'
         }
       },
       resolve: {

@@ -2,15 +2,14 @@
 import Layout from '@layouts/Layout.astro';
 import Section from '@components/Section.astro';
 import PostListItem from '@components/PostListItem.astro';
-import { client as sanityClient, isPreviewContext } from '@utils/sanity-client';
 import { extractTextFromPortableText } from '@utils/portable-text';
 import { POSTS_QUERY, type Post } from '@data/posts';
 
-const posts = await sanityClient.fetch<Post[]>(POSTS_QUERY);
+const posts = await Astro.locals.sanityClient.fetch<Post[]>(POSTS_QUERY);
 
 // Edge-cache the published listing; never cache in preview contexts so
 // visual editing (draft content, stega) always sees fresh data.
-if (!isPreviewContext) {
+if (!Astro.locals.isPreview) {
     Astro.response.headers.set('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=3600');
 }
 

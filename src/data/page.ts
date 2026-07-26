@@ -1,5 +1,6 @@
 import groq from 'groq';
 import { client } from '@utils/sanity-client';
+import type { SanityClient } from '@sanity/client';
 import { SECTIONS } from './blocks';
 import type { PAGES_QUERY_RESULT, PAGE_BY_SLUG_QUERY_RESULT } from '../sanity.types';
 
@@ -30,10 +31,13 @@ export const PAGE_BY_SLUG_QUERY = groq`*[_type == "page" && slug.current == $slu
  * empty result into a 404 response.
  */
 
-export async function fetchData(): Promise<PAGES_QUERY_RESULT> {
-    return await client.fetch(PAGES_QUERY);
+export async function fetchData(sanityClient: SanityClient = client): Promise<PAGES_QUERY_RESULT> {
+    return await sanityClient.fetch(PAGES_QUERY);
 }
 
-export async function getPageBySlug(slug?: string): Promise<PAGE_BY_SLUG_QUERY_RESULT> {
-    return await client.fetch(PAGE_BY_SLUG_QUERY, { slug: slug || '/' });
+export async function getPageBySlug(
+    slug?: string,
+    sanityClient: SanityClient = client
+): Promise<PAGE_BY_SLUG_QUERY_RESULT> {
+    return await sanityClient.fetch(PAGE_BY_SLUG_QUERY, { slug: slug || '/' });
 }
