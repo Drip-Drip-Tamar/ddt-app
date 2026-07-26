@@ -170,12 +170,12 @@ This document is the working checklist. Tick tasks as they complete; add notes i
 - **Solution**: Self-host fonts (`@fontsource-variable/mulish` or Astro 6 fonts API), subset weights actually used. Move loaders to the pages/components that need them (naturally falls out of Task 6 if modules import their own loader).
 - **Acceptance**: No `fonts.googleapis.com` request; Lighthouse render-blocking warning gone; chart-less pages load no Chart.js.
 
-### 17. [x] Audit `output: 'server'` → static-first routing — *done 2026-07-07; s-maxage=300 + SWR on content pages outside preview, 404 prerendered, dead getStaticPaths removed.*
+### 17. [x] Audit `output: 'server'` → static-first routing — *done 2026-07-07; corrected 2026-07-26; s-maxage=300 + SWR on content pages outside preview, 404 kept on demand for dynamic rewrites, dead getStaticPaths removed.*
 
 - **Files**: `astro.config.mjs:11`
 - **Problem**: Whole site is SSR-by-default. Only `api/contact.ts` sets `prerender` explicitly; every content page pays SSR latency and Netlify function invocations per request.
 - **Constraint (verified)**: full static is NOT viable — visual editing depends on per-request SSR of Sanity-backed pages. `sanity-client.ts:7-27` pins `perspective`/`stega` per-deployment from env (`NODE_ENV`, Netlify `CONTEXT`, preview flags), and the live-edit UX reloads the page expecting fresh draft content (`Layout.astro:97-99`); prerendered pages would serve stale HTML until rebuild. Also: `news/[slug].astro:14` has a `getStaticPaths()` that is dead code under `output:'server'` — remove or repurpose.
-- **Solution (revised)**: Keep server output. Instead: add `prerender = true` to any page NOT backed by editable Sanity content (candidate: `404.astro`); add explicit `prerender = false` to the six JSON API routes for clarity; remove the dead `getStaticPaths`; add sensible `Cache-Control`/CDN caching on SSR content pages so production requests are edge-cached even though rendering is dynamic. Document why the site is SSR in `astro.config.mjs` comment.
+- **Solution (revised)**: Keep server output. Pages that are independent of dynamic routing may still opt into prerendering, but `/404` intentionally remains on demand and in the SSR manifest so missing-content routes can use `Astro.rewrite('/404')` and preserve the real 404 status in the built Netlify runtime. Add explicit `prerender = false` to the six JSON API routes for clarity; remove the dead `getStaticPaths`; add sensible `Cache-Control`/CDN caching on SSR content pages so production requests are edge-cached even though rendering is dynamic. Document why the site is SSR in `astro.config.mjs` comment.
 - **Acceptance**: Content pages carry cache headers; dead `getStaticPaths` gone; visual editing unaffected.
 
 ### 18. [x] Strict TypeScript + JSX transform — *done 2026-07-07; 51→0 errors, no @ts-expect-error; locationConfig.d.ts is interim until Task 10 converts the module.*

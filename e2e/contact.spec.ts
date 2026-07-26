@@ -1,14 +1,9 @@
 import { test, expect } from '@playwright/test';
 
-// Turnstile happy-path submission is not automated here: the .env this repo
-// runs the dev server with contains live production Turnstile keys (not
-// Cloudflare's published always-pass test keys), so a real submission would
-// either hit Cloudflare's real challenge (unautomatable headlessly) or
-// require overriding PUBLIC_TURNSTILE_SITE_KEY/TURNSTILE_SECRET_KEY with
-// Cloudflare's test keys for this run only, which the repo's env wiring
-// (.env locally, Netlify/GitHub secrets in CI) does not currently support
-// per-job. Per Task 15's fallback, this smoke test instead asserts the form
-// renders with every required field plus the honeypot.
+// This built-runtime smoke test is intentionally render-only. CI supplies the
+// required server environment, but submitting would exercise a real Turnstile
+// challenge and create a Sanity contact document. API integration tests cover
+// the submission contract without those external side effects.
 test.describe('contact page', () => {
     test('renders the contact form with all fields and the honeypot', async ({ page }) => {
         const response = await page.goto('/contact');

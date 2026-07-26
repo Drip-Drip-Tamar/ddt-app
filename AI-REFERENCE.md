@@ -379,7 +379,7 @@ try {
   
   // Different error responses
   if (error.statusCode === 404) {
-    return Astro.redirect('/404')
+    return Astro.rewrite('/404')
   }
   if (error.statusCode === 401) {
     return Astro.redirect('/login')
@@ -389,7 +389,7 @@ try {
   return new Response('Error loading page', { status: 500 })
 }
 
-if (!page) return Astro.redirect('/404')
+if (!page) return Astro.rewrite('/404')
 ---
 ```
 
@@ -673,7 +673,7 @@ const page = await client.fetch(groq`
   }
 `, { slug })
 
-if (!page) return Astro.redirect('/404')
+if (!page) return Astro.rewrite('/404')
 ---
 <Layout title={page.title}>
   {page.sections?.map((section) => {

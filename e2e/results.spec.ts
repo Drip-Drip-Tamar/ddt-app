@@ -22,7 +22,7 @@ test.describe('results page', () => {
 
         // WaterQualityChart — built server-side from Sanity sample data, so
         // this exercises real (non-stubbed) content; requires SANITY_* env
-        // vars to be set for the dev server.
+        // vars to be set for the built Netlify runtime.
         const waterQualityCanvas = page.locator('canvas.water-chart');
         await expect(waterQualityCanvas).toBeVisible();
 

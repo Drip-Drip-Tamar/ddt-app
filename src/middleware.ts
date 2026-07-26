@@ -14,16 +14,7 @@ const appendVary = (headers: Headers, value: string) => {
     }
 };
 
-export const onRequest = defineMiddleware(async (context, next) => {
-    const sessionPreview = (await context.session?.get('sanityPreview')) === true;
-    const isPreview = sessionPreview || (import.meta.env.DEV && Boolean(getSanityReadToken()));
-
-    Object.assign(context.locals, {
-        isPreview,
-        sanityClient: createSanityReadClient({ preview: isPreview })
-    });
-
-    const response = await next();
+const applySecurityHeaders = (response: Response) => {
     for (const [name, value] of Object.entries(SECURITY_HEADERS)) {
         response.headers.set(name, value);
     }
@@ -31,13 +22,51 @@ export const onRequest = defineMiddleware(async (context, next) => {
     if (import.meta.env.PROD) {
         response.headers.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
     }
+};
 
-    if (isPreview) {
-        response.headers.set('Cache-Control', 'private, no-store');
-        response.headers.set('CDN-Cache-Control', 'no-store');
-        response.headers.set('Netlify-CDN-Cache-Control', 'no-store');
-        appendVary(response.headers, 'Cookie');
+const preventSharedCaching = (response: Response) => {
+    response.headers.set('Cache-Control', 'private, no-store');
+    response.headers.set('CDN-Cache-Control', 'no-store');
+    response.headers.set('Netlify-CDN-Cache-Control', 'no-store');
+    appendVary(response.headers, 'Cookie');
+};
+
+export const onRequest = defineMiddleware(async (context, next) => {
+    let isPreview = false;
+
+    try {
+        const sessionPreview = (await context.session?.get('sanityPreview')) === true;
+        isPreview = sessionPreview || (import.meta.env.DEV && Boolean(getSanityReadToken()));
+
+        Object.assign(context.locals, {
+            isPreview,
+            sanityClient: createSanityReadClient({ preview: isPreview })
+        });
+
+        const response = await next();
+        applySecurityHeaders(response);
+
+        if (isPreview || context.url.pathname === '/api/draft') {
+            preventSharedCaching(response);
+        }
+
+        return response;
+    } catch (error) {
+        if (import.meta.env.DEV) {
+            throw error;
+        }
+
+        console.error('Unhandled request error', error);
+        const response = new Response('Internal Server Error', {
+            status: 500,
+            headers: { 'Content-Type': 'text/plain; charset=utf-8' }
+        });
+
+        applySecurityHeaders(response);
+        if (isPreview || context.url.pathname === '/api/draft') {
+            preventSharedCaching(response);
+        }
+
+        return response;
     }
-
-    return response;
 });

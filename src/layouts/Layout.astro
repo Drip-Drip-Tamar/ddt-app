@@ -12,11 +12,12 @@ interface Props {
     title: string;
     addTitleSuffix?: boolean;
     includeCanonical?: boolean;
+    noIndex?: boolean;
     description?: string;
     image?: CustomImage;
 }
 
-const { addTitleSuffix, includeCanonical = true, description, image } = Astro.props;
+const { addTitleSuffix, includeCanonical = true, noIndex = false, description, image } = Astro.props;
 
 const configData: SiteConfig = (await fetchData(Astro.locals.sanityClient)) || {};
 const titleSuffix = configData.titleSuffix && addTitleSuffix !== false ? configData.titleSuffix : undefined;
@@ -65,6 +66,7 @@ function formatCanonicalURL(url: string | URL) {
 
         <!-- Page Metadata -->
         {canonicalURL && <link rel="canonical" href={formatCanonicalURL(canonicalURL)} />}
+        {noIndex && <meta name="robots" content="noindex" />}
         <meta name="description" content={description} />
 
         <!-- Open Graph / Facebook -->

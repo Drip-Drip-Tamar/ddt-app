@@ -4,7 +4,12 @@
 // astro:after-swap (initial load and, if view transitions are enabled,
 // subsequent client-side navigations).
 
+let disposeMountedNav: (() => void) | undefined;
+
 export function mountMobileNav(): void {
+  disposeMountedNav?.();
+  disposeMountedNav = undefined;
+
   const nav = document.querySelector<HTMLElement>('.nav-panel');
   const navToggleBtn = document.querySelector<HTMLButtonElement>('.nav-toggle');
   const navToggleIcon = document.querySelector<HTMLElement>('.nav-toggle-icon');
@@ -30,15 +35,15 @@ export function mountMobileNav(): void {
     nav.querySelector<HTMLElement>('a[href]')?.focus();
   };
 
-  navToggleBtn.addEventListener('click', () => {
+  const handleToggleClick = () => {
     if (isOpen()) {
       closeNav();
     } else {
       openNav();
     }
-  });
+  };
 
-  nav.addEventListener('keydown', (event) => {
+  const handleNavKeydown = (event: KeyboardEvent) => {
     if (!isOpen()) {
       return;
     }
@@ -50,9 +55,9 @@ export function mountMobileNav(): void {
       return;
     }
 
-  });
+  };
 
-  document.addEventListener('click', (event) => {
+  const handleDocumentClick = (event: MouseEvent) => {
     if (
       !isOpen() ||
       !(event.target instanceof Node) ||
@@ -63,5 +68,15 @@ export function mountMobileNav(): void {
     }
 
     closeNav();
-  });
+  };
+
+  navToggleBtn.addEventListener('click', handleToggleClick);
+  nav.addEventListener('keydown', handleNavKeydown);
+  document.addEventListener('click', handleDocumentClick);
+
+  disposeMountedNav = () => {
+    navToggleBtn.removeEventListener('click', handleToggleClick);
+    nav.removeEventListener('keydown', handleNavKeydown);
+    document.removeEventListener('click', handleDocumentClick);
+  };
 }

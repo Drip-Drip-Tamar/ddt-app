@@ -15,8 +15,9 @@ This runs:
 ```sh
 npm run lint
 npm run typecheck
+npm run typegen:check
 npm run build
-npm test
+npm run test:coverage
 ```
 
 Run narrower checks:
@@ -97,11 +98,21 @@ The workflow expects these secrets:
 SANITY_PROJECT_ID
 SANITY_DATASET
 SANITY_TOKEN
+SANITY_WRITE_TOKEN
+PUBLIC_TURNSTILE_SITE_KEY
+TURNSTILE_SECRET_KEY
+IP_HASH_SALT
 ```
+
+The Playwright job runs against the built Netlify runtime. Its contact test is
+render-only: it verifies the form contract but deliberately does not submit to
+Cloudflare Turnstile or create a Sanity document.
 
 ## Current Baseline
 
-As of the latest verification, the Vitest suite contains 181 tests across 19 test files.
+The suite grows with the application. Use the Vitest summary from
+`npm run test:coverage` as the current test and file count; coverage thresholds
+are enforced by `vitest.config.ts`.
 
 Known non-failing warnings in the full gate:
 

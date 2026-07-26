@@ -92,4 +92,29 @@ describe('mobile-nav.ts', () => {
     expect(toggle.getAttribute('aria-expanded')).toBe('false');
     expect(panel.classList.contains('is-visible')).toBe(false);
   });
+
+  it('does not register duplicate handlers when mounting the same disclosure twice', () => {
+    const { toggle, panel } = renderNav();
+
+    mountMobileNav();
+    mountMobileNav();
+    openNav(toggle);
+
+    expect(toggle.getAttribute('aria-expanded')).toBe('true');
+    expect(panel.classList.contains('is-visible')).toBe(true);
+  });
+
+  it('removes document handlers for disclosure elements replaced by navigation', () => {
+    const previous = renderNav();
+    mountMobileNav();
+    openNav(previous.toggle);
+
+    const current = renderNav();
+    mountMobileNav();
+    openNav(current.toggle);
+    document.body.click();
+
+    expect(current.toggle.getAttribute('aria-expanded')).toBe('false');
+    expect(previous.toggle.getAttribute('aria-expanded')).toBe('true');
+  });
 });
