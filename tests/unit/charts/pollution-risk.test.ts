@@ -118,6 +118,35 @@ describe('pollution-risk.ts', () => {
       expect(badges.textContent).toContain('Okel Tor');
     });
 
+    it('restores badges and clears stale alerts when a later load succeeds', async () => {
+      document.body.innerHTML = `
+        <div id="prf-badges" style="display:block"></div>
+        <div id="prf-error" class="hidden"></div>
+        <div id="prf-offseason" class="hidden"></div>
+      `;
+      const fetchMock = global.fetch as ReturnType<typeof vi.fn>;
+      fetchMock
+        .mockResolvedValueOnce({ ok: false, json: vi.fn() })
+        .mockResolvedValueOnce({
+          ok: true,
+          json: () => Promise.resolve({ sites: [{ label: 'Calstock', season: false }] })
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          json: () => Promise.resolve({ sites: [{ label: 'Calstock', season: true, risk: 'normal' }] })
+        });
+
+      await loadPollutionRiskForecast('prf', '/api/prf.json');
+      await loadPollutionRiskForecast('prf', '/api/prf.json');
+      await loadPollutionRiskForecast('prf', '/api/prf.json');
+
+      const badges = document.getElementById('prf-badges')!;
+      expect(badges.style.display).not.toBe('none');
+      expect(badges.textContent).toContain('Low potential danger');
+      expect(document.getElementById('prf-error')?.classList.contains('hidden')).toBe(true);
+      expect(document.getElementById('prf-offseason')?.classList.contains('hidden')).toBe(true);
+    });
+
     it('shows the off-season alert and hides badges when every site is off-season', async () => {
       document.body.innerHTML = `
         <div id="prf-badges" style="display:block"></div>

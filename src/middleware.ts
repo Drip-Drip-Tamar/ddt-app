@@ -45,6 +45,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
 
         const response = await next();
         applySecurityHeaders(response);
+        response.headers.set('Netlify-Vary', 'cookie=ddt-preview');
 
         if (isPreview || context.url.pathname === '/api/draft') {
             preventSharedCaching(response);
@@ -63,6 +64,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
         });
 
         applySecurityHeaders(response);
+        response.headers.set('Netlify-Vary', 'cookie=ddt-preview');
         if (isPreview || context.url.pathname === '/api/draft') {
             preventSharedCaching(response);
         }

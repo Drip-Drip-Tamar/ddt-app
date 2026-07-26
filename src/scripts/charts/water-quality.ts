@@ -178,6 +178,7 @@ export function finalizeChartConfig(chartConfig: WaterChartOptions, chartData: W
 export function mountWaterQualityChart(root: HTMLElement): void {
     const payloadEl = root.querySelector<HTMLScriptElement>('script[data-water-chart-payload]');
     const canvas = root.querySelector<HTMLCanvasElement>('canvas.water-chart');
+    const errorAlert = root.querySelector<HTMLElement>('[data-water-chart-error]');
     if (!payloadEl || !canvas) return;
 
     let payload: WaterChartPayload;
@@ -185,6 +186,7 @@ export function mountWaterQualityChart(root: HTMLElement): void {
         payload = JSON.parse(payloadEl.textContent || '{}');
     } catch (error) {
         console.error('Invalid water quality chart payload:', error);
+        errorAlert?.classList.remove('hidden');
         return;
     }
 
@@ -200,7 +202,7 @@ export function mountWaterQualityChart(root: HTMLElement): void {
             } as unknown as ChartConfiguration);
         } catch (error) {
             console.error('Failed to load chart libraries:', error);
-            document.getElementById('chart-error')?.classList.remove('hidden');
+            errorAlert?.classList.remove('hidden');
         }
     });
 }

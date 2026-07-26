@@ -29,4 +29,18 @@ describe('WaterQualityChart request client injection', () => {
 
         expect(getWaterSamples).toHaveBeenCalledExactlyOnceWith(sanityClient);
     });
+
+    it('renders an accessible chart error fallback inside the water-quality panel', async () => {
+        const { default: WaterQualityChart } = await import('@components/WaterQualityChart.astro');
+        const container = await AstroContainer.create();
+
+        const html = await container.renderToString(WaterQualityChart, {
+            locals: { sanityClient: {} as SanityClient, isPreview: false },
+            props: { _type: 'waterQualitySection', showChart: true }
+        });
+
+        expect(html).toContain('data-water-chart-error');
+        expect(html).toContain('role="alert"');
+        expect(html).toContain('Unable to display the water quality chart.');
+    });
 });

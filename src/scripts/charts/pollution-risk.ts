@@ -106,6 +106,10 @@ export async function loadPollutionRiskForecast(containerId: string, endpoint: s
             throw new Error('No data available');
         }
 
+        badgesContainer.style.removeProperty('display');
+        errorAlert?.classList.add('hidden');
+        offseasonAlert?.classList.add('hidden');
+
         const allOffSeason = data.sites.every((site) => !site.season);
         if (allOffSeason) {
             badgesContainer.style.display = 'none';

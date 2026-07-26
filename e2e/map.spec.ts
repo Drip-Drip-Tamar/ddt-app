@@ -13,8 +13,16 @@ test.describe('storm overflow map page', () => {
         );
     });
 
-    test('shows the leaflet map container and the CSO activity panel', async ({ page }) => {
-        await page.goto('/map');
+    test('shows the leaflet map container and renders the CSO activity chart', async ({ page }) => {
+        const pageErrors: string[] = [];
+        const consoleErrors: string[] = [];
+        page.on('pageerror', (error) => pageErrors.push(error.message));
+        page.on('console', (message) => {
+            if (message.type() === 'error') consoleErrors.push(message.text());
+        });
+
+        const response = await page.goto('/map');
+        expect(response?.ok()).toBeTruthy();
 
         // Leaflet initializes the map container with its own class.
         await expect(page.locator('.cso-leaflet-map')).toBeVisible();
@@ -23,6 +31,33 @@ test.describe('storm overflow map page', () => {
         // CSO activity chart panel (TamarStormOverflow), fed by the stubbed
         // /api/cso-live.json route.
         await expect(page.locator('[data-storm-overflow]')).toBeVisible();
-        await expect(page.locator('[data-storm-overflow] canvas')).toBeVisible();
+        const stormOverflowCanvas = page.locator('[data-storm-overflow] canvas');
+        await expect(stormOverflowCanvas).toBeVisible();
+        await stormOverflowCanvas.scrollIntoViewIfNeeded();
+
+        await expect
+            .poll(() =>
+                stormOverflowCanvas.evaluate((node: HTMLCanvasElement) => ({
+                    width: node.width,
+                    height: node.height,
+                    hasInk: Array.from(node.getContext('2d')!.getImageData(0, 0, node.width, node.height).data).some(
+                        (channel, index) => index % 4 !== 3 && channel !== 0
+                    )
+                }))
+            )
+            .toMatchObject({
+                width: expect.any(Number),
+                height: expect.any(Number),
+                hasInk: true
+            });
+
+        const rendering = await stormOverflowCanvas.evaluate((node: HTMLCanvasElement) => ({
+            width: node.width,
+            height: node.height
+        }));
+        expect(rendering.width).toBeGreaterThan(0);
+        expect(rendering.height).toBeGreaterThan(0);
+        expect(pageErrors).toEqual([]);
+        expect(consoleErrors).toEqual([]);
     });
 });

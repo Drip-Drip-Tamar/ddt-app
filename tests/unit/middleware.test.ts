@@ -37,7 +37,7 @@ describe('Astro security middleware', () => {
         vi.unstubAllEnvs();
     });
 
-    it('sets published locals and preserves published response caching', async () => {
+    it('sets published locals and varies published caching on the preview cookie', async () => {
         const { onRequest } = await import('../../src/middleware');
         const context = createContext(false);
         const next = vi.fn().mockResolvedValue(
@@ -56,6 +56,7 @@ describe('Astro security middleware', () => {
         expect(headers.get('referrer-policy')).toBe('strict-origin-when-cross-origin');
         expect(headers.get('x-content-type-options')).toBe('nosniff');
         expect(headers.get('cache-control')).toBe('public, s-maxage=300');
+        expect(headers.get('netlify-vary')).toBe('cookie=ddt-preview');
     });
 
     it('prevents CDN caching for preview responses and extends Vary with Cookie', async () => {
@@ -79,6 +80,7 @@ describe('Astro security middleware', () => {
         expect(headers.get('cache-control')).toBe('private, no-store');
         expect(headers.get('cdn-cache-control')).toBe('no-store');
         expect(headers.get('netlify-cdn-cache-control')).toBe('no-store');
+        expect(headers.get('netlify-vary')).toBe('cookie=ddt-preview');
         expect(headers.get('vary')).toBe('Accept-Encoding, Cookie');
     });
 
@@ -133,6 +135,7 @@ describe('Astro security middleware', () => {
         expect(headers.get('x-content-type-options')).toBe('nosniff');
         expect(headers.get('strict-transport-security')).toBe('max-age=31536000; includeSubDomains');
         expect(headers.get('cache-control')).toBe('private, no-store');
+        expect(headers.get('netlify-vary')).toBe('cookie=ddt-preview');
         expect(consoleError).toHaveBeenCalledWith('Unhandled request error', error);
     });
 

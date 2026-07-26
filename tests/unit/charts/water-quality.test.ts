@@ -1,18 +1,21 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-const { FakeChart } = vi.hoisted(() => {
+const { FakeChart, constructChart } = vi.hoisted(() => {
   const destroyMock = vi.fn();
   const getChartMock = vi.fn(() => undefined as { destroy: () => void } | undefined);
+  const constructChart = vi.fn();
   class FakeChart {
     static getChart = getChartMock;
     destroy = destroyMock;
     constructor(
       public canvas: unknown,
       public config: unknown
-    ) {}
+    ) {
+      constructChart(canvas, config);
+    }
   }
-  return { destroyMock, getChartMock, FakeChart };
+  return { destroyMock, getChartMock, constructChart, FakeChart };
 });
 
 vi.mock('../../../src/scripts/charts/chart-setup', () => ({
@@ -282,7 +285,7 @@ describe('water-quality.ts', () => {
       expect(observe).toHaveBeenCalledWith(canvas);
     });
 
-    it('logs and returns without throwing on invalid JSON payload', () => {
+    it('reveals its error alert without throwing on invalid JSON payload', () => {
       const root = document.createElement('div');
       const script = document.createElement('script');
       script.setAttribute('type', 'application/json');
@@ -290,10 +293,52 @@ describe('water-quality.ts', () => {
       script.textContent = '{not valid json';
       const canvas = document.createElement('canvas');
       canvas.className = 'water-chart';
+      const errorAlert = document.createElement('div');
+      errorAlert.className = 'hidden';
+      errorAlert.setAttribute('data-water-chart-error', '');
       root.appendChild(script);
       root.appendChild(canvas);
+      root.appendChild(errorAlert);
 
       expect(() => mountWaterQualityChart(root)).not.toThrow();
+      expect(errorAlert.classList.contains('hidden')).toBe(false);
+    });
+
+    it('reveals only its own error alert when chart rendering fails', () => {
+      document.body.innerHTML = `
+        <div id="other-chart">
+          <div class="hidden" data-water-chart-error></div>
+        </div>
+      `;
+      const root = document.createElement('div');
+      root.innerHTML = `
+        <script type="application/json" data-water-chart-payload>
+          {"chartData":{"labels":[],"datasets":[]},"chartConfig":{},"chartType":"line"}
+        </script>
+        <canvas class="water-chart"></canvas>
+        <div class="hidden" data-water-chart-error></div>
+      `;
+      document.body.appendChild(root);
+      const errorAlert = root.querySelector<HTMLElement>('[data-water-chart-error]')!;
+      const otherErrorAlert = document.querySelector<HTMLElement>('#other-chart [data-water-chart-error]')!;
+      constructChart.mockImplementationOnce(() => {
+        throw new Error('render failed');
+      });
+      // @ts-expect-error minimal IntersectionObserver stub for jsdom
+      global.IntersectionObserver = vi.fn(function (cb: IntersectionObserverCallback) {
+        return {
+          observe: (el: Element) => {
+            cb([{ isIntersecting: true, target: el } as unknown as IntersectionObserverEntry], {} as IntersectionObserver);
+          },
+          disconnect: vi.fn(),
+          unobserve: vi.fn()
+        };
+      });
+
+      mountWaterQualityChart(root);
+
+      expect(errorAlert.classList.contains('hidden')).toBe(false);
+      expect(otherErrorAlert.classList.contains('hidden')).toBe(true);
     });
   });
 

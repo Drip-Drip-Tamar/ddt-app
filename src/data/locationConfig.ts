@@ -1,4 +1,7 @@
-import { fetchData as fetchSiteConfig } from './siteConfig';
+import {
+  fetchData as fetchSiteConfig,
+  type SiteConfigData
+} from './siteConfig';
 
 // Hand-written rather than generated: the Sanity-generated
 // `monitoringConfiguration` shape (from sanity.types.ts) has every field
@@ -57,6 +60,73 @@ const DEFAULT_CONFIG: MonitoringConfig = {
   ]
 };
 
+type SanityMonitoringConfig = NonNullable<SiteConfigData['monitoringConfiguration']>;
+
+function isNonEmptyString(value: unknown): value is string {
+  return typeof value === 'string' && value.trim().length > 0;
+}
+
+function isFiniteNumber(value: unknown): value is number {
+  return typeof value === 'number' && Number.isFinite(value);
+}
+
+function isLatitude(value: unknown): value is number {
+  return isFiniteNumber(value) && value >= -90 && value <= 90;
+}
+
+function isLongitude(value: unknown): value is number {
+  return isFiniteNumber(value) && value >= -180 && value <= 180;
+}
+
+function isBathingWater(
+  value: { id?: string; label?: string }
+): value is BathingWater {
+  return isNonEmptyString(value.id) && isNonEmptyString(value.label);
+}
+
+function normalizeMonitoringConfig(config: SanityMonitoringConfig): MonitoringConfig {
+  const primaryLocation = config.primaryLocation;
+  const center = primaryLocation?.center;
+  const riverStations = config.riverStations;
+  const bathingWaters = config.bathingWaters;
+
+  return {
+    primaryLocation: {
+      name: isNonEmptyString(primaryLocation?.name)
+        ? primaryLocation.name
+        : DEFAULT_CONFIG.primaryLocation.name,
+      center: {
+        lat: isLatitude(center?.lat)
+          ? center.lat
+          : DEFAULT_CONFIG.primaryLocation.center.lat,
+        lng: isLongitude(center?.lng)
+          ? center.lng
+          : DEFAULT_CONFIG.primaryLocation.center.lng
+      },
+      defaultRadius:
+        isFiniteNumber(primaryLocation?.defaultRadius) && primaryLocation.defaultRadius > 0
+          ? primaryLocation.defaultRadius
+          : DEFAULT_CONFIG.primaryLocation.defaultRadius,
+      description: isNonEmptyString(primaryLocation?.description)
+        ? primaryLocation.description
+        : DEFAULT_CONFIG.primaryLocation.description
+    },
+    riverStations: {
+      freshwaterStationId: isNonEmptyString(riverStations?.freshwaterStationId)
+        ? riverStations.freshwaterStationId
+        : DEFAULT_CONFIG.riverStations.freshwaterStationId,
+      tidalStationId: isNonEmptyString(riverStations?.tidalStationId)
+        ? riverStations.tidalStationId
+        : DEFAULT_CONFIG.riverStations.tidalStationId
+    },
+    bathingWaters:
+      Array.isArray(bathingWaters) &&
+      bathingWaters.every(isBathingWater)
+        ? bathingWaters.map(({ id, label }) => ({ id, label }))
+        : DEFAULT_CONFIG.bathingWaters
+  };
+}
+
 /**
  * Fetch monitoring configuration from Sanity with caching
  */
@@ -72,10 +142,7 @@ export async function getMonitoringConfig(): Promise<MonitoringConfig> {
     const siteConfig = await fetchSiteConfig();
 
     if (siteConfig?.monitoringConfiguration) {
-      // Cast: see the module-level comment above on why this module's
-      // public types describe the post-fallback shape rather than the
-      // fully-optional generated query type.
-      configCache = siteConfig.monitoringConfiguration as MonitoringConfig;
+      configCache = normalizeMonitoringConfig(siteConfig.monitoringConfiguration);
       cacheTimestamp = now;
       return configCache;
     }

@@ -19,4 +19,15 @@ test.describe('home page', () => {
         expect(pageErrors).toEqual([]);
         expect(consoleErrors).toEqual([]);
     });
+
+    test('built API responses include middleware security headers', async ({ request }) => {
+        const response = await request.get('/api/disable-draft', {
+            maxRedirects: 0
+        });
+
+        expect(response.status()).toBe(302);
+        expect(response.headers()['content-security-policy']).toContain("default-src 'self'");
+        expect(response.headers()['referrer-policy']).toBe('strict-origin-when-cross-origin');
+        expect(response.headers()['x-content-type-options']).toBe('nosniff');
+    });
 });

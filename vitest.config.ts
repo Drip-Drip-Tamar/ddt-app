@@ -22,6 +22,7 @@ export default getViteConfig({
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
+      include: ['src/**/*.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
       exclude: [
         'node_modules/',
         'dist/',
@@ -30,11 +31,11 @@ export default getViteConfig({
         'e2e/',
         '*.config.*',
         'tests/**',
+        // Generated declarations and development-only integration code do
+        // not ship as application runtime modules.
         'src/env.d.ts',
-        // Astro component behavior is exercised by container tests, while
-        // this ratchet tracks the existing script/API/data instrumentation.
-        'src/components/**/*.astro',
-        'src/components/SanityVisualEditing.tsx'
+        'src/sanity.types.ts',
+        'src/integrations/sanity-dev-refresh.ts'
       ],
       // Ratchet, not gate: set a few points below the levels measured on
       // 2026-07-07 (see IMPROVEMENT-PLAN.md Task 15) so normal fluctuation

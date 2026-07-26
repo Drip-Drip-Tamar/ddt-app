@@ -50,7 +50,8 @@ export default defineConfig({
     integrations: [
         sanity(sanityConfig),
         react(),
-        createSanityDevRefreshIntegration(() => createClient({ ...sanityConfig, useCdn: false }))
+        process.env.NODE_ENV !== 'test' &&
+            createSanityDevRefreshIntegration(() => createClient({ ...sanityConfig, useCdn: false }))
     ],
     vite: {
         plugins: [tailwindcss()],
