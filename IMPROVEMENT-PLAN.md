@@ -13,7 +13,7 @@ This document is the working checklist. Tick tasks as they complete; add notes i
 
 ## Batch 1 — Security & correctness
 
-### 0. [x] URGENT — stop leaking SANITY_TOKEN into production HTML — *done 2026-07-07; token prop was entirely unused; render now gated to preview contexts. USER ACTION: rotate SANITY_TOKEN to read-only, add SANITY_WRITE_TOKEN to Netlify + GitHub secrets.*
+### 0. [x] URGENT — stop leaking SANITY_TOKEN into production HTML — *done 2026-07-07; token prop was entirely unused; render now gated to preview contexts. REQUIRED BEFORE MERGE/DEPLOY: revoke the exposed write-capable token, replace it with a least-privilege read token, and configure the contact-only SANITY_WRITE_TOKEN.*
 
 - **Files**: `src/layouts/Layout.astro:95`, `src/components/SanityVisualEditing.tsx`
 - **Problem** (verified against Astro runtime internals): `Layout.astro:95` renders `<SanityVisualEditing client:only="react" token={import.meta.env.SANITY_TOKEN} />` unconditionally on every page in every environment. Astro serialises `client:only` props into the `astro-island` element's `props` attribute in the served HTML — the component's internal `import.meta.env.DEV && isInPresentation` check (SanityVisualEditing.tsx:53) runs after hydration and does not prevent serialisation. **The write-capable token is therefore visible via View Source on every production page.** (`grep dist/` finds nothing only because `output: 'server'` renders per-request — the leak is in served HTML, not build artifacts.)
@@ -36,7 +36,7 @@ This document is the working checklist. Tick tasks as they complete; add notes i
 - **Note**: Visual editing (Sanity Presentation iframe) needs `frame-ancestors` allowance for the Studio origin on preview contexts — verify before locking down.
 - **Acceptance**: Headers visible on deploy preview; site functional (charts, map, Turnstile, Studio presentation preview all work); no CSP violations in console on main pages.
 
-### 3. [x] Split Sanity tokens; remove module-load side effects from sanity-client — *done 2026-07-07; write client falls back to SANITY_TOKEN with a warning until SANITY_WRITE_TOKEN is set.*
+### 3. [x] Split Sanity tokens; remove module-load side effects from sanity-client — *done 2026-07-07; the contact write client requires SANITY_WRITE_TOKEN and does not fall back to SANITY_TOKEN. Missing write token or IP_HASH_SALT makes /api/contact return 503.*
 
 - **Files**: `src/utils/sanity-client.ts` (token at L24, listener at L33-45), `astro.config.mjs` (spreads same config into `sanity()` integration), `src/pages/api/contact.ts:9-14`
 - **Problem** (three parts):
@@ -54,7 +54,7 @@ This document is the working checklist. Tick tasks as they complete; add notes i
 - **Solution**: One deep module — `fetchUpstream(url, opts)` in e.g. `src/utils/upstream.ts` — hiding `AbortSignal.timeout(~8s)`, ok-check, JSON parse, and a consistent error envelope. Convert all 7 call sites. Keep the existing per-endpoint cache-header behaviour (it is already good: `s-maxage` + `stale-while-revalidate` on success, `no-cache` on error).
 - **Acceptance**: All API route tests still pass (they mock `global.fetch` — should be transparent); new unit tests for the helper (timeout, non-ok, malformed JSON).
 
-### 5. [x] Harden contact endpoint — *done 2026-07-07; length caps + salted IP hash (IP_HASH_SALT env). USER ACTION: set IP_HASH_SALT in Netlify env.*
+### 5. [x] Harden contact endpoint — *done 2026-07-07; length caps + salted IP hash (IP_HASH_SALT env). REQUIRED BEFORE DEPLOY: set SANITY_WRITE_TOKEN and IP_HASH_SALT in Netlify.*
 
 - **Files**: `src/pages/api/contact.ts`
 - **Problem**: No length limits on `name`/`email`/`subject`/`message` — arbitrary-size payloads written straight into Sanity via `.create()`. IP hash is unsalted SHA-256 (rainbow-tableable over IPv4 space). Rate limiting exists only as a Netlify edge function (`netlify/edge-functions/contact-rate-limit.ts`, 5 req/60s) — nothing applies in local dev or non-Netlify hosting.
@@ -148,12 +148,12 @@ This document is the working checklist. Tick tasks as they complete; add notes i
 - **Solution**: For each `src/scripts/charts/*` module: test transform functions (API JSON fixture → chart datasets), config builders (thresholds, annotations, colours), and `mountPanel` error paths (non-ok response → error banner) with jsdom (already a dependency, currently unused — enable per-file via `// @vitest-environment jsdom` or a browser-mode project).
 - **Acceptance**: Every exported function in `src/scripts/charts/` has coverage; coverage of the new directory ≥ 80%.
 
-### 15. [x] Playwright smoke suite + CI hardening — *done 2026-07-07; 5 smoke specs (API routes stubbed), push+cron CI triggers, coverage thresholds 84/72/86/85.*
+### 15. [x] Playwright smoke suite + CI hardening — *remediated 2026-07-26; 7 built-runtime specs pass through local Netlify CLI, Chart.js checks verify real pixels/backing dimensions with browser error collection, true 404 responses are covered, and test:all enforces coverage thresholds.*
 
 - **Files**: new `e2e/` + `playwright.config.ts`; `.github/workflows/pr-checks.yml`; `vitest.config.ts`
 - **Problem**: No e2e at all (`.playwright-mcp/` is an MCP artifact dir, not a suite). CI runs only on PRs to `main` — direct pushes and upstream API drift are never caught. Coverage configured but no thresholds enforced, so the untested surface never fails a build. Global test setup silences `console` entirely and sets `global.fetch = vi.fn()` with no default (un-mocked fetches fail confusingly).
 - **Solution**:
-  - Playwright with a thin smoke: home renders, `/map` shows map + CSO panel, `/results` shows charts, `/news` lists posts, contact form happy path (Turnstile test key). Run against `astro preview` build in CI.
+  - Playwright with a thin smoke: home renders, `/map` shows map + CSO panel, `/results` shows real Chart.js pixels and backing dimensions, `/news` renders its shell, and contact renders without submitting a real message. Run against `netlify serve` because the Netlify SSR adapter does not support `astro preview`.
   - Add `push: branches: [main]` trigger to the workflow.
   - Add coverage thresholds to `vitest.config.ts` (start at current levels, ratchet up).
   - Consider a scheduled weekly run to catch EA/SWW API drift.
@@ -241,7 +241,7 @@ This document is the working checklist. Tick tasks as they complete; add notes i
 | 4 Tests | 13, 14, 15 | 13 anytime; 14 after 6; 15 last | |
 | 5 Hygiene | 16, 17, 19*, 20, 21, 22, 23 | Yes — independent | *19 blocked on user decision (Stackbit) |
 
-**Verification after each batch**: `npm run test:all` (lint + typecheck + build + tests) must be green before starting the next batch. Final review in the main thread after all batches.
+**Verification after each batch**: `npm run test:all` (lint + typecheck + generated-type freshness + build + enforced coverage thresholds) must be green before starting the next batch. Run `npm run test:e2e` separately against the built Netlify runtime. Final review in the main thread after all batches.
 
 ## Open decisions
 

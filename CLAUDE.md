@@ -36,7 +36,9 @@ npm run test:integration # Run integration tests only
 npm run test:watch    # Run tests in watch mode
 npm run test:coverage # Run tests with coverage report
 npm run test:ui       # Open Vitest UI
-npm run test:all      # Run linting, type checking, build validation, and tests
+npm run test:all      # Run lint, types, typegen, build, and coverage thresholds
+npm run test:e2e      # Run Playwright against the built Netlify runtime
+npm run serve:test    # Build and serve Netlify locally on port 4173
 npm run lint          # Run ESLint
 npm run typecheck     # Run TypeScript checking
 ```
@@ -50,7 +52,7 @@ cd studio && sanity dev      # Access via Studio → Presentation tab
 
 This is an **Astro + Sanity CMS** starter with Sanity Presentation tool visual editing. The architecture follows a JAMstack pattern with:
 
-- **Frontend**: Astro static site generator with TypeScript
+- **Frontend**: Astro SSR application with TypeScript and the Netlify adapter
 - **CMS**: Sanity.io headless CMS with structured content
 - **News System**: Blog/news functionality with posts and author management
 - **Visual Editing**: Sanity Presentation tool (native)
@@ -63,8 +65,8 @@ This is an **Astro + Sanity CMS** starter with Sanity Presentation tool visual e
 Pages are dynamically generated through multiple routing systems:
 
 **Main Site Pages** (`src/pages/[...slug].astro`):
-- Fetches all pages from Sanity at build time
-- Maps slug to route params
+- Fetches the requested page from Sanity through a request-scoped client
+- Maps the catch-all slug to the requested page
 - Component-based rendering using section mapping
 
 **News System** (`src/pages/news/`):
@@ -86,17 +88,17 @@ const componentMap = {
 
 ### Sanity Integration
 - Client configuration in `src/utils/sanity-client.ts`
-- Real-time listener for page updates in development
-- Preview drafts support for visual editing
-- Perspective switching (published vs previewDrafts)
+- Separate least-privilege read and contact-write clients
+- Request-scoped published or authenticated draft reads
+- Preview entry through `/api/draft` and Astro Sessions
 - Native Presentation tool with live preview iframe
-- SanityVisualEditing component for client-side editing features
+- `@sanity/astro/visual-editing` rendered only for authenticated preview requests
 
 ### Data Fetching Pattern
-- `src/data/page.js`: Page data fetching utilities
-- `src/data/blocks.js`: Block content utilities
-- `src/data/siteConfig.js`: Global site configuration
-- `src/data/waterQuality.js`: Water quality sample fetching and chart data transformation
+- `src/data/page.ts`: Page data fetching utilities
+- `src/data/blocks.ts`: Block content utilities
+- `src/data/siteConfig.ts`: Global site configuration
+- `src/data/waterQuality.ts`: Water quality sample fetching and chart data transformation
 - News posts: Direct Sanity queries in page components with GROQ
 
 ### Portable Text Utilities
@@ -165,17 +167,21 @@ The news system provides blog functionality with the following components:
 # Root .env
 SANITY_PROJECT_ID="..."      # Sanity project ID
 SANITY_DATASET="..."         # Usually "production"
-SANITY_TOKEN="..."           # Editor token with read/write access
+SANITY_TOKEN="..."           # Least-privilege read token for authenticated drafts
+SANITY_WRITE_TOKEN="..."     # Contact-document creation only
+IP_HASH_SALT="..."           # High-entropy secret for contact IP hashes
 
 # studio/.env
 SANITY_STUDIO_PROJECT_ID="..."  # Same as above
 SANITY_STUDIO_DATASET="..."     # Same as above
 ```
 
+`SANITY_WRITE_TOKEN` is consumed only by `/api/contact`. If it or `IP_HASH_SALT` is missing, the endpoint returns `503`. The previously exposed write-capable read token must be revoked before merge or deployment.
+
 ### Preview Configuration
-- `SANITY_PREVIEW_DRAFTS=true`: Enable Sanity draft content preview
-- `SANITY_STUDIO_PREVIEW_URL`: Preview URL for Presentation tool (defaults to localhost:3000)
-- Automatically enabled in development and deploy previews
+- `SANITY_STUDIO_PREVIEW_URL`: Presentation preview URL (defaults to `http://localhost:3000`)
+- Presentation calls `/api/draft`; that route validates the preview request with `SANITY_TOKEN` and enables request-scoped draft reads in Astro Sessions
+- Deploy previews show published content unless an editor enters through Presentation
 
 ## Sanity Schema Architecture
 
@@ -193,17 +199,16 @@ The Sanity Presentation tool is the sole visual-editing path, integrated directl
 - **Configuration**: `studio/sanity.config.ts:19-51` - presentationTool configuration
 - **Preview URL**: Configurable via `SANITY_STUDIO_PREVIEW_URL` environment variable
 - **Document Resolution**: Maps pages by slug with automatic navigation
-- **Client Component**: `src/components/SanityVisualEditing.tsx` - Handles iframe detection and editing activation
-- **Layout Integration**: `src/layouts/Layout.astro` - Conditionally loads visual editing
+- **Frontend Integration**: `@sanity/astro/visual-editing`
+- **Layout Integration**: `src/layouts/Layout.astro` renders visual editing only when `Astro.locals.isPreview` is authenticated
 - **Access**: Via Studio interface → Presentation tab
 
 ### Key Implementation Details
 
-**SanityVisualEditing Component (`src/components/SanityVisualEditing.tsx`)**:
-- Detects iframe context and `SANITY_PREVIEW_DRAFTS` parameter
-- Only activates within Sanity Studio's Presentation tool
-- Provides history API integration for navigation
-- Shows development status indicator when active
+**Frontend integration**:
+- Uses the maintained `VisualEditing` integration from `@sanity/astro/visual-editing`
+- Renders only for request-scoped authenticated previews
+- Does not serialize a Sanity token into production HTML
 
 **Studio Configuration (`studio/sanity.config.ts:19-51`)**:
 - Preview URL with draft mode support
@@ -212,14 +217,14 @@ The Sanity Presentation tool is the sole visual-editing path, integrated directl
 
 **Environment Variables**:
 - `SANITY_STUDIO_PREVIEW_URL`: Presentation tool preview URL (defaults to localhost:3000)
-- `SANITY_PREVIEW_DRAFTS`: Enables draft content in preview mode
+- `SANITY_TOKEN`: Read-only token used to validate Presentation entry and fetch drafts
 
 ### Dependencies Added
 - **Studio**: presentation tool ships bundled with `sanity` (no separate `@sanity/presentation` dependency)
-- **Frontend**: `@sanity/visual-editing: ^3.0.3`
-- **Testing**: `vitest: ^3.2.4`, `@vitest/ui: ^3.2.4`, `@vitest/coverage-v8: ^3.2.4`
-- **Testing Libraries**: `@testing-library/jest-dom: ^6.8.0`, `@testing-library/react: ^16.3.0`, `jsdom: ^26.1.0`
-- **Code Quality**: `eslint: ^9.35.0`, `@typescript-eslint/*: ^8.43.0`
+- **Frontend**: `@sanity/visual-editing: ^5.2.1`
+- **Testing**: `vitest: ^4.1.10`, `@vitest/ui: ^4.1.10`, `@vitest/coverage-v8: ^4.1.10`
+- **Testing Libraries**: `@testing-library/jest-dom: ^6.8.0`, `@testing-library/react: ^16.3.2`, `jsdom: ^28.0.0`
+- **Code Quality**: `eslint: ^9.39.2`, `@typescript-eslint/*: ^8.54.0`
 - **Compatibility**: Fixed `easymde: ^2.20.0` dependency issue post-upgrade
 
 ## Testing Architecture
@@ -246,20 +251,15 @@ tests/
 - **Integration Tests**: Page data fetching, routing, component mapping, news post rendering, SEO fallback logic, API endpoint validation
 - **API Endpoint Tests**: Contact form spam detection and validation, external API integration (Environment Agency), error handling
 - **Static Analysis**: TypeScript checking, ESLint validation, build verification
-- **Coverage Reports**: HTML and JSON coverage reports with v8 provider
-
-**Coverage Metrics** (as of latest run):
-- Water Quality module: 92.2% coverage
-- Portable Text utility: 100% coverage
-- Overall utils directory: 96.95% coverage
-- Total: 145 passing tests (124 original + 21 new API tests)
+- **Coverage Reports**: text, JSON, and HTML reports with enforced v8 thresholds
+- **Browser Tests**: Playwright against `netlify serve`, including real Chart.js canvas pixels and browser error collection
 
 ### Test Configuration
 - **Framework**: Vitest with Node environment
 - **Setup**: Global mocks for Sanity environment variables, fetch API, and console methods
 - **Path Aliases**: Configured with TypeScript path mappings (@utils, @data, @components, etc.) for consistent imports
 - **Coverage**: Excludes `node_modules/`, `dist/`, `.astro/`, `studio/`, config files, and test files
-- **CI/CD Ready**: Designed for automated pipeline integration with separate unit/integration test commands
+- **CI/CD Gate**: `test:all` invokes `test:coverage`, so threshold regressions fail locally and in CI
 
 ### Key Testing Features
 - Mocked Sanity client for consistent test environments
@@ -280,18 +280,18 @@ tests/
 Pull requests to the `main` branch automatically trigger comprehensive quality checks via GitHub Actions (`.github/workflows/pr-checks.yml`). This workflow runs the complete test suite and validation pipeline before code can be merged.
 
 **Workflow Configuration:**
-- **Trigger**: Only on pull requests to `main` (not on every branch push)
-- **Environment**: Ubuntu latest with Node.js 20 (matching Netlify)
+- **Trigger**: Pull requests and pushes to `main`, plus a weekly scheduled safety run
+- **Environment**: Ubuntu latest with the Node version from `.nvmrc`
 - **Caching**: npm dependencies cached based on `package-lock.json` hash
-- **Command**: `npm run test:all` (executes lint, typecheck, build, and tests)
+- **Command**: `npm run check:prod` for the production gate, plus a separate Playwright job
 
 **What Gets Tested:**
 1. **ESLint Validation** - Code quality and style checking
 2. **TypeScript Type Checking** - Both Astro and TSC type validation
-3. **Build Validation** - Production build must complete successfully
-4. **Unit Tests** - All utility and data transformation tests (124+ tests)
-5. **Integration Tests** - Page rendering, news system, and API endpoint tests
-6. **API Endpoint Tests** - Contact form validation and external API integration
+3. **Generated Type Validation** - Sanity schema and generated types must be fresh
+4. **Build Validation** - Website and Studio production builds must complete
+5. **Coverage Enforcement** - Unit and integration coverage thresholds must pass
+6. **Production-runtime E2E** - Playwright exercises the built Netlify runtime on port 4173
 
 **Expected Performance:**
 - First run (no cache): ~2-3 minutes
@@ -303,6 +303,8 @@ Tests use stubbed Sanity credentials from `tests/setup/setup.ts`, but the workfl
 - `SANITY_PROJECT_ID`
 - `SANITY_DATASET`
 - `SANITY_TOKEN`
+- `SANITY_WRITE_TOKEN`
+- `IP_HASH_SALT`
 
 ### API Endpoint Test Coverage
 
@@ -340,18 +342,17 @@ Tests use stubbed Sanity credentials from `tests/setup/setup.ts`, but the workfl
 GitHub Actions PR checks **complement** (not replace) Netlify's existing deployment preview validation:
 
 **GitHub Actions** (`.github/workflows/pr-checks.yml`):
-- Runs `npm run test:all` on every PR
-- Validates code quality, types, tests, and build
-- Provides fast feedback (~1-2 minutes)
+- Runs `npm run check:prod` on every PR
+- Validates code quality, types, generated files, coverage thresholds, and builds
+- Runs Playwright against `netlify serve` with API responses stubbed at the network boundary
 - Blocks merge if checks fail
 
 **Netlify** (`netlify.toml`):
 - Runs `npm ci && npm run build` on deploy previews
 - Validates production build and deployment
 - Generates preview URL for visual testing
-- Tests actual deployment environment
 
-Together, these checks ensure both code quality (GitHub Actions) and deployment viability (Netlify) before merging to `main`.
+The E2E suite does not submit a real contact message. Deploy previews render published content unless Presentation authenticates draft mode through `/api/draft` and Astro Sessions.
 
 ## Sessions System Behaviors
 

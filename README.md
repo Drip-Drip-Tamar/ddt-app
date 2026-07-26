@@ -47,12 +47,16 @@ Set these values:
 ```txt
 SANITY_PROJECT_ID="i1ywpsq5"
 SANITY_DATASET="production"
-SANITY_TOKEN="..."
+SANITY_TOKEN="<least-privilege read token>"
+SANITY_WRITE_TOKEN="<least-privilege token restricted to contact document creation>"
+IP_HASH_SALT="<high-entropy random secret>"
 PUBLIC_TURNSTILE_SITE_KEY="..."
 TURNSTILE_SECRET_KEY="..."
 ```
 
-`SANITY_TOKEN` and `TURNSTILE_SECRET_KEY` must be kept private. `SANITY_TOKEN` is used by the SSR app, contact form endpoint, visual editing, and backup export script. `TURNSTILE_SECRET_KEY` is used server-side to verify contact form submissions.
+Keep all tokens and secrets private. `SANITY_TOKEN` is read-only and is used for authenticated draft reads, Presentation preview validation, and backup exports. `SANITY_WRITE_TOKEN` is used only by `/api/contact` and should be restricted to creating contact documents. `IP_HASH_SALT` is a high-entropy secret used to protect stored IP hashes. If either `SANITY_WRITE_TOKEN` or `IP_HASH_SALT` is missing, `/api/contact` returns `503`.
+
+The write-capable `SANITY_TOKEN` that was previously exposed through rendered HTML must be revoked before this branch is merged or deployed. Replace it with separate least-privilege read and contact-write tokens.
 
 ## Local Development
 
@@ -73,7 +77,7 @@ npm run dev
 
 The Studio runs on `http://localhost:3333`.
 
-For Presentation tool previews, set `SANITY_STUDIO_PREVIEW_URL` when the preview origin is not `http://localhost:3000`.
+For Presentation tool previews, set `SANITY_STUDIO_PREVIEW_URL` when the preview origin is not `http://localhost:3000`. Presentation enables authenticated draft reads through `/api/draft`, which validates the preview request and stores preview state in Astro Sessions.
 
 ## Content And Data
 
@@ -113,13 +117,15 @@ Run the full production-parity gate before merging or deploying code changes:
 npm run check:prod
 ```
 
-This verifies the active Node.js version, installs the website and Studio dependencies with `npm ci`, runs linting, type checking, the production build, the full Vitest suite, and the Sanity Studio build.
+This verifies the active Node.js version, installs the website and Studio dependencies with `npm ci`, runs linting, type checking, generated-type freshness, the production build, the full Vitest suite with enforced coverage thresholds, and the Sanity Studio build.
 
 For faster local iteration after dependencies are installed, use:
 
 ```sh
 npm run test:all
 ```
+
+`test:all` includes `test:coverage`, so coverage regressions fail the standard local and CI gate. Run the browser suite separately with `npm run test:e2e`; Playwright starts `netlify serve` on dedicated port `4173` and exercises the built Netlify runtime.
 
 Useful narrower commands:
 
@@ -148,6 +154,8 @@ Netlify must provide:
 SANITY_PROJECT_ID
 SANITY_DATASET
 SANITY_TOKEN
+SANITY_WRITE_TOKEN
+IP_HASH_SALT
 PUBLIC_TURNSTILE_SITE_KEY
 TURNSTILE_SECRET_KEY
 ```

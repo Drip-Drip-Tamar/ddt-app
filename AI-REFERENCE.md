@@ -256,21 +256,16 @@ groq`*[_type == "post" && slug.current == $slug][0]`
 ### Client Configuration
 ```js
 // src/utils/sanity-client.ts
-import { createClient } from '@sanity/client'
+export const client = createSanityReadClient({ preview: false })
 
-export const client = createClient({
-  projectId: import.meta.env.SANITY_PROJECT_ID,
-  dataset: import.meta.env.SANITY_DATASET,
-  apiVersion: '2024-01-01',
-  useCdn: import.meta.env.PROD, // CDN for production
-  perspective: 'published', // or 'previewDrafts'
-  token: import.meta.env.SANITY_TOKEN, // optional
-  stega: { 
-    enabled: import.meta.env.PUBLIC_SANITY_PREVIEW === 'true',
-    studioUrl: '/studio'
-  }
-})
+// src/middleware.ts — create draft-enabled clients per request
+context.locals.sanityClient = createSanityReadClient({ preview: isPreview })
+
+// src/pages/api/contact.ts — write client is contact-only
+const contactClient = createSanityWriteClient()
 ```
+
+Published reads do not receive a token. `SANITY_TOKEN` is a least-privilege read token used only for authenticated draft reads and Presentation validation. `SANITY_WRITE_TOKEN` is restricted to contact-document creation and is consumed only by `/api/contact`.
 
 ### Studio Configuration
 ```js
@@ -328,8 +323,9 @@ export default defineBlueprint({
 # Root .env
 SANITY_PROJECT_ID=xxx
 SANITY_DATASET=production
-SANITY_TOKEN=xxx # Keep secret, never commit
-PUBLIC_SANITY_PREVIEW=false # Safe to expose
+SANITY_TOKEN=xxx # Least-privilege read token; keep secret
+SANITY_WRITE_TOKEN=xxx # Contact-document creation only; keep secret
+IP_HASH_SALT=xxx # High-entropy secret; keep secret
 
 # studio/.env  
 SANITY_STUDIO_PROJECT_ID=xxx
@@ -509,7 +505,13 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
-      exclude: ['node_modules/', 'dist/', '.astro/', 'studio/']
+      exclude: ['node_modules/', 'dist/', '.astro/', 'studio/'],
+      thresholds: {
+        statements: 84,
+        branches: 72,
+        functions: 86,
+        lines: 85
+      }
     }
   }
 })
@@ -640,7 +642,8 @@ npm run test:integration  # Integration tests only
 npm run test:watch        # Watch mode
 npm run test:coverage     # With coverage report
 npm run test:ui           # Open Vitest UI
-npm run test:all          # Lint + typecheck + build + test
+npm run test:all          # Lint + types + typegen + build + coverage thresholds
+npm run test:e2e          # Playwright against built Netlify runtime on port 4173
 ```
 
 ## INTEGRATION PATTERNS
@@ -696,17 +699,8 @@ export const componentMap = {
 ```
 
 ### Preview Mode
-```js
-// src/utils/sanity-client.ts
-const isPrev = import.meta.env.PUBLIC_SANITY_PREVIEW === 'true'
 
-export const client = createClient({
-  // ...
-  perspective: isPrev ? 'previewDrafts' : 'published',
-  token: isPrev ? import.meta.env.SANITY_TOKEN : undefined,
-  stega: { enabled: isPrev }
-})
-```
+Sanity Presentation enters through `/api/draft`. The route validates the preview URL secret with the read-only `SANITY_TOKEN`, writes `sanityPreview` to Astro Sessions, and redirects to the requested page. Middleware then creates the request-scoped draft client. Deploy previews remain on published content unless Presentation completes this authenticated entry flow.
 
 ### Real-time Updates (Dev)
 ```astro
@@ -723,6 +717,7 @@ if (import.meta.env.DEV) {
 ### Development
 ```bash
 npm run dev          # Astro dev server :3000
+npm run serve:test   # Build and serve Netlify runtime :4173
 cd studio && sanity dev # Sanity Studio :3333
 astro check         # Type checking
 ```
@@ -730,7 +725,7 @@ astro check         # Type checking
 ### Build/Deploy
 ```bash
 npm run build       # Build Astro
-npm run preview     # Preview build
+npm run serve:test  # Build and serve through Netlify CLI
 sanity deploy       # Deploy Studio
 sanity schema deploy # Deploy schema changes
 sanity blueprints deploy # Deploy functions

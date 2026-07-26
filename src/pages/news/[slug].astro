@@ -15,7 +15,7 @@ const { slug } = Astro.params;
 const post = await Astro.locals.sanityClient.fetch<Post | null>(POST_QUERY, { slug });
 
 if (!post) {
-    return Astro.redirect('/404');
+    return Astro.rewrite('/404');
 }
 
 // Edge-cache published post pages; never cache in preview contexts so

@@ -1,12 +1,5 @@
 import { defineConfig, devices } from '@playwright/test';
 
-// Thin smoke suite — see e2e/README notes in IMPROVEMENT-PLAN.md Task 15.
-//
-// webServer runs `astro dev`, not `astro preview`: the @astrojs/netlify
-// adapter's SSR output does not support `astro preview` in Astro 6
-// (confirmed locally — it throws "The @astrojs/netlify adapter does not
-// support the preview command"). `astro dev` is an accurate enough stand-in
-// for a smoke suite that only checks pages render and key elements appear.
 export default defineConfig({
     testDir: './e2e',
     fullyParallel: true,
@@ -16,7 +9,7 @@ export default defineConfig({
     reporter: process.env.CI ? [['github'], ['html', { open: 'never' }]] : 'list',
     timeout: 30_000,
     use: {
-        baseURL: 'http://localhost:3000',
+        baseURL: 'http://127.0.0.1:4173',
         trace: 'on-first-retry',
         screenshot: 'only-on-failure'
     },
@@ -27,9 +20,9 @@ export default defineConfig({
         }
     ],
     webServer: {
-        command: 'npm run dev',
-        url: 'http://localhost:3000',
-        reuseExistingServer: !process.env.CI,
-        timeout: 60_000
+        command: 'npm run serve:test',
+        url: 'http://127.0.0.1:4173',
+        reuseExistingServer: false,
+        timeout: 120_000
     }
 });

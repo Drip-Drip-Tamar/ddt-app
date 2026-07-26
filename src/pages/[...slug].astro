@@ -19,7 +19,7 @@ const page: PageData | null = pages.length ? pages[0] : null;
 
 // If no page found, return 404
 if (!page) {
-    return Astro.redirect('/404');
+    return Astro.rewrite('/404');
 }
 
 // Edge-cache published pages; never cache in preview contexts so visual

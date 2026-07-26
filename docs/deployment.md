@@ -23,14 +23,18 @@ Set these variables in Netlify for production and deploy-preview contexts:
 ```txt
 SANITY_PROJECT_ID=i1ywpsq5
 SANITY_DATASET=production
-SANITY_TOKEN=<private token>
+SANITY_TOKEN=<least-privilege read token>
+SANITY_WRITE_TOKEN=<least-privilege token restricted to contact document creation>
+IP_HASH_SALT=<high-entropy random secret>
 PUBLIC_TURNSTILE_SITE_KEY=<Cloudflare Turnstile site key>
 TURNSTILE_SECRET_KEY=<private Cloudflare Turnstile secret key>
 ```
 
-`SANITY_TOKEN` and `TURNSTILE_SECRET_KEY` must remain private. `SANITY_TOKEN` is used server-side for Sanity reads, contact form writes, visual-editing preview support, and Sanity backup exports. `TURNSTILE_SECRET_KEY` is used server-side to verify contact form submissions before storing them in Sanity.
+Keep all tokens and secrets private. `SANITY_TOKEN` is read-only and is used for authenticated draft reads, Presentation preview validation, and backup exports. `SANITY_WRITE_TOKEN` is used only by `/api/contact` and should be restricted to creating contact documents. `IP_HASH_SALT` is a high-entropy secret used to protect stored IP hashes. `TURNSTILE_SECRET_KEY` verifies contact submissions before storage.
 
-Deploy previews use `previewDrafts` because Netlify sets `CONTEXT=deploy-preview`. Production uses the published perspective unless `SANITY_PREVIEW_DRAFTS=true` is explicitly set.
+If `SANITY_WRITE_TOKEN` or `IP_HASH_SALT` is missing, `/api/contact` fails closed with `503` and does not create a document. The write-capable `SANITY_TOKEN` previously exposed through rendered HTML must be revoked before merge or deployment; replace it with the two least-privilege tokens above.
+
+Deploy previews render published content by default. Editors enter authenticated draft mode through Sanity Presentation: the Studio calls `/api/draft`, the route validates the preview URL secret with the read-only token, and Astro Sessions stores request-scoped preview state.
 
 ## Pull Request Checks
 
@@ -40,7 +44,9 @@ GitHub Actions runs on pull requests to `main`:
 npm run check:prod
 ```
 
-The production-parity check uses `.nvmrc`, installs website and Studio dependencies with `npm ci`, runs the website quality gate, and builds Sanity Studio. `sanity build` reaches Sanity's CDN for module metadata, so it needs network access.
+The production-parity check uses `.nvmrc`, installs website and Studio dependencies with `npm ci`, runs the website quality gate (including enforced coverage thresholds), and builds Sanity Studio. `sanity build` reaches Sanity's CDN for module metadata, so it needs network access.
+
+The separate Playwright job runs `npm run test:e2e`. Playwright starts `netlify serve` on dedicated port `4173`, which builds and serves the Netlify production runtime. The suite stubs environmental API responses at the browser network boundary and does not submit a real contact message.
 
 The workflow expects the same Sanity secrets as Netlify:
 
@@ -48,6 +54,8 @@ The workflow expects the same Sanity secrets as Netlify:
 SANITY_PROJECT_ID
 SANITY_DATASET
 SANITY_TOKEN
+SANITY_WRITE_TOKEN
+IP_HASH_SALT
 ```
 
 The Turnstile variables are required for deployed Netlify contexts that serve the contact form, but the PR check does not need to call Turnstile directly.
@@ -76,7 +84,7 @@ cd studio
 npm run deploy
 ```
 
-The Studio config uses `SANITY_STUDIO_PREVIEW_URL` to override the Presentation preview origin. If unset, local previews target `http://localhost:3000`.
+The Studio config uses `SANITY_STUDIO_PREVIEW_URL` to override the Presentation preview origin. If unset, local previews target `http://localhost:3000`. Presentation enters draft mode through `/api/draft` and Astro Sessions; a deploy preview is not draft-enabled merely because of its Netlify context.
 
 ## Pre-Deployment Checklist
 
