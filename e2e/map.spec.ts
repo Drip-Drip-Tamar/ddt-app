@@ -60,4 +60,41 @@ test.describe('storm overflow map page', () => {
         expect(pageErrors).toEqual([]);
         expect(consoleErrors).toEqual([]);
     });
+
+    test('stacks the live-status badge below the map heading on mobile', async ({ page }) => {
+        await page.setViewportSize({ width: 390, height: 844 });
+        await page.unroute('**/api/cso.json*');
+        await page.route('**/api/cso.json*', (route) =>
+            route.fulfill({
+                json: {
+                    ...csoMapFixture,
+                    activeCount: 0,
+                    recentCount: 5
+                }
+            })
+        );
+
+        await page.goto('/map');
+
+        const heading = page.getByRole('heading', { name: 'Storm Overflow Locations' });
+        const headingCopy = heading.locator('..');
+        const statusBadge = page.locator('[id^="cso-map-"][id$="-status"]');
+        await expect(statusBadge).toHaveText('5 Recent');
+        await expect(statusBadge).toHaveCSS('white-space', 'nowrap');
+        await expect(statusBadge).toHaveCSS('flex-shrink', '0');
+
+        const headingCopyBox = await headingCopy.boundingBox();
+        const statusBadgeBox = await statusBadge.boundingBox();
+
+        expect(headingCopyBox).not.toBeNull();
+        expect(statusBadgeBox).not.toBeNull();
+        expect(statusBadgeBox!.y).toBeGreaterThanOrEqual(headingCopyBox!.y + headingCopyBox!.height);
+    });
+
+    test('gives each storm-overflow marker an accessible name', async ({ page }) => {
+        await page.goto('/map');
+
+        await expect(page.getByRole('button', { name: 'Calstock CSO', exact: true })).toBeVisible();
+        await expect(page.getByRole('button', { name: 'Gunnislake CSO', exact: true })).toBeVisible();
+    });
 });

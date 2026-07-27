@@ -20,6 +20,19 @@ test.describe('home page', () => {
         expect(consoleErrors).toEqual([]);
     });
 
+    test('mobile menu button has at least a 44px touch target', async ({ page }) => {
+        await page.setViewportSize({ width: 390, height: 844 });
+        await page.goto('/');
+
+        const menuButton = page.getByRole('button', { name: 'Open Menu' });
+        await expect(menuButton).toBeVisible();
+
+        const bounds = await menuButton.boundingBox();
+        expect(bounds).not.toBeNull();
+        expect(bounds!.width).toBeGreaterThanOrEqual(44);
+        expect(bounds!.height).toBeGreaterThanOrEqual(44);
+    });
+
     test('built API responses include middleware security headers', async ({ request }) => {
         const response = await request.get('/api/disable-draft', {
             maxRedirects: 0

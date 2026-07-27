@@ -32,6 +32,24 @@ TURNSTILE_SECRET_KEY=<private Cloudflare Turnstile secret key>
 
 Keep all tokens and secrets private. `SANITY_TOKEN` is read-only and is used for authenticated draft reads, Presentation preview validation, and backup exports. `SANITY_WRITE_TOKEN` is used only by `/api/contact` and should be restricted to creating contact documents. `IP_HASH_SALT` is a high-entropy secret used to protect stored IP hashes. `TURNSTILE_SECRET_KEY` verifies contact submissions before storage.
 
+The Turnstile widget must authorize the production hostname where the contact
+form is served. This is a widget setting and does not require the site's DNS to
+be managed by Cloudflare.
+
+Authorizing a Netlify deploy-preview hostname is optional and is only needed
+when testing the real Turnstile widget on that preview. A team member with
+access to the Turnstile widget can add the exact fully qualified hostname, for
+example:
+
+```txt
+deploy-preview-3--dripdriptamar.netlify.app
+```
+
+Cloudflare does not support wildcard hostname entries. Do not authorize the
+shared `netlify.app` parent domain, because adding a parent domain also
+authorizes its subdomains. Client error `110200` means the current hostname is
+not authorized for the widget.
+
 If `SANITY_WRITE_TOKEN` or `IP_HASH_SALT` is missing, `/api/contact` fails closed with `503` and does not create a document. The write-capable `SANITY_TOKEN` previously exposed through rendered HTML must be revoked before merge or deployment; replace it with the two least-privilege tokens above.
 
 Deploy previews render published content by default. Editors enter authenticated draft mode through Sanity Presentation: the Studio calls `/api/draft`, the route validates the preview URL secret with the read-only token, and Astro Sessions stores request-scoped preview state.
@@ -93,7 +111,8 @@ The Studio config uses `SANITY_STUDIO_PREVIEW_URL` to override the Presentation 
 3. Confirm no generated backup archives or secrets are staged.
 4. If the change affects content shape, migrations, contact submissions, or Sanity data, run `npm run backup:sanity` first and upload the resulting `backups/sanity/<timestamp>/` folder to secure private storage.
 5. Review Netlify environment variables before first deploy to a new site or context.
-6. For Studio model changes, verify Studio locally before deploying it.
+6. Confirm the production hostname is authorized by the configured Turnstile widget.
+7. For Studio model changes, verify Studio locally before deploying it.
 
 ## Runtime External Data
 

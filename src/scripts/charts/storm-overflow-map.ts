@@ -143,7 +143,9 @@ export async function initializeStormOverflowMap(mapElement: HTMLElement): Promi
 
         L.marker([lat, lon], {
             icon: centerIcon,
-            zIndexOffset: -1000
+            zIndexOffset: -1000,
+            alt: `${centreName} monitoring centre`,
+            title: `${centreName} monitoring centre`
         })
             .addTo(map)
             .bindPopup(`<strong>${escapeHtml(centreName)}</strong><br>Monitoring center`);
@@ -154,7 +156,7 @@ export async function initializeStormOverflowMap(mapElement: HTMLElement): Promi
         if (statusEl) {
             const badge = statusBadgeFor(data);
             statusEl.textContent = badge.text;
-            statusEl.className = badge.className;
+            statusEl.className = `${badge.className} shrink-0 whitespace-nowrap`;
         }
 
         if (data.dataSource === 'base-only') {
@@ -175,7 +177,9 @@ export async function initializeStormOverflowMap(mapElement: HTMLElement): Promi
 
                 L.marker([feature.lat, feature.lon], {
                     icon,
-                    zIndexOffset: zIndex
+                    zIndexOffset: zIndex,
+                    alt: feature.name,
+                    title: feature.name
                 })
                     .addTo(map)
                     .bindPopup(buildPopupContent(feature));
