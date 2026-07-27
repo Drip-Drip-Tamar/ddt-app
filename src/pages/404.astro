@@ -1,8 +1,13 @@
 ---
 import Layout from '@layouts/Layout.astro';
+
+// Dynamic content routes rewrite here when their Sanity document is absent.
+// Keep this route in the SSR manifest: Astro cannot rewrite an on-demand
+// route to a prerendered target in server output mode.
+export const prerender = false;
 ---
 
-<Layout title="404 - Page Not Found">
+<Layout title="404 - Page Not Found" includeCanonical={false} noIndex>
     <div class="min-h-screen flex items-center justify-center">
         <div class="text-center p-8">
             <h1 class="text-6xl font-bold mb-4">404</h1>

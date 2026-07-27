@@ -1,5 +1,5 @@
 ---
-import type { Page } from 'types';
+import type { AstroComponentFactory } from 'astro/runtime/server/index.js';
 import Layout from '@layouts/Layout.astro';
 import Cards from '@components/Cards.astro';
 import Cta from '@components/Cta.astro';
@@ -7,25 +7,39 @@ import Hero from '@components/Hero.astro';
 import Logos from '@components/Logos.astro';
 import Testimonials from '@components/Testimonials.astro';
 import WaterQualityChart from '@components/WaterQualityChart.astro';
-import { getPageBySlug } from '@data/page';
+import { getPageBySlug, type PageData } from '@data/page';
 
 // Get slug from params - undefined means homepage
 const { slug } = Astro.params;
 const slugParam = slug ? (Array.isArray(slug) ? slug.join('/') : slug) : undefined;
 
 // Fetch page data by slug
-const pages = await getPageBySlug(slugParam);
-const page: Page = pages.length ? pages[0] : null;
+const pages = await getPageBySlug(slugParam, Astro.locals.sanityClient);
+const page: PageData | null = pages.length ? pages[0] : null;
 
 // If no page found, return 404
 if (!page) {
-    return Astro.redirect('/404');
+    return Astro.rewrite('/404');
 }
 
-const { _id, title, sections, metaTitle, metaDescription, socialImage } = page || {};
+// Edge-cache published pages; never cache in preview contexts so visual
+// editing (draft content, stega) always sees fresh data.
+if (!Astro.locals.isPreview) {
+    Astro.response.headers.set('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=3600');
+}
+
+const { title, sections, metaTitle, metaDescription, socialImage } = page || {};
+
+// Sanity typegen models every fetched field as nullable; Layout's props
+// (from the hand-written `types` module) use the `undefined`-based optional
+// convention shared by the rest of the components, so normalise at this
+// boundary rather than changing that convention everywhere.
+const pageTitle = metaTitle ?? title;
+const pageDescription = metaDescription ?? undefined;
+const pageImage = socialImage?.src ? { src: socialImage.src } : undefined;
 
 
-const componentMap = {
+const componentMap: Record<string, AstroComponentFactory> = {
     cardsSection: Cards,
     ctaSection: Cta,
     heroSection: Hero,
@@ -35,13 +49,13 @@ const componentMap = {
 };
 ---
 
-<Layout title={metaTitle ?? title} description={metaDescription} image={socialImage}>
-    <div data-sb-object-id={_id}>
+<Layout title={pageTitle} description={pageDescription} image={pageImage}>
+    <div>
         {sections?.length ? (
-            sections.map((section, idx) => {
-                const Component = componentMap[section._type];
+            sections.map((section) => {
+                const Component = section._type ? componentMap[section._type] : undefined;
                 return Component ? (
-                    <Component {...section} data-sb-field-path={`sections.${idx}`} />
+                    <Component {...section} />
                 ) : null;
             })
         ) : (

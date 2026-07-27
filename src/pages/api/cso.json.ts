@@ -1,5 +1,10 @@
 import type { APIRoute } from 'astro';
-import { getPrimaryLocation, calculateDistance } from '../../data/locationConfig.js';
+import { getPrimaryLocation, calculateDistance } from '../../data/locationConfig';
+import { fetchUpstream } from '@utils/upstream';
+
+// Explicitly dynamic (already the default under output: 'server', stated
+// here for clarity/future-proofing against a prerender: true default).
+export const prerender = false;
 
 // Data source endpoints - Using the same reliable source as cso-live.json
 const SWW_ARCGIS_BASE = 'https://services-eu1.arcgis.com/OMdMOtfhATJPcHe3/arcgis/rest/services/NEH_outlets_PROD/FeatureServer';
@@ -76,7 +81,7 @@ async function queryBaseCSOs(
     });
 
     const url = `${RIVERS_TRUST_EDM_2023}/0/query`;
-    const response = await fetch(url, {
+    const data = await fetchUpstream<ArcGISResponse<EDM2023Feature>>(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
@@ -84,11 +89,6 @@ async function queryBaseCSOs(
       body: params.toString()
     });
 
-    if (!response.ok) {
-      throw new Error(`Rivers Trust query failed: ${response.status}`);
-    }
-
-    const data = await response.json() as ArcGISResponse<EDM2023Feature>;
     return data.features || [];
 
   } catch (error) {
@@ -125,20 +125,13 @@ async function queryLiveOverflows(
     });
 
     const url = `${SWW_ARCGIS_BASE}/0/query`;
-    const response = await fetch(url, {
+    const data = await fetchUpstream<ArcGISResponse<StormOverflowFeature>>(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
       },
       body: params.toString()
     });
-
-    if (!response.ok) {
-      // SWW live endpoint returned non-OK status
-      return [];
-    }
-
-    const data = await response.json() as ArcGISResponse<StormOverflowFeature>;
 
     // Filter by distance and date manually
     const filteredFeatures = (data.features || []).filter(feature => {

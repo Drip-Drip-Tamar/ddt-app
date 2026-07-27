@@ -4,3 +4,17 @@
 
 [dev]
   targetPort = 3000
+
+# Security headers for static and prerendered responses. Astro middleware
+# applies the equivalent headers to SSR and API runtime responses.
+#
+# Chart.js and Leaflet are bundled from npm (see src/scripts/charts/), so no
+# CDN origins are needed for scripts, styles, fonts or marker images.
+[[headers]]
+  for = "/*"
+
+  [headers.values]
+    Strict-Transport-Security = "max-age=31536000; includeSubDomains"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Content-Security-Policy = "default-src 'self'; base-uri 'self'; object-src 'none'; form-action 'self'; frame-ancestors 'self' https://*.sanity.studio http://localhost:3333; script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: https://cdn.sanity.io https://*.tile.openstreetmap.org; connect-src 'self' https://*.api.sanity.io wss://*.api.sanity.io; frame-src https://challenges.cloudflare.com"

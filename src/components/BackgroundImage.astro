@@ -3,11 +3,10 @@ import { type BackgroundImage } from 'types';
 import { getImageUrl, isSanityImage } from '@utils/sanity-image';
 
 interface Props extends BackgroundImage {
-    'data-sb-field-path'?: string;
     fit?: 'cover' | 'contain' | 'fill';
 }
 
-const { image, opacity, 'data-sb-field-path': fieldPath, fit = 'cover' } = Astro.props;
+const { image, opacity, fit = 'cover' } = Astro.props;
 
 // Map fit values to CSS background-size values
 const fitClasses = {
@@ -38,7 +37,6 @@ if (image) {
                 backgroundImage: `url('${backgroundUrl}')`,
                 opacity: (opacity ?? 100) * 0.01
             }}
-            data-sb-field-path={fieldPath}
         />
     )
 }

@@ -2,9 +2,7 @@
 import { type SiteConfig, type CustomImage } from 'types';
 import Footer from '@components/Footer.astro';
 import Header from '@components/Header.astro';
-import ChartLoader from '@components/ChartLoader.astro';
-import LeafletLoader from '@components/LeafletLoader.astro';
-import { SanityVisualEditing } from '@components/SanityVisualEditing';
+import { VisualEditing } from '@sanity/astro/visual-editing';
 import { fetchData } from '@data/siteConfig';
 import { getImageUrl, isSanityImage } from '@utils/sanity-image';
 
@@ -13,13 +11,15 @@ import '../styles/globals.css';
 interface Props {
     title: string;
     addTitleSuffix?: boolean;
+    includeCanonical?: boolean;
+    noIndex?: boolean;
     description?: string;
     image?: CustomImage;
 }
 
-const { addTitleSuffix, description, image } = Astro.props;
+const { addTitleSuffix, includeCanonical = true, noIndex = false, description, image } = Astro.props;
 
-const configData: SiteConfig = (await fetchData()) || {};
+const configData: SiteConfig = (await fetchData(Astro.locals.sanityClient)) || {};
 const titleSuffix = configData.titleSuffix && addTitleSuffix !== false ? configData.titleSuffix : undefined;
 const title = [Astro.props.title, titleSuffix].filter(Boolean).join(' | ');
 
@@ -34,7 +34,7 @@ if (image) {
         resolvedImage = { src: new URL(image.src, Astro.site).toString() };
     }
 }
-const canonicalURL = new URL(Astro.request.url, Astro.site);
+const canonicalURL = includeCanonical ? new URL(Astro.request.url, Astro.site) : undefined;
 
 /**
  * Enforce some standard canonical URL formatting across the site.
@@ -60,43 +60,32 @@ function formatCanonicalURL(url: string | URL) {
         <title>{title}</title>
         <meta name="generator" content={Astro.generator} />
 
-        <!-- Fonts -->
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-        <link href="https://fonts.googleapis.com/css2?family=Mulish:ital,wght@0,400..900;1,400..900&display=swap" rel="stylesheet" />
-
         <!-- Low Priority Global Metadata -->
         {configData.favicon?.src && <link rel="icon" type="image/svg+xml" href={configData.favicon.src} />}
         <link rel="sitemap" href="/sitemap-index.xml" />
 
         <!-- Page Metadata -->
-        <link rel="canonical" href={formatCanonicalURL(canonicalURL)} />
+        {canonicalURL && <link rel="canonical" href={formatCanonicalURL(canonicalURL)} />}
+        {noIndex && <meta name="robots" content="noindex" />}
         <meta name="description" content={description} />
 
         <!-- Open Graph / Facebook -->
-        <meta property="og:url" content={formatCanonicalURL(canonicalURL)} />
+        {canonicalURL && <meta property="og:url" content={formatCanonicalURL(canonicalURL)} />}
         <meta property="og:title" content={title} />
         <meta property="og:description" content={description} />
         {resolvedImage?.src && <meta property="og:image" content={resolvedImage.src} />}
 
         <!-- X/Twitter -->
         <meta property="twitter:card" content="summary_large_image" />
-        <meta property="twitter:url" content={formatCanonicalURL(canonicalURL)} />
+        {canonicalURL && <meta property="twitter:url" content={formatCanonicalURL(canonicalURL)} />}
         <meta property="twitter:title" content={title} />
         <meta property="twitter:description" content={description} />
         {resolvedImage?.src && <meta property="twitter:image" content={resolvedImage.src} />}
     </head>
     <body class="antialiased">
-        <ChartLoader />
-        <LeafletLoader />
-        <Header {...configData.header} data-sb-field-path={`${configData._id}:header`} />
+        <Header {...configData.header} />
         <slot />
-        <Footer {...configData.footer} data-sb-field-path={`${configData._id}:footer`} />
-        <SanityVisualEditing client:only="react" token={import.meta.env.SANITY_TOKEN} />
-        <script is:inline>
-            window.addEventListener('stackbitObjectsChanged', () => {
-                window.location.reload();
-            });
-        </script>
+        <Footer {...configData.footer} />
+        <VisualEditing enabled={Astro.locals.isPreview} />
     </body>
 </html>

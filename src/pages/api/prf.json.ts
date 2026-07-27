@@ -1,5 +1,10 @@
 import type { APIRoute } from 'astro';
-import { getBathingWaters } from '../../data/locationConfig.js';
+import { getBathingWaters } from '../../data/locationConfig';
+import { fetchUpstream } from '@utils/upstream';
+
+// Explicitly dynamic (already the default under output: 'server', stated
+// here for clarity/future-proofing against a prerender: true default).
+export const prerender = false;
 
 const EA_API_BASE = 'https://environment.data.gov.uk';
 
@@ -25,21 +30,8 @@ async function fetchBathingWaterRisk(eubwid: string, bathingWaters: Array<{id: s
 }> {
   try {
     const url = `${EA_API_BASE}/doc/bathing-water/${eubwid}.json?_view=basic&_properties=label,latestRiskPrediction.riskLevel.*,latestRiskPrediction.expiresAt`;
-    const response = await fetch(url);
-    
-    if (!response.ok) {
-      console.warn(`Failed to fetch data for ${eubwid}: ${response.status}`);
-      return {
-        id: eubwid,
-        label: bathingWaters.find(bw => bw.id === eubwid)?.label || eubwid,
-        risk: 'not-available',
-        expiresAt: null,
-        season: false
-      };
-    }
+    const data = await fetchUpstream<RiskPrediction>(url);
 
-    const data = await response.json() as RiskPrediction;
-    
     // Extract the label from the response or use fallback
     const label = data.label?.[0]?._value || 
                   bathingWaters.find(bw => bw.id === eubwid)?.label || 

@@ -1,7 +1,8 @@
-import { defineConfig } from 'vitest/config';
+/// <reference types="vitest/config" />
+import { getViteConfig } from 'astro/config';
 import path from 'path';
 
-export default defineConfig({
+export default getViteConfig({
   resolve: {
     alias: {
       '@pages': path.resolve(__dirname, './src/pages'),
@@ -21,18 +22,33 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
+      include: ['src/**/*.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
       exclude: [
         'node_modules/',
         'dist/',
         '.astro/',
         'studio/',
+        'e2e/',
         '*.config.*',
         'tests/**',
+        // Generated declarations and development-only integration code do
+        // not ship as application runtime modules.
         'src/env.d.ts',
-        'src/components/SanityVisualEditing.tsx'
-      ]
+        'src/sanity.types.ts',
+        'src/integrations/sanity-dev-refresh.ts'
+      ],
+      // Ratchet, not gate: set a few points below the levels measured on
+      // 2026-07-07 (see IMPROVEMENT-PLAN.md Task 15) so normal fluctuation
+      // doesn't fail CI, but a real regression does. Raise these as
+      // coverage improves — never lower them to fit falling coverage.
+      thresholds: {
+        statements: 84,
+        branches: 72,
+        functions: 86,
+        lines: 85
+      }
     },
     include: ['tests/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
-    exclude: ['node_modules', 'dist', '.astro', 'studio']
+    exclude: ['node_modules', 'dist', '.astro', 'studio', 'e2e']
   }
 });

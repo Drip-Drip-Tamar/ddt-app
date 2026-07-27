@@ -1,23 +1,22 @@
 import type { APIRoute } from 'astro';
-import { createClient } from '@sanity/client';
-import crypto from 'crypto';
+import { createHmac } from 'crypto';
+import { createSanityWriteClient, getSanityWriteToken } from '@utils/sanity-client';
+import { fetchUpstream, UpstreamError } from '@utils/upstream';
 
 // Mark this endpoint as server-rendered (not pre-rendered)
 export const prerender = false;
-
-// Create Sanity client with server-side token
-const sanityClient = createClient({
-  projectId: import.meta.env.SANITY_PROJECT_ID,
-  dataset: import.meta.env.SANITY_DATASET || 'production',
-  apiVersion: '2024-01-31',
-  token: import.meta.env.SANITY_TOKEN,
-  useCdn: false
-});
 
 const TURNSTILE_VERIFY_URL = 'https://challenges.cloudflare.com/turnstile/v0/siteverify';
 const TURNSTILE_ACTION = 'contact';
 const MIN_FORM_FILL_TIME_MS = 3000;
 const SUSPICIOUS_LINK_THRESHOLD = 3;
+
+const FIELD_LENGTH_LIMITS = {
+  name: 200,
+  email: 320,
+  subject: 300,
+  message: 5000
+} as const;
 
 type TurnstileSiteverifyResponse = {
   success?: boolean;
@@ -32,6 +31,11 @@ function jsonResponse(body: Record<string, unknown>, status: number) {
     status,
     headers: { 'Content-Type': 'application/json' }
   });
+}
+
+function readRuntimeEnv(name: string): string | undefined {
+  const value = (import.meta.env as Record<string, unknown>)[name] ?? process.env[name];
+  return typeof value === 'string' && value.trim() ? value.trim() : undefined;
 }
 
 function getClientIp(request: Request) {
@@ -71,17 +75,12 @@ async function verifyTurnstileToken(token: string | undefined, request: Request,
   }
 
   try {
-    const response = await fetch(TURNSTILE_VERIFY_URL, {
+    const result = await fetchUpstream<TurnstileSiteverifyResponse>(TURNSTILE_VERIFY_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: params
     });
 
-    if (!response.ok) {
-      return { ok: false, reason: 'siteverify_http_error' };
-    }
-
-    const result = await response.json() as TurnstileSiteverifyResponse;
     const requestHostname = new URL(request.url).hostname;
 
     if (!result.success) {
@@ -98,9 +97,25 @@ async function verifyTurnstileToken(token: string | undefined, request: Request,
 
     return { ok: true, hostname: result.hostname, action: result.action };
   } catch (error) {
+    if (error instanceof UpstreamError && error.kind === 'non-ok') {
+      return { ok: false, reason: 'siteverify_http_error' };
+    }
     console.error('Turnstile verification error:', error);
     return { ok: false, reason: 'siteverify_request_failed' };
   }
+}
+
+function getLengthViolations(fields: { name: string; email: string; topic: string; message: string }): string[] {
+  const violations: string[] = [];
+  if (fields.name.length > FIELD_LENGTH_LIMITS.name) violations.push('name');
+  if (fields.email.length > FIELD_LENGTH_LIMITS.email) violations.push('email');
+  if (fields.topic.length > FIELD_LENGTH_LIMITS.subject) violations.push('subject');
+  if (fields.message.length > FIELD_LENGTH_LIMITS.message) violations.push('message');
+  return violations;
+}
+
+export function hashIp(ip: string, salt: string): string {
+  return createHmac('sha256', salt).update(ip).digest('hex');
 }
 
 function getSpamReasons(message: string, formStartedAt: string | undefined) {
@@ -120,6 +135,14 @@ function getSpamReasons(message: string, formStartedAt: string | undefined) {
 }
 
 export const POST: APIRoute = async ({ request }) => {
+  const writeToken = getSanityWriteToken();
+  const ipHashSalt = readRuntimeEnv('IP_HASH_SALT');
+  if (!writeToken || !ipHashSalt) {
+    console.error('Contact endpoint is unavailable because required runtime configuration is missing');
+    return jsonResponse({ ok: false, error: 'Contact form is temporarily unavailable.' }, 503);
+  }
+  const sanityClient = createSanityWriteClient();
+
   try {
     // Parse form data
     const contentType = request.headers.get('content-type');
@@ -186,7 +209,16 @@ export const POST: APIRoute = async ({ request }) => {
         error: 'Please provide a valid email address'
       }, 400);
     }
-    
+
+    // Reject oversize payloads before doing any network calls
+    const lengthViolations = getLengthViolations({ name, email, topic, message });
+    if (lengthViolations.length > 0) {
+      return jsonResponse({
+        ok: false,
+        error: `The following fields exceed the maximum allowed length: ${lengthViolations.join(', ')}`
+      }, 400);
+    }
+
     // Get IP and user agent for security tracking
     const ip = getClientIp(request);
     const userAgent = request.headers.get('user-agent') || 'unknown';
@@ -200,7 +232,7 @@ export const POST: APIRoute = async ({ request }) => {
     }
     
     // Hash IP for privacy
-    const ipHash = crypto.createHash('sha256').update(ip).digest('hex');
+    const ipHash = hashIp(ip, ipHashSalt);
     const spamReasons = getSpamReasons(message, formStartedAt);
     
     // Create Sanity document

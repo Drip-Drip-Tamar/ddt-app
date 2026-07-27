@@ -1,5 +1,10 @@
 import type { APIRoute } from 'astro';
-import { getPrimaryLocation, calculateDistance } from '../../data/locationConfig.js';
+import { getPrimaryLocation, calculateDistance } from '../../data/locationConfig';
+import { fetchUpstream } from '@utils/upstream';
+
+// Explicitly dynamic (already the default under output: 'server', stated
+// here for clarity/future-proofing against a prerender: true default).
+export const prerender = false;
 
 const EA_API_BASE = 'https://environment.data.gov.uk/flood-monitoring';
 
@@ -25,14 +30,8 @@ async function findNearbyRainfallStations(): Promise<RainfallStation[]> {
   try {
     const location = await getPrimaryLocation();
     const url = `${EA_API_BASE}/id/stations?parameter=rainfall&lat=${location.center.lat}&long=${location.center.lng}&dist=${location.defaultRadius}`;
-    const response = await fetch(url);
-    
-    if (!response.ok) {
-      throw new Error(`EA API returned ${response.status}`);
-    }
-    
-    const data = await response.json();
-    const stations = data.items as RainfallStation[];
+    const data = await fetchUpstream<{ items: RainfallStation[] }>(url);
+    const stations = data.items;
     
     // Sort by distance and take closest 3
     return stations
@@ -63,14 +62,8 @@ async function fetchStationReadings(station: RainfallStation, sinceDate: string)
     
     const measureId = rainfallMeasure['@id'].split('/').pop();
     const url = `${EA_API_BASE}/id/measures/${measureId}/readings?since=${sinceDate}&_sorted`;
-    const response = await fetch(url);
-    
-    if (!response.ok) {
-      throw new Error(`Failed to fetch readings for station ${station.label}`);
-    }
-    
-    const data = await response.json();
-    return data.items as RainfallReading[];
+    const data = await fetchUpstream<{ items: RainfallReading[] }>(url);
+    return data.items;
     
   } catch (error) {
     console.error(`Error fetching readings for station ${station.label}:`, error);

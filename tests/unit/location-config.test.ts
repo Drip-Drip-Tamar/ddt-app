@@ -7,7 +7,7 @@ import {
   calculateDistance,
   clearConfigCache
 } from '../../src/data/locationConfig';
-import { fetchData } from '../../src/data/siteConfig';
+import { fetchData, type SiteConfigData } from '../../src/data/siteConfig';
 
 vi.mock('../../src/data/siteConfig', () => ({
   fetchData: vi.fn()
@@ -36,7 +36,7 @@ describe('Location configuration', () => {
       ]
     };
 
-    vi.mocked(fetchData).mockResolvedValueOnce({ monitoringConfiguration } as any);
+    vi.mocked(fetchData).mockResolvedValueOnce({ monitoringConfiguration } as SiteConfigData);
 
     const first = await getMonitoringConfig();
     const second = await getMonitoringConfig();
@@ -46,8 +46,48 @@ describe('Location configuration', () => {
     expect(fetchData).toHaveBeenCalledTimes(1);
   });
 
+  it('normalizes a partial Sanity configuration while preserving valid values', async () => {
+    const monitoringConfiguration = {
+      primaryLocation: {
+        name: 'Lower Tamar',
+        center: { lat: 50.42, lng: 200 },
+        defaultRadius: -5
+      },
+      riverStations: {
+        freshwaterStationId: '',
+        tidalStationId: 'custom-tidal'
+      },
+      bathingWaters: [
+        { id: 'custom-water', label: 'Custom Water' }
+      ]
+    };
+
+    vi.mocked(fetchData).mockResolvedValueOnce({ monitoringConfiguration } as SiteConfigData);
+
+    const config = await getMonitoringConfig();
+
+    expect(config).toEqual({
+      primaryLocation: {
+        name: 'Lower Tamar',
+        center: {
+          lat: 50.42,
+          lng: -4.202
+        },
+        defaultRadius: 10,
+        description: 'Default monitoring location'
+      },
+      riverStations: {
+        freshwaterStationId: '47117',
+        tidalStationId: 'custom-tidal'
+      },
+      bathingWaters: [
+        { id: 'custom-water', label: 'Custom Water' }
+      ]
+    });
+  });
+
   it('falls back to defaults when monitoring config is missing', async () => {
-    vi.mocked(fetchData).mockResolvedValueOnce({} as any);
+    vi.mocked(fetchData).mockResolvedValueOnce({} as SiteConfigData);
 
     const config = await getMonitoringConfig();
 
@@ -80,7 +120,7 @@ describe('Location configuration', () => {
       bathingWaters: []
     };
 
-    vi.mocked(fetchData).mockResolvedValueOnce({ monitoringConfiguration } as any);
+    vi.mocked(fetchData).mockResolvedValueOnce({ monitoringConfiguration } as SiteConfigData);
 
     const primary = await getPrimaryLocation();
     const stations = await getRiverStations();

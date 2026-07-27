@@ -5,9 +5,7 @@ import { marked } from 'marked';
 import Action from '@components/Action.astro';
 import Section from '@components/Section.astro';
 
-export interface Props extends WaterQualitySection {
-  'data-sb-field-path'?: string;
-}
+export interface Props extends WaterQualitySection {}
 
 const { 
   heading, 
@@ -20,8 +18,8 @@ const {
   ...sectionProps 
 } = Astro.props;
 
-// Fetch water quality data at build time
-const samples = await getWaterSamples();
+// Fetch water quality data with the request-scoped Sanity client.
+const samples = await getWaterSamples(Astro.locals.sanityClient);
 const chartData = transformSamplesToChartData(samples);
 const chartConfig = getChartConfig(showThresholds);
 
@@ -32,32 +30,43 @@ const sortedSamples = [...samples].sort((a, b) =>
 
 // Generate unique ID for this chart instance
 const chartId = `water-chart-${Math.random().toString(36).substring(2, 11)}`;
+
+// Serialize the chart payload for the client module. Escape `<` so the JSON
+// can never terminate the script tag early.
+const chartPayload = JSON.stringify({ chartData, chartConfig, chartType }).replace(/</g, '\\u003c');
 ---
 
 <Section {...sectionProps}>
-  <div class="water-quality-container">
+  <div class="water-quality-container" data-water-quality>
     {heading && (
-      <h2 class="text-3xl font-bold mb-4" data-sb-field-path=".heading">
+      <h2 class="text-3xl font-bold mb-4">
         {heading}
       </h2>
     )}
-    
+
     {body && (
-      <div 
-        class="prose max-w-none mb-6" 
-        data-sb-field-path=".body"
+      <div
+        class="prose max-w-none mb-6"
         set:html={marked(body)}
       />
     )}
     
     {showChart && (
       <div class="chart-wrapper mb-8">
+        <script is:inline type="application/json" data-water-chart-payload set:html={chartPayload} />
         <div class="bg-base-100 rounded-lg shadow-lg p-4 md:p-6">
           <canvas 
             id={chartId}
             class="water-chart"
             style="height: 450px; max-height: 600px;"
           ></canvas>
+
+          <div class="alert alert-warning mt-4 hidden" data-water-chart-error role="alert">
+            <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+            <span>Unable to display the water quality chart.</span>
+          </div>
           
           <noscript>
             <div class="alert alert-warning mt-4">
@@ -95,7 +104,7 @@ const chartId = `water-chart-${Math.random().toString(36).substring(2, 11)}`;
                   <th>Site</th>
                   <th>E. coli (cfu/100ml)</th>
                   <th>Enterococci (cfu/100ml)</th>
-                  {samples.some((s: { rainfall: number | null }) => s.rainfall !== null) && <th>Rainfall (mm)</th>}
+                  {samples.some((s) => s.rainfall != null) && <th>Rainfall (mm)</th>}
                 </tr>
               </thead>
               <tbody>
@@ -104,20 +113,20 @@ const chartId = `water-chart-${Math.random().toString(36).substring(2, 11)}`;
                     <td>{new Date(sample.date).toLocaleDateString('en-GB')}</td>
                     <td>{sample.siteName}</td>
                     <td class:list={[
-                      sample.ecoli > 1000 ? 'text-error font-semibold' :
-                      sample.ecoli > 500 ? 'text-warning' :
+                      (sample.ecoli ?? 0) > 1000 ? 'text-error font-semibold' :
+                      (sample.ecoli ?? 0) > 500 ? 'text-warning' :
                       'text-success'
                     ]}>
                       {sample.ecoli ?? '—'}
                     </td>
                     <td class:list={[
-                      sample.enterococci > 400 ? 'text-error font-semibold' :
-                      sample.enterococci > 200 ? 'text-warning' :
+                      (sample.enterococci ?? 0) > 400 ? 'text-error font-semibold' :
+                      (sample.enterococci ?? 0) > 200 ? 'text-warning' :
                       'text-success'
                     ]}>
                       {sample.enterococci ?? '—'}
                     </td>
-                    {samples.some((s: { rainfall: number | null }) => s.rainfall !== null) && (
+                    {samples.some((s) => s.rainfall != null) && (
                       <td>{sample.rainfall ?? '—'}</td>
                     )}
                   </tr>
@@ -136,206 +145,19 @@ const chartId = `water-chart-${Math.random().toString(36).substring(2, 11)}`;
     
     {cta && cta.length > 0 && (
       <div class="flex flex-wrap gap-4 justify-center mt-8">
-        {cta.map((action, idx) => (
-          <Action 
-            action={action} 
-            data-sb-field-path={`.cta.${idx}`}
-          />
+        {cta.map((action) => (
+          <Action action={action} />
         ))}
       </div>
     )}
   </div>
 </Section>
 
-{/* Table toggle functionality */}
-{showTable && (
-  <script is:inline define:vars={{ chartId }}>
-    document.addEventListener('DOMContentLoaded', () => {
-      const toggleBtn = document.querySelector(`.table-toggle[aria-controls="table-${chartId}"]`);
-      const tableContainer = document.getElementById(`table-${chartId}`);
-      
-      if (toggleBtn && tableContainer) {
-        toggleBtn.addEventListener('click', () => {
-          const isExpanded = toggleBtn.getAttribute('aria-expanded') === 'true';
-          const toggleText = toggleBtn.querySelector('.toggle-text');
-          const chevron = toggleBtn.querySelector('.chevron-icon');
-          
-          if (isExpanded) {
-            // Collapse
-            toggleBtn.setAttribute('aria-expanded', 'false');
-            toggleText.textContent = 'View data table';
-            tableContainer.style.maxHeight = '0';
-            chevron.style.transform = 'rotate(0deg)';
-          } else {
-            // Expand
-            toggleBtn.setAttribute('aria-expanded', 'true');
-            toggleText.textContent = 'Hide data table';
-            tableContainer.style.maxHeight = tableContainer.scrollHeight + 'px';
-            chevron.style.transform = 'rotate(180deg)';
-          }
-        });
-      }
-    });
-  </script>
-)}
+<script>
+  import { registerWaterQualityCharts } from '../scripts/charts/water-quality';
 
-{/* Only load Chart.js when the chart is visible */}
-{showChart && (
-  <script is:inline define:vars={{ chartId, chartData, chartConfig, chartType }}>
-    // Intersection Observer to load chart when visible
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(async entry => {
-        if (entry.isIntersecting) {
-          // Stop observing once loaded
-          observer.unobserve(entry.target);
-          
-          try {
-            // Load Chart.js from CDN
-            const Chart = await window.loadChart();
-
-            // Apply colors to datasets after normalizing site names
-            // Colors grouped by bacteria type (not location)
-            const colors = {
-              'ecoli': {
-                'Calstock': 'rgb(37, 99, 235)',      // darker blue
-                'Calstock-bg': 'rgba(37, 99, 235, 0.2)',
-                'Okel Tor': 'rgb(96, 165, 250)',     // lighter blue
-                'Okel Tor-bg': 'rgba(96, 165, 250, 0.2)'
-              },
-              'enterococci': {
-                'Calstock': 'rgb(124, 58, 237)',     // darker purple
-                'Calstock-bg': 'rgba(124, 58, 237, 0.2)',
-                'Okel Tor': 'rgb(167, 139, 250)',    // lighter purple
-                'Okel Tor-bg': 'rgba(167, 139, 250, 0.2)'
-              }
-            };
-
-            chartData.datasets.forEach(dataset => {
-              // Extract site name and normalize by removing invisible characters
-              const rawSite = dataset.label.split(' - ')[0];
-              const site = rawSite.replace(/[\u200B-\u200D\uFEFF\u00A0\u202F\u205F\u3000]/g, '').trim();
-              const bacteriaType = dataset.label.includes('E. coli') ? 'ecoli' : 'enterococci';
-              const isEcoli = bacteriaType === 'ecoli';
-              const spikeThreshold = isEcoli ? 1000 : 400;
-
-              if (colors[bacteriaType] && colors[bacteriaType][site]) {
-                dataset.borderColor = colors[bacteriaType][site];
-                dataset.backgroundColor = colors[bacteriaType][site + '-bg'];
-              }
-
-              // Dynamic point sizing - use rawValues for threshold check
-              dataset.pointRadius = (context) => {
-                const rawValues = context.dataset.rawValues;
-                const raw = rawValues?.[context.dataIndex];
-                if (raw === null || raw === undefined) return 0;
-                return raw > spikeThreshold ? 6 : 3;
-              };
-
-              dataset.pointHoverRadius = (context) => {
-                const rawValues = context.dataset.rawValues;
-                const raw = rawValues?.[context.dataIndex];
-                if (raw === null || raw === undefined) return 0;
-                return raw > spikeThreshold ? 8 : 5;
-              };
-
-              // Add visual emphasis for spike points
-              dataset.pointBackgroundColor = (context) => {
-                const rawValues = context.dataset.rawValues;
-                const raw = rawValues?.[context.dataIndex];
-                if (raw === null || raw === undefined) return 'transparent';
-                if (raw > spikeThreshold) {
-                  return colors[bacteriaType]?.[site] || 'rgb(239, 68, 68)';
-                }
-                return colors[bacteriaType]?.[site] || 'rgb(59, 130, 246)';
-              };
-
-              dataset.pointBorderColor = (context) => {
-                const rawValues = context.dataset.rawValues;
-                const raw = rawValues?.[context.dataIndex];
-                if (raw === null || raw === undefined) return 'transparent';
-                if (raw > spikeThreshold) {
-                  return 'rgba(255, 255, 255, 0.8)';
-                }
-                return 'transparent';
-              };
-
-              dataset.pointBorderWidth = (context) => {
-                const rawValues = context.dataset.rawValues;
-                const raw = rawValues?.[context.dataIndex];
-                if (raw === null || raw === undefined) return 0;
-                return raw > spikeThreshold ? 2 : 0;
-              };
-            });
-
-            // Calculate dynamic yMax based on transformed data values
-            let dataMaxY = 2; // log10(10 + 100) ≈ 2
-            chartData.datasets.forEach(dataset => {
-              dataset.data.forEach(value => {
-                if (value !== null && value !== undefined && value > dataMaxY) {
-                  dataMaxY = value;
-                }
-              });
-            });
-
-            // Apply max with buffer for visual breathing room
-            if (!chartConfig.scales) chartConfig.scales = {};
-            if (!chartConfig.scales.y) chartConfig.scales.y = {};
-            chartConfig.scales.y.max = dataMaxY + 0.3; // Add buffer in transformed space
-
-            // Add tooltip callback to show actual values (callbacks don't survive JSON serialization)
-            if (!chartConfig.plugins) chartConfig.plugins = {};
-            if (!chartConfig.plugins.tooltip) chartConfig.plugins.tooltip = {};
-            chartConfig.plugins.tooltip.callbacks = {
-              label: function(context) {
-                const rawValues = context.dataset.rawValues;
-                const raw = rawValues?.[context.dataIndex];
-                if (raw === null || raw === undefined) return `${context.dataset.label}: No data`;
-                return `${context.dataset.label}: ${raw} cfu/100ml`;
-              }
-            };
-
-            // Add Y-axis tick callback to show actual values
-            if (!chartConfig.scales.y.ticks) chartConfig.scales.y.ticks = {};
-            const SHIFT_OFFSET = 100;
-            chartConfig.scales.y.ticks.callback = function(value) {
-              const actual = Math.pow(10, value) - SHIFT_OFFSET;
-              if (actual < 0 || actual > 100000) return '';
-              if (actual >= 10000) return Math.round(actual / 1000) + 'K cfu';
-              if (actual >= 1000) return Math.round(actual / 1000) + 'K cfu';
-              if (actual >= 1) return Math.round(actual) + ' cfu';
-              return '';
-            };
-
-            // Create the chart
-            const ctx = document.getElementById(chartId);
-            if (ctx) {
-              new Chart(ctx, {
-                type: chartType,
-                data: chartData,
-                options: chartConfig
-              });
-            }
-          } catch (error) {
-            console.error('Failed to load chart libraries:', error);
-            // Show error message if available
-            const errorElement = document.getElementById('chart-error');
-            if (errorElement) {
-              errorElement.classList.remove('hidden');
-            }
-          }
-        }
-      });
-    }, {
-      rootMargin: '50px'
-    });
-    
-    // Start observing the chart canvas
-    const chartElement = document.getElementById(chartId);
-    if (chartElement) {
-      observer.observe(chartElement);
-    }
-  </script>
-)}
+  registerWaterQualityCharts();
+</script>
 
 <style>
   .water-quality-container {

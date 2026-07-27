@@ -6,16 +6,15 @@ import ActionLink from '@components/ActionLink.astro';
 interface Props {
     action: ActionButtonProps | ActionLinkProps;
     class?: string;
-    'data-sb-field-path'?: string;
 }
 
-const { action, class: className, 'data-sb-field-path': fieldPath } = Astro.props;
+const { action, class: className } = Astro.props;
 
 const componentMap = {
     actionButton: ActionButton,
     actionLink: ActionLink
 };
-const Component = componentMap[action._type];
+const Component = action._type && action._type in componentMap ? componentMap[action._type as keyof typeof componentMap] : undefined;
 ---
 
-<Component {...action} class={className} data-sb-field-path={fieldPath} />
+{Component && <Component {...action} class={className} />}

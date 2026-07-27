@@ -15,10 +15,8 @@
     "sanity"
   ],
   "dependencies": {
-    "@sanity/presentation": "^2.0.0",
     "@sanity/vision": "^5.24.0",
     "easymde": "^2.20.0",
-    "media": "^0.2.1",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
     "sanity": "^5.24.0",
@@ -32,11 +30,5 @@
     "eslint": "^9.39.2",
     "prettier": "^3.8.1",
     "typescript": "^5.8"
-  },
-  "prettier": {
-    "semi": false,
-    "printWidth": 100,
-    "bracketSpacing": false,
-    "singleQuote": true
   }
 }

@@ -1,13 +1,14 @@
 ---
-import type { SanityDocument } from '@sanity/client';
-import { client as sanityClient } from '@utils/sanity-client';
+import { POSTS_QUERY, type Post } from '@data/posts';
 
-const POSTS_QUERY = `*[
-  _type == "post"
-  && defined(slug.current)
-]|order(publishedAt desc)[0...12]{_id, title, slug, publishedAt}`;
+const allPosts = await Astro.locals.sanityClient.fetch<Post[]>(POSTS_QUERY);
+const posts = allPosts.slice(0, 12);
 
-const posts = await sanityClient.fetch<SanityDocument[]>(POSTS_QUERY);
+// Edge-cache the published listing; never cache in preview contexts so
+// visual editing (draft content, stega) always sees fresh data.
+if (!Astro.locals.isPreview) {
+    Astro.response.headers.set('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=3600');
+}
 ---
 
 <main class="container mx-auto min-h-screen max-w-3xl p-8">
@@ -18,7 +19,7 @@ const posts = await sanityClient.fetch<SanityDocument[]>(POSTS_QUERY);
                 <li class="hover:underline">
                     <a href={`/posts/${post.slug.current}`}>
                         <h2 class="text-xl font-semibold">{post.title}</h2>
-                        <p>{new Date(post.publishedAt).toLocaleDateString()}</p>
+                        <p>{post.publishedAt ? new Date(post.publishedAt).toLocaleDateString() : ''}</p>
                     </a>
                 </li>
             ))

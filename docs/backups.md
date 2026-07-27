@@ -52,3 +52,7 @@ For a restore drill or incident response:
 5. Only after explicit approval, plan a production restore using the verified archive.
 
 Sanity imports bypass Studio validation, so review restored content carefully before any production restore.
+
+## Historical Data Provenance
+
+The water-sample dataset was originally seeded from a one-off CSV (`DripDrip_Bacterial_Sampling_18_06_2025.csv`) via a since-removed script (`sanity-export/import-water-data.js`). Both the raw CSV and the legacy `sanity-export/` import scripts were deleted from the repo (repo hygiene sweep) once their contents were confirmed to live on in Sanity itself; ongoing water-sample data now goes in via Studio or a future importer, not that script.

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { fetchData, getPageById, getPageBySlug } from '../../src/data/page';
+import { fetchData, getPageBySlug } from '../../src/data/page';
 import { client } from '../../src/utils/sanity-client';
 
 vi.mock('../../src/utils/sanity-client', () => ({
@@ -22,17 +22,7 @@ describe('Page data queries', () => {
     );
   });
 
-  it('queries a page by id', async () => {
-    vi.mocked(client.fetch).mockResolvedValueOnce({ _id: 'page-1' } as any);
-
-    await getPageById('page-1');
-
-    expect(client.fetch).toHaveBeenCalledWith(
-      expect.stringContaining('*[_type == "page" && _id == "page-1"]')
-    );
-  });
-
-  it('queries a page by slug and falls back to homepage slug', async () => {
+  it('queries a page by slug and falls back to homepage slug, using a parameterised query', async () => {
     vi.mocked(client.fetch)
       .mockResolvedValueOnce({ slug: { current: 'news' } } as any)
       .mockResolvedValueOnce({ slug: { current: '/' } } as any);
@@ -42,11 +32,33 @@ describe('Page data queries', () => {
 
     expect(client.fetch).toHaveBeenNthCalledWith(
       1,
-      expect.stringContaining('slug.current == "news"')
+      expect.stringContaining('slug.current == $slug'),
+      { slug: 'news' }
     );
     expect(client.fetch).toHaveBeenNthCalledWith(
       2,
-      expect.stringContaining('slug.current == "/"')
+      expect.stringContaining('slug.current == $slug'),
+      { slug: '/' }
     );
+  });
+
+  it('does not throw and passes slugs containing quotes as a parameter, never interpolated', async () => {
+    const maliciousSlug = 'foo" || true || "';
+    vi.mocked(client.fetch).mockResolvedValueOnce(undefined as any);
+
+    const result = await getPageBySlug(maliciousSlug);
+
+    expect(result).toBeUndefined();
+    expect(client.fetch).toHaveBeenCalledWith(
+      expect.not.stringContaining(maliciousSlug),
+      { slug: maliciousSlug }
+    );
+  });
+
+  it('propagates a Sanity fetch failure rather than swallowing it (Task 12: page fetches fail loudly, unlike siteConfig/locationConfig)', async () => {
+    const failure = new Error('Sanity down');
+    vi.mocked(client.fetch).mockRejectedValueOnce(failure);
+
+    await expect(getPageBySlug('news')).rejects.toThrow('Sanity down');
   });
 });

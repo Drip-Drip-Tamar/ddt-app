@@ -29,7 +29,6 @@ const imageBackgroundStyle = getNewsImageBackgroundStyle(image?.backgroundColor,
                     image && (image.asset || image.src) && (
                         <figure class={imageSizingClasses.figure} style={imageBackgroundStyle}>
                             <ResponsiveImage
-                                _id={image._id}
                                 src={image.src}
                                 asset={image.asset}
                                 dimensions={image.dimensions}

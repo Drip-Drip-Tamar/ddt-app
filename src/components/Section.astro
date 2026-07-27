@@ -4,12 +4,11 @@ import BackgroundImage from '@components/BackgroundImage.astro';
 
 interface Props extends Section {
     class?: string;
-    'data-sb-field-path'?: string;
     height?: 'small' | 'medium' | 'large' | 'full';
     backgroundImageFit?: 'cover' | 'contain' | 'fill';
 }
 
-const { backgroundImage, theme, width, class: className, 'data-sb-field-path': fieldPath, height = 'medium', backgroundImageFit = 'cover' } = Astro.props;
+const { backgroundImage, theme, width, class: className, height = 'medium', backgroundImageFit = 'cover' } = Astro.props;
 
 // Define height classes based on the height prop
 const heightClasses = {
@@ -22,17 +21,17 @@ const heightClasses = {
 
 {
     width === 'inset' ? (
-        <section class="w-full px-3 sm:px-6" data-width="inset" data-sb-field-path={fieldPath}>
+        <section class="w-full px-3 sm:px-6" data-width="inset">
             <div class:list={['relative mx-auto overflow-hidden max-w-7xl rounded-box', heightClasses[height], className]} data-theme={theme || 'light'}>
-                {backgroundImage && <BackgroundImage {...backgroundImage} fit={backgroundImageFit} data-sb-field-path=".backgroundImage" />}
+                {backgroundImage && <BackgroundImage {...backgroundImage} fit={backgroundImageFit} />}
                 <div class="relative w-10/12 mx-auto">
                     <slot />
                 </div>
             </div>
         </section>
     ) : (
-        <section class:list={['relative w-full px-3 sm:px-6', heightClasses[height], className]} data-theme={theme || 'light'} data-sb-field-path={fieldPath}>
-            {backgroundImage && <BackgroundImage {...backgroundImage} fit={backgroundImageFit} data-sb-field-path=".backgroundImage" />}
+        <section class:list={['relative w-full px-3 sm:px-6', heightClasses[height], className]} data-theme={theme || 'light'}>
+            {backgroundImage && <BackgroundImage {...backgroundImage} fit={backgroundImageFit} />}
             <div class="relative mx-auto max-w-7xl">
                 <slot />
             </div>
