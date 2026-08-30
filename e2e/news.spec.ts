@@ -26,9 +26,11 @@ test.describe('news page', () => {
         expect(response?.ok()).toBeTruthy();
 
         const styles = await page.evaluate(() => {
+            const articleColumn = document.createElement('div');
+            articleColumn.style.width = '900px';
             const fixture = document.createElement('div');
             fixture.className =
-                'prose mx-auto prose-headings:font-bold prose-a:text-primary prose-img:rounded-lg';
+                'prose max-w-none prose-headings:font-bold prose-a:text-primary prose-img:rounded-lg';
             fixture.innerHTML = `
                 <div class="portable-text">
                     <p data-testid="body-copy">Body copy</p>
@@ -39,7 +41,8 @@ test.describe('news page', () => {
                     <p><strong data-testid="bold-copy">Bold copy</strong></p>
                 </div>
             `;
-            document.body.append(fixture);
+            articleColumn.append(fixture);
+            document.body.append(articleColumn);
 
             const readStyles = (selector: string) => {
                 const element = fixture.querySelector<HTMLElement>(selector);
@@ -63,10 +66,11 @@ test.describe('news page', () => {
                 quote: readStyles('[data-testid="quote"]'),
                 listItem: readStyles('[data-testid="list-item"]'),
                 articleWidth: fixture.getBoundingClientRect().width,
+                articleColumnWidth: articleColumn.getBoundingClientRect().width,
                 bold: readStyles('[data-testid="bold-copy"]')
             };
 
-            fixture.remove();
+            articleColumn.remove();
             return result;
         });
 
@@ -77,7 +81,7 @@ test.describe('news page', () => {
         expect(styles.paragraph.marginBottom).toBeLessThanOrEqual(20);
         expect(styles.paragraph.lineHeight / styles.paragraph.fontSize).toBeLessThanOrEqual(1.75);
         expect(styles.listItem.marginBottom).toBeLessThanOrEqual(8);
-        expect(styles.articleWidth).toBeLessThanOrEqual(720);
+        expect(styles.articleWidth).toBe(styles.articleColumnWidth);
         expect(styles.quote.borderLeftWidth).toBeGreaterThan(0);
         expect(styles.quote.fontStyle).toBe('italic');
         expect(styles.bold.fontWeight).toBeGreaterThan(styles.paragraph.fontWeight);
