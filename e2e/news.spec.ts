@@ -20,4 +20,58 @@ test.describe('news page', () => {
         const hasEmptyState = await page.getByText('No news posts available yet.').count();
         expect(hasPosts > 0 || hasEmptyState > 0).toBeTruthy();
     });
+
+    test('styles Portable Text blocks as article typography', async ({ page }) => {
+        const response = await page.goto('/news');
+        expect(response?.ok()).toBeTruthy();
+
+        const styles = await page.evaluate(() => {
+            const fixture = document.createElement('div');
+            fixture.className =
+                'prose prose-lg md:prose-xl max-w-none prose-headings:font-bold prose-a:text-primary prose-img:rounded-lg';
+            fixture.innerHTML = `
+                <div class="portable-text">
+                    <p data-testid="body-copy">Body copy</p>
+                    <h2 data-testid="heading-two">What happened in 2025?</h2>
+                    <h3 data-testid="heading-three">More detail</h3>
+                    <blockquote data-testid="quote">Quoted text</blockquote>
+                    <p><strong data-testid="bold-copy">Bold copy</strong></p>
+                </div>
+            `;
+            document.body.append(fixture);
+
+            const readStyles = (selector: string) => {
+                const element = fixture.querySelector<HTMLElement>(selector);
+                if (!element) throw new Error(`Missing typography fixture element: ${selector}`);
+
+                const computed = getComputedStyle(element);
+                return {
+                    fontSize: Number.parseFloat(computed.fontSize),
+                    fontWeight: Number.parseInt(computed.fontWeight, 10),
+                    marginBottom: Number.parseFloat(computed.marginBottom),
+                    borderLeftWidth: Number.parseFloat(computed.borderLeftWidth),
+                    fontStyle: computed.fontStyle
+                };
+            };
+
+            const result = {
+                paragraph: readStyles('[data-testid="body-copy"]'),
+                headingTwo: readStyles('[data-testid="heading-two"]'),
+                headingThree: readStyles('[data-testid="heading-three"]'),
+                quote: readStyles('[data-testid="quote"]'),
+                bold: readStyles('[data-testid="bold-copy"]')
+            };
+
+            fixture.remove();
+            return result;
+        });
+
+        expect(styles.headingTwo.fontSize).toBeGreaterThan(styles.paragraph.fontSize);
+        expect(styles.headingThree.fontSize).toBeGreaterThan(styles.paragraph.fontSize);
+        expect(styles.headingTwo.fontWeight).toBeGreaterThan(styles.paragraph.fontWeight);
+        expect(styles.paragraph.marginBottom).toBeGreaterThan(0);
+        expect(styles.quote.borderLeftWidth).toBeGreaterThan(0);
+        expect(styles.quote.fontStyle).toBe('italic');
+        expect(styles.bold.fontWeight).toBeGreaterThan(styles.paragraph.fontWeight);
+    });
 });

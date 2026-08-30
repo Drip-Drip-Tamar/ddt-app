@@ -1,6 +1,7 @@
 @import 'tailwindcss';
 @import '@fontsource-variable/mulish/wght.css';
 @import './brand.css';
+@plugin "@tailwindcss/typography";
 @plugin "daisyui";
 
 @theme {
