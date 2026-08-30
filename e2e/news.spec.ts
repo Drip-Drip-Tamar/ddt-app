@@ -28,13 +28,14 @@ test.describe('news page', () => {
         const styles = await page.evaluate(() => {
             const fixture = document.createElement('div');
             fixture.className =
-                'prose prose-lg md:prose-xl max-w-none prose-headings:font-bold prose-a:text-primary prose-img:rounded-lg';
+                'prose mx-auto prose-headings:font-bold prose-a:text-primary prose-img:rounded-lg';
             fixture.innerHTML = `
                 <div class="portable-text">
                     <p data-testid="body-copy">Body copy</p>
                     <h2 data-testid="heading-two">What happened in 2025?</h2>
                     <h3 data-testid="heading-three">More detail</h3>
                     <blockquote data-testid="quote">Quoted text</blockquote>
+                    <ul><li data-testid="list-item">List item</li></ul>
                     <p><strong data-testid="bold-copy">Bold copy</strong></p>
                 </div>
             `;
@@ -47,6 +48,7 @@ test.describe('news page', () => {
                 const computed = getComputedStyle(element);
                 return {
                     fontSize: Number.parseFloat(computed.fontSize),
+                    lineHeight: Number.parseFloat(computed.lineHeight),
                     fontWeight: Number.parseInt(computed.fontWeight, 10),
                     marginBottom: Number.parseFloat(computed.marginBottom),
                     borderLeftWidth: Number.parseFloat(computed.borderLeftWidth),
@@ -59,6 +61,8 @@ test.describe('news page', () => {
                 headingTwo: readStyles('[data-testid="heading-two"]'),
                 headingThree: readStyles('[data-testid="heading-three"]'),
                 quote: readStyles('[data-testid="quote"]'),
+                listItem: readStyles('[data-testid="list-item"]'),
+                articleWidth: fixture.getBoundingClientRect().width,
                 bold: readStyles('[data-testid="bold-copy"]')
             };
 
@@ -70,6 +74,10 @@ test.describe('news page', () => {
         expect(styles.headingThree.fontSize).toBeGreaterThan(styles.paragraph.fontSize);
         expect(styles.headingTwo.fontWeight).toBeGreaterThan(styles.paragraph.fontWeight);
         expect(styles.paragraph.marginBottom).toBeGreaterThan(0);
+        expect(styles.paragraph.marginBottom).toBeLessThanOrEqual(20);
+        expect(styles.paragraph.lineHeight / styles.paragraph.fontSize).toBeLessThanOrEqual(1.75);
+        expect(styles.listItem.marginBottom).toBeLessThanOrEqual(8);
+        expect(styles.articleWidth).toBeLessThanOrEqual(720);
         expect(styles.quote.borderLeftWidth).toBeGreaterThan(0);
         expect(styles.quote.fontStyle).toBe('italic');
         expect(styles.bold.fontWeight).toBeGreaterThan(styles.paragraph.fontWeight);
