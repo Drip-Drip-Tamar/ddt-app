@@ -51,28 +51,24 @@
        ======================================== */
     
     /* Primary - Main brand color */
-    --color-primary: var(--verdigris);
     --color-primary-hover: #2FA0A1;
     --color-primary-active: #258D8E;
     --color-primary-light: #5FC5C6;
     --color-primary-dark: #2A9899;
     
     /* Secondary - Supporting actions */
-    --color-secondary: var(--teal);
     --color-secondary-hover: #0F6F74;
     --color-secondary-active: #0D5A5F;
     --color-secondary-light: #1A9BA2;
     --color-secondary-dark: #0C5B60;
     
     /* Accent - Highlights and special elements */
-    --color-accent: var(--celeste);
     --color-accent-hover: #A8F6F0;
     --color-accent-active: #90F2EA;
     --color-accent-light: #D8FDFA;
     --color-accent-dark: #7DEEE4;
     
     /* Neutral - Text and borders */
-    --color-neutral: var(--midnight-green);
     --color-neutral-hover: #1E3D45;
     --color-neutral-active: #193138;
     --color-neutral-light: #3A6672;

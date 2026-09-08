@@ -111,7 +111,7 @@ export function isSanityImage(source: unknown): source is SanityImageSource {
     if (!source) return false;
     
     if (typeof source === 'string') {
-        return source.includes('image-');
+        return source.startsWith('image-') || source.startsWith('https://cdn.sanity.io/images/');
     }
     
     if (typeof source !== 'object') {

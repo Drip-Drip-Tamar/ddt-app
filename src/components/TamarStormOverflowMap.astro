@@ -1,5 +1,6 @@
 ---
 import Section from '@components/Section.astro';
+import VisualizationLoading from '@components/VisualizationLoading.astro';
 import type { Section as SectionType } from 'types';
 import { getPrimaryLocation } from '@data/locationConfig';
 
@@ -29,12 +30,12 @@ const mapId = `cso-map-${Math.random().toString(36).substring(2, 11)}`;
             <div class="p-4 md:p-6 pb-0">
                 <div class="flex flex-col items-start gap-3 mb-3 sm:flex-row sm:justify-between">
                     <div>
-                        <h4 class="text-lg font-semibold mb-1">Storm Overflow Locations</h4>
+                        <h2 class="text-lg font-semibold mb-1">Storm Overflow Locations</h2>
                         <p class="text-xs text-base-content/60">
                             Live monitoring within {radiusKm}km radius • Updated ~10 min
                         </p>
                     </div>
-                    <div id={`${mapId}-status`} class="badge badge-lg badge-ghost shrink-0 whitespace-nowrap">Loading...</div>
+                    <div id={`${mapId}-status`} class="badge badge-lg badge-ghost shrink-0 whitespace-nowrap" role="status">Loading…</div>
                 </div>
 
                 <!-- Legend -->
@@ -66,20 +67,23 @@ const mapId = `cso-map-${Math.random().toString(36).substring(2, 11)}`;
                     <span> This map is for general guidance only. Always check local conditions and official sources before water activities. </span>
                 </div>
 
-                <!-- Map Element -->
-                <div
-                    id={mapId}
-                    class="cso-leaflet-map"
-                    style="height: 500px; width: 100%;"
-                    data-cso-map
-                    data-lat={centre.lat}
-                    data-lon={centre.lon}
-                    data-radius={radiusKm}
-                    data-days={days}
-                    data-api={api}
-                    data-name={location.name}
-                    aria-label={`Interactive map showing storm overflow locations within ${radiusKm}km of ${location.name}`}
-                >
+                <!-- Reserve the map area while its library and data load. -->
+                <div class="map-frame" data-visualization aria-busy="true">
+                    <VisualizationLoading label="Loading map and overflow locations…" />
+                    <div
+                        id={mapId}
+                        class="cso-leaflet-map"
+                        data-cso-map
+                        inert
+                        data-lat={centre.lat}
+                        data-lon={centre.lon}
+                        data-radius={radiusKm}
+                        data-days={days}
+                        data-api={api}
+                        data-name={location.name}
+                        aria-label={`Interactive map showing storm overflow locations within ${radiusKm}km of ${location.name}`}
+                    >
+                    </div>
                 </div>
             </div>
 
@@ -123,7 +127,7 @@ const mapId = `cso-map-${Math.random().toString(36).substring(2, 11)}`;
             </div>
 
             <!-- Error message (hidden by default) -->
-            <div id={`${mapId}-error`} class="alert alert-warning mt-4 hidden">
+            <div id={`${mapId}-error`} class="alert alert-warning mt-4 hidden" role="alert">
                 <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
                     <path
                         stroke-linecap="round"
@@ -132,7 +136,7 @@ const mapId = `cso-map-${Math.random().toString(36).substring(2, 11)}`;
                         d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
                     ></path>
                 </svg>
-                <span>CSO data unavailable — try again shortly.</span>
+                <span>CSO data unavailable. Reload to try again, or check <a href="https://www.southwestwater.co.uk/environment/rivers-and-bathing-waters/waterfitlive/" class="link">WaterFit Live</a>.</span>
             </div>
 
             <noscript>
@@ -162,7 +166,11 @@ const mapId = `cso-map-${Math.random().toString(36).substring(2, 11)}`;
             max-width: 100%;
         }
 
+        .map-frame { height: 500px; }
+
         .cso-leaflet-map {
+            height: 100%;
+            width: 100%;
             background: #e5e7eb;
             position: relative;
         }
@@ -182,8 +190,8 @@ const mapId = `cso-map-${Math.random().toString(36).substring(2, 11)}`;
         }
 
         @media (max-width: 640px) {
-            .cso-leaflet-map {
-                height: 400px !important;
+            .map-frame {
+                height: 400px;
             }
         }
     </style>

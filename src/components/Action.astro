@@ -6,9 +6,10 @@ import ActionLink from '@components/ActionLink.astro';
 interface Props {
     action: ActionButtonProps | ActionLinkProps;
     class?: string;
+    'aria-current'?: 'page';
 }
 
-const { action, class: className } = Astro.props;
+const { action, class: className, 'aria-current': ariaCurrent } = Astro.props;
 
 const componentMap = {
     actionButton: ActionButton,
@@ -17,4 +18,4 @@ const componentMap = {
 const Component = action._type && action._type in componentMap ? componentMap[action._type as keyof typeof componentMap] : undefined;
 ---
 
-{Component && <Component {...action} class={className} />}
+{Component && <Component {...action} class={className} aria-current={ariaCurrent} />}

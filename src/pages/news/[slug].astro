@@ -7,7 +7,7 @@ import {
     getNewsImageSizingClasses,
     normalizeNewsImageSizingMode
 } from '@utils/news-image-sizing';
-import { portableTextToHtml } from '@utils/portable-text';
+import { extractTextFromPortableText, portableTextToHtml } from '@utils/portable-text';
 import { POST_QUERY, type Post } from '@data/posts';
 
 const { slug } = Astro.params;
@@ -34,7 +34,7 @@ const publishedDate = post.publishedAt
 
 // Use SEO fields if available, otherwise fall back to title and excerpt
 const seoTitle = post.seoTitle || post.title;
-const seoDescription = post.seoDescription || post.excerpt || '';
+const seoDescription = post.seoDescription || post.excerpt || extractTextFromPortableText(post.body, 160);
 const featuredImageSizingMode = normalizeNewsImageSizingMode(post.featuredImage?.sizingMode);
 const featuredImageClass = getNewsImageSizingClasses('banner', featuredImageSizingMode);
 const featuredImageFrameClass = featuredImageSizingMode === 'fill'
@@ -47,6 +47,7 @@ const featuredImageBackgroundStyle = getNewsImageBackgroundStyle(post.featuredIm
     title={seoTitle}
     addTitleSuffix={true}
     description={seoDescription}
+    article={post}
     image={post.featuredImage?.image
         ? {
               ...post.featuredImage.image,
@@ -54,7 +55,7 @@ const featuredImageBackgroundStyle = getNewsImageBackgroundStyle(post.featuredIm
           }
         : undefined}
 >
-    <main class="min-h-screen bg-gray-50">
+    <div class="min-h-screen bg-gray-50">
         <article class="bg-white">
             <Section class="max-w-4xl mx-auto py-8 md:py-12">
                 {/* Post header */}
@@ -74,11 +75,14 @@ const featuredImageBackgroundStyle = getNewsImageBackgroundStyle(post.featuredIm
                                         dimensions={post.featuredImage.image.dimensions}
                                         alt={post.featuredImage.alt || post.title}
                                         imageType="hero"
+                                        loading="eager"
+                                        fetchpriority="high"
+                                        sizes="(max-width: 896px) calc(100vw - 64px), 832px"
                                         class={featuredImageClass}
                                     />
                                 </div>
                                 {post.featuredImage.alt && (
-                                    <figcaption class="text-sm text-gray-100 text-center mt-3 px-4">{post.featuredImage.alt}</figcaption>
+                                    <figcaption class="text-sm text-gray-600 text-center mt-3 px-4">{post.featuredImage.alt}</figcaption>
                                 )}
                             </figure>
                         )
@@ -95,6 +99,7 @@ const featuredImageBackgroundStyle = getNewsImageBackgroundStyle(post.featuredIm
                                             dimensions={post.author.image.image.dimensions}
                                             alt={post.author.image.alt || post.author.name}
                                             imageType="avatar"
+                                            sizes="48px"
                                             class="w-12 h-12 rounded-full object-cover ring-2 ring-gray-200"
                                         />
                                     )}
@@ -142,5 +147,5 @@ const featuredImageBackgroundStyle = getNewsImageBackgroundStyle(post.featuredIm
                 </div>
             </Section>
         </article>
-    </main>
+    </div>
 </Layout>

@@ -16,7 +16,7 @@ import {
 } from './theme';
 import { formatDayHour, formatShortDateTime } from './format';
 import { buildCsoActivityConfig, updateCsoDisplay, type CsoData } from './storm-overflow';
-import { fetchJson, mountPanel, onPageLoad, readPanelConfig } from './mount-panel';
+import { mountPanel, onPageLoad, readPanelConfig } from './mount-panel';
 
 export interface LevelSeries {
     latest: number | null;
@@ -42,12 +42,6 @@ export interface RainfallData {
     hourly?: RainfallPoint[];
     rolling24h?: RainfallPoint[];
     stations?: { name: string; distanceKm: number }[];
-}
-
-export interface EnvData {
-    riverData: RiverData;
-    rainfallData: RainfallData;
-    csoData: CsoData;
 }
 
 export interface RainfallStatus {
@@ -315,30 +309,32 @@ export function mountEnvironmentalMonitoring(root: HTMLElement): void {
     });
     if (!ids.gunnislakeChartId) return;
 
-    void mountPanel<EnvData>({
-        getData: async () => {
-            const [riverData, rainfallData, csoData] = await Promise.all([
-                fetchJson<RiverData>('/api/tamar-level.json'),
-                fetchJson<RainfallData>('/api/rainfall.json'),
-                fetchJson<CsoData>('/api/cso-live.json')
-            ]);
-            return { riverData, rainfallData, csoData };
-        },
+    void mountPanel<RiverData>({
+        endpoint: '/api/tamar-level.json',
         errorId: 'env-monitoring-error',
-        onData: ({ riverData, rainfallData, csoData }) => {
+        onData: (riverData) => {
             updateLevelDisplay(riverData.gunnislake, ids.gunnislakeChartId, 3);
             updateLevelDisplay(riverData.plymouth, ids.plymouthChartId, 2);
-            updateRainfallDisplay(rainfallData, ids.rainfallChartId);
-            updateCsoDisplay(csoData, ids.csoChartId, 5, 'max-w-[120px]');
         },
-        observeId: ids.gunnislakeChartId,
         charts: [
-            { canvasId: ids.gunnislakeChartId, buildConfig: (d) => buildRiverLevelConfig(d.riverData) },
-            { canvasId: ids.plymouthChartId, buildConfig: (d) => buildTidalLevelConfig(d.riverData) },
-            { canvasId: ids.rainfallChartId, buildConfig: (d) => buildRainfallConfig(d.rainfallData) },
-            { canvasId: ids.csoChartId, buildConfig: (d) => buildCsoActivityConfig(d.csoData) }
+            { canvasId: ids.gunnislakeChartId, buildConfig: buildRiverLevelConfig },
+            { canvasId: ids.plymouthChartId, buildConfig: buildTidalLevelConfig }
         ],
-        logLabel: 'environmental monitoring'
+        logLabel: 'river and tidal levels'
+    });
+    void mountPanel<RainfallData>({
+        endpoint: '/api/rainfall.json',
+        errorId: 'env-monitoring-error',
+        onData: (data) => updateRainfallDisplay(data, ids.rainfallChartId),
+        charts: [{ canvasId: ids.rainfallChartId, buildConfig: buildRainfallConfig }],
+        logLabel: 'rainfall'
+    });
+    void mountPanel<CsoData>({
+        endpoint: '/api/cso-live.json',
+        errorId: 'env-monitoring-error',
+        onData: (data) => updateCsoDisplay(data, ids.csoChartId, 5, 'max-w-[120px]'),
+        charts: [{ canvasId: ids.csoChartId, buildConfig: buildCsoActivityConfig }],
+        logLabel: 'storm overflows'
     });
 }
 

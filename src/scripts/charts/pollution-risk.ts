@@ -125,6 +125,8 @@ export async function loadPollutionRiskForecast(containerId: string, endpoint: s
         console.error('Error loading pollution risk forecast:', error);
         badgesContainer.style.display = 'none';
         errorAlert?.classList.remove('hidden');
+    } finally {
+        badgesContainer.setAttribute('aria-busy', 'false');
     }
 }
 

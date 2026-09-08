@@ -1,5 +1,6 @@
 ---
 import Section from '@components/Section.astro';
+import VisualizationLoading from '@components/VisualizationLoading.astro';
 import type { Section as SectionType } from 'types';
 
 export interface Props extends SectionType {
@@ -26,7 +27,7 @@ const csoChartId = `cso-chart-${Math.random().toString(36).substring(2, 11)}`;
     >
         <!-- Main Header -->
         <div class="mb-8">
-            <h3 class="text-2xl font-bold mb-3">Environmental Monitoring — Tamar</h3>
+            <h2 class="text-2xl font-bold mb-3">Environmental Monitoring — Tamar</h2>
             <p class="text-sm text-base-content/70 leading-relaxed">
                 Real-time environmental conditions affecting water quality in the River Tamar near Calstock. These core indicators show river flow, tidal state,
                 rainfall, and storm overflow activity. Note: Comprehensive contamination risk assessment requires additional metrics including wind conditions,
@@ -40,7 +41,7 @@ const csoChartId = `cso-chart-${Math.random().toString(36).substring(2, 11)}`;
             <!-- Storm Overflow Chart -->
             <div class="bg-base-100 rounded-lg shadow-lg p-4 md:p-6">
                 <div class="mb-3">
-                    <h4 class="text-lg font-semibold mb-1">Storm Overflows — Calstock Area (10km)</h4>
+                    <h3 class="text-lg font-semibold mb-1">Storm Overflows — Calstock Area (10km)</h3>
                     <p class="text-xs text-base-content/60">Active CSOs discharge untreated sewage. Always check current status before entering water.</p>
                 </div>
 
@@ -55,13 +56,14 @@ const csoChartId = `cso-chart-${Math.random().toString(36).substring(2, 11)}`;
                     <div id={`${csoChartId}-badge`} class="badge badge-lg">Loading</div>
                 </div>
 
-                <div class="chart-wrapper mb-4">
-                    <canvas id={csoChartId} class="env-chart" style="height: 250px; max-height: 250px;"></canvas>
+                <div class="chart-wrapper mb-4" data-visualization aria-busy="true">
+                    <VisualizationLoading label="Loading storm overflow activity chart…" />
+                    <canvas id={csoChartId} class="env-chart" role="img" aria-label="Storm overflow activity over time"></canvas>
                 </div>
 
                 <!-- Recent Events Table -->
                 <div class="overflow-x-auto">
-                    <h5 class="text-sm font-semibold mb-2">Recent Events</h5>
+                    <h4 class="text-sm font-semibold mb-2">Recent Events</h4>
                     <table class="table table-xs">
                         <thead>
                             <tr>
@@ -101,7 +103,7 @@ const csoChartId = `cso-chart-${Math.random().toString(36).substring(2, 11)}`;
             <!-- Rainfall Chart -->
             <div class="bg-base-100 rounded-lg shadow-lg p-4 md:p-6">
                 <div class="mb-3">
-                    <h4 class="text-lg font-semibold mb-1">Rainfall — Calstock Area (10km)</h4>
+                    <h3 class="text-lg font-semibold mb-1">Rainfall — Calstock Area (10km)</h3>
                     <p class="text-xs text-base-content/60">
                         Heavy rainfall triggers agricultural runoff and storm overflow discharges. Avoid water contact 48-72 hours after heavy rain.
                     </p>
@@ -120,15 +122,16 @@ const csoChartId = `cso-chart-${Math.random().toString(36).substring(2, 11)}`;
 
                 <div id={`${rainfallChartId}-stations`} class="text-xs text-base-content/60 mb-3">Loading station data...</div>
 
-                <div class="chart-wrapper">
-                    <canvas id={rainfallChartId} class="env-chart" style="height: 250px; max-height: 250px;"></canvas>
+                <div class="chart-wrapper" data-visualization aria-busy="true">
+                    <VisualizationLoading label="Loading rainfall chart…" />
+                    <canvas id={rainfallChartId} class="env-chart" role="img" aria-label="Rainfall over time"></canvas>
                 </div>
             </div>
 
             <!-- River Flow Chart -->
             <div class="bg-base-100 rounded-lg shadow-lg p-4 md:p-6">
                 <div class="mb-3">
-                    <h4 class="text-lg font-semibold mb-1">River Flow — Gunnislake</h4>
+                    <h3 class="text-lg font-semibold mb-1">River Flow — Gunnislake</h3>
                     <p class="text-xs text-base-content/60">
                         High flow indicates recent rainfall, increasing contamination from agricultural runoff and urban drainage.
                     </p>
@@ -145,15 +148,16 @@ const csoChartId = `cso-chart-${Math.random().toString(36).substring(2, 11)}`;
                     <div id={`${gunnislakeChartId}-badge`} class="badge badge-lg">Loading</div>
                 </div>
 
-                <div class="chart-wrapper">
-                    <canvas id={gunnislakeChartId} class="env-chart" style="height: 250px; max-height: 250px;"></canvas>
+                <div class="chart-wrapper" data-visualization aria-busy="true">
+                    <VisualizationLoading label="Loading river level chart…" />
+                    <canvas id={gunnislakeChartId} class="env-chart" role="img" aria-label="River level over time"></canvas>
                 </div>
             </div>
 
             <!-- Tidal Level Chart -->
             <div class="bg-base-100 rounded-lg shadow-lg p-4 md:p-6">
                 <div class="mb-3">
-                    <h4 class="text-lg font-semibold mb-1">Tidal Level — Plymouth</h4>
+                    <h3 class="text-lg font-semibold mb-1">Tidal Level — Plymouth</h3>
                     <p class="text-xs text-base-content/60">
                         Low tide concentrates pollution, high tide provides dilution. Check tide state before water activities.
                     </p>
@@ -170,15 +174,16 @@ const csoChartId = `cso-chart-${Math.random().toString(36).substring(2, 11)}`;
                     <div id={`${plymouthChartId}-badge`} class="badge badge-lg">Loading</div>
                 </div>
 
-                <div class="chart-wrapper">
-                    <canvas id={plymouthChartId} class="env-chart" style="height: 250px; max-height: 250px;"></canvas>
+                <div class="chart-wrapper" data-visualization aria-busy="true">
+                    <VisualizationLoading label="Loading tidal level chart…" />
+                    <canvas id={plymouthChartId} class="env-chart" role="img" aria-label="Tidal level over time"></canvas>
                 </div>
             </div>
         </div>
 
         <!-- Combined Attribution -->
         <div class="mt-8 pt-4 border-t border-base-300">
-            <h5 class="text-sm font-semibold mb-2">Data Sources</h5>
+            <h4 class="text-sm font-semibold mb-2">Data Sources</h4>
             <div class="space-y-1 text-xs text-base-content/60">
                 <p>
                     • River & Tide Levels: <a
@@ -256,6 +261,7 @@ const csoChartId = `cso-chart-${Math.random().toString(36).substring(2, 11)}`;
 
     .chart-wrapper {
         width: 100%;
+        height: 250px;
         position: relative;
         overflow: hidden;
     }
@@ -273,9 +279,8 @@ const csoChartId = `cso-chart-${Math.random().toString(36).substring(2, 11)}`;
     }
 
     @media (max-width: 640px) {
-        .env-chart {
-            height: 200px !important;
-            max-height: 200px !important;
+        .chart-wrapper {
+            height: 200px;
         }
     }
 </style>

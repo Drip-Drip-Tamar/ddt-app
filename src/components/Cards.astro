@@ -10,6 +10,12 @@ interface Props extends CardsSection {}
 const { heading, body, items, columns, fixedImageHeight, ...rest } = Astro.props;
 
 const effectiveColumns = normalizeColumns(columns) ?? 'three';
+const imageSizes = {
+    one: '(max-width: 639px) calc(100vw - 40px), 672px',
+    two: '(max-width: 639px) calc(100vw - 40px), (max-width: 1344px) calc((100vw - 96px) / 2), 624px',
+    three: '(max-width: 639px) calc(100vw - 40px), (max-width: 1023px) calc((100vw - 96px) / 2), (max-width: 1344px) calc((100vw - 128px) / 3), 406px',
+    four: '(max-width: 639px) calc(100vw - 40px), (max-width: 1023px) calc((100vw - 96px) / 2), (max-width: 1344px) calc((100vw - 160px) / 4), 296px'
+}[effectiveColumns];
 ---
 
 <Section {...rest} class="text-center">
@@ -39,7 +45,7 @@ const effectiveColumns = normalizeColumns(columns) ?? 'three';
                 ]}
             >
                 {items?.map((item) => (
-                    <Card {...item} fixedImageHeight={fixedImageHeight} class="flex-1" />
+                    <Card {...item} fixedImageHeight={fixedImageHeight} imageSizes={imageSizes} class="flex-1" />
                 ))}
             </div>
         )

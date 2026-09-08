@@ -13,8 +13,8 @@ test.describe('home page', () => {
         expect(response?.ok()).toBeTruthy();
 
         await expect(page).toHaveTitle(/.+/);
-        // Header.astro's root element is a <nav>, not a semantic <header>.
-        await expect(page.locator('nav').first()).toBeVisible();
+        await expect(page.getByRole('banner')).toBeVisible();
+        await expect(page.getByRole('main')).toHaveCount(1);
         await expect(page.locator('footer')).toBeVisible();
         expect(pageErrors).toEqual([]);
         expect(consoleErrors).toEqual([]);

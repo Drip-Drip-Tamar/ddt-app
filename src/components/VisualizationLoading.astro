@@ -1,0 +1,49 @@
+---
+interface Props {
+    label: string;
+}
+const { label } = Astro.props;
+---
+
+<div class="visualization-loading" data-visualization-loading role="status">
+    <div class="loading-shapes" aria-hidden="true">
+        <span></span><span></span><span></span>
+    </div>
+    <p>{label}</p>
+</div>
+
+<style>
+    .visualization-loading {
+        position: absolute;
+        inset: 0;
+        z-index: 1000;
+        display: grid;
+        align-content: center;
+        gap: 1.5rem;
+        padding: 2rem;
+        background: var(--color-base-200);
+        color: var(--color-base-content);
+        border-radius: 0.5rem;
+        text-align: center;
+        font-size: 0.875rem;
+    }
+    .visualization-loading[hidden] { display: none; }
+    .loading-shapes {
+        display: grid;
+        gap: 0.75rem;
+        width: min(100%, 20rem);
+        margin-inline: auto;
+    }
+    .loading-shapes span {
+        height: 0.75rem;
+        border-radius: 1rem;
+        background: currentColor;
+        opacity: 0.12;
+    }
+    .loading-shapes span:nth-child(2) { width: 75%; }
+    .loading-shapes span:nth-child(3) { width: 50%; }
+    @media (prefers-reduced-motion: no-preference) {
+        .loading-shapes { animation: loading-pulse 1.8s ease-in-out infinite alternate; }
+    }
+    @keyframes loading-pulse { to { opacity: 0.4; } }
+</style>

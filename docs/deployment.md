@@ -18,6 +18,8 @@ The Astro config uses `output: 'server'` and `@astrojs/netlify`, so the deployed
 
 ## Required Netlify Environment
 
+`SITE_URL` can explicitly set the public canonical origin (for example, your custom domain). If omitted, the website uses Netlify's production `URL` environment variable. Local builds without either use their request origin. Canonical metadata, the published-content `/sitemap.xml`, and `/robots.txt` use the same origin; tracking parameters are excluded from canonical URLs.
+
 Set these variables in Netlify for production and deploy-preview contexts:
 
 ```txt

@@ -5,6 +5,7 @@ import Header from '@components/Header.astro';
 import { VisualEditing } from '@sanity/astro/visual-editing';
 import { fetchData } from '@data/siteConfig';
 import { getImageUrl, isSanityImage } from '@utils/sanity-image';
+import { canonicalUrl } from '@utils/canonical-url';
 
 import '../styles/globals.css';
 
@@ -15,9 +16,11 @@ interface Props {
     noIndex?: boolean;
     description?: string;
     image?: CustomImage;
+    article?: { title: string; publishedAt?: string; author?: { name: string } };
 }
 
-const { addTitleSuffix, includeCanonical = true, noIndex = false, description, image } = Astro.props;
+const { addTitleSuffix, includeCanonical = true, noIndex = false, image, article } = Astro.props;
+const description = Astro.props.description?.trim() || 'Drip Drip Tamar is a community project monitoring water quality and caring for the River Tamar near Calstock.';
 
 const configData: SiteConfig = (await fetchData(Astro.locals.sanityClient)) || {};
 const titleSuffix = configData.titleSuffix && addTitleSuffix !== false ? configData.titleSuffix : undefined;
@@ -25,30 +28,28 @@ const title = [Astro.props.title, titleSuffix].filter(Boolean).join(' | ');
 
 // Generate optimized URL for social sharing (1200x630 is standard OG image size)
 let resolvedImage: { src: string } | undefined;
-if (image) {
-    const sanitySource = image.asset || image.src;
+const socialImage = image || configData.header?.logo;
+const siteBase = Astro.site ?? Astro.url.origin;
+if (socialImage) {
+    const sanitySource = socialImage.asset || socialImage.src;
     if (isSanityImage(sanitySource)) {
-        const optimizedUrl = getImageUrl(sanitySource, 1200, { height: 630, quality: 90 });
-        resolvedImage = { src: new URL(optimizedUrl, Astro.site).toString() };
-    } else if (image.src) {
-        resolvedImage = { src: new URL(image.src, Astro.site).toString() };
+        const optimizedUrl = getImageUrl(sanitySource, image ? 1200 : 600, { height: image ? 630 : undefined, quality: 80 });
+        resolvedImage = { src: new URL(optimizedUrl, siteBase).toString() };
+    } else if (socialImage.src) {
+        resolvedImage = { src: new URL(socialImage.src, siteBase).toString() };
     }
 }
-const canonicalURL = includeCanonical ? new URL(Astro.request.url, Astro.site) : undefined;
-
-/**
- * Enforce some standard canonical URL formatting across the site.
- */
-function formatCanonicalURL(url: string | URL) {
-    const path = url.toString();
-    const hasQueryParams = path.includes('?');
-    // If there are query params, make sure the URL has no trailing slash
-    if (hasQueryParams) {
-        path.replace(/\/?$/, '');
-    }
-    // otherwise, canonical URL always has a trailing slash
-    return path.replace(/\/?$/, hasQueryParams ? '' : '/');
-}
+const canonicalURL = includeCanonical ? canonicalUrl(Astro.url, Astro.site) : undefined;
+const articleData = article && canonicalURL ? {
+    '@context': 'https://schema.org',
+    '@type': 'Article',
+    headline: article.title,
+    description,
+    mainEntityOfPage: canonicalURL,
+    datePublished: article.publishedAt,
+    author: article.author ? { '@type': 'Person', name: article.author.name } : undefined,
+    image: image ? resolvedImage?.src : undefined
+} : undefined;
 ---
 
 <!doctype html>
@@ -62,29 +63,39 @@ function formatCanonicalURL(url: string | URL) {
 
         <!-- Low Priority Global Metadata -->
         {configData.favicon?.src && <link rel="icon" type="image/svg+xml" href={configData.favicon.src} />}
-        <link rel="sitemap" href="/sitemap-index.xml" />
+        <link rel="sitemap" href="/sitemap.xml" />
 
         <!-- Page Metadata -->
-        {canonicalURL && <link rel="canonical" href={formatCanonicalURL(canonicalURL)} />}
-        {noIndex && <meta name="robots" content="noindex" />}
+        {canonicalURL && <link rel="canonical" href={canonicalURL} />}
+        {(noIndex || Astro.locals.isPreview) && <meta name="robots" content="noindex" />}
         <meta name="description" content={description} />
 
         <!-- Open Graph / Facebook -->
-        {canonicalURL && <meta property="og:url" content={formatCanonicalURL(canonicalURL)} />}
+        {canonicalURL && <meta property="og:url" content={canonicalURL} />}
+        <meta property="og:type" content={article ? 'article' : 'website'} />
+        <meta property="og:site_name" content={configData.header?.title || 'Drip Drip Tamar'} />
+        <meta property="og:locale" content="en_GB" />
         <meta property="og:title" content={title} />
         <meta property="og:description" content={description} />
         {resolvedImage?.src && <meta property="og:image" content={resolvedImage.src} />}
+        {resolvedImage?.src && <meta property="og:image:alt" content={socialImage?.alt || configData.header?.title || 'Drip Drip Tamar'} />}
+        {article?.publishedAt && <meta property="article:published_time" content={article.publishedAt} />}
 
         <!-- X/Twitter -->
-        <meta property="twitter:card" content="summary_large_image" />
-        {canonicalURL && <meta property="twitter:url" content={formatCanonicalURL(canonicalURL)} />}
+        <meta property="twitter:card" content={image ? 'summary_large_image' : 'summary'} />
+        {canonicalURL && <meta property="twitter:url" content={canonicalURL} />}
         <meta property="twitter:title" content={title} />
         <meta property="twitter:description" content={description} />
         {resolvedImage?.src && <meta property="twitter:image" content={resolvedImage.src} />}
+        {resolvedImage?.src && <meta property="twitter:image:alt" content={socialImage?.alt || configData.header?.title || 'Drip Drip Tamar'} />}
+        {articleData && <script is:inline type="application/ld+json" set:html={JSON.stringify(articleData).replace(/</g, '\\u003c')} />}
     </head>
     <body class="antialiased">
+        <a class="skip-link" href="#main-content">Skip to content</a>
         <Header {...configData.header} />
-        <slot />
+        <main id="main-content" tabindex="-1">
+            <slot />
+        </main>
         <Footer {...configData.footer} />
         <VisualEditing enabled={Astro.locals.isPreview} />
     </body>

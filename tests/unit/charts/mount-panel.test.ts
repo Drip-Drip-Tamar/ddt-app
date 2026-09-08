@@ -1,7 +1,8 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-const { destroyMock, getChartMock, FakeChart } = vi.hoisted(() => {
+const { destroyMock, getChartMock, FakeChart, chartSetup } = vi.hoisted(() => {
+  const chartSetup = { loaded: false };
   const destroyMock = vi.fn();
   const getChartMock = vi.fn(() => undefined as { destroy: () => void } | undefined);
   class FakeChart {
@@ -12,19 +13,25 @@ const { destroyMock, getChartMock, FakeChart } = vi.hoisted(() => {
       public config: unknown
     ) {}
   }
-  return { destroyMock, getChartMock, FakeChart };
+  return { destroyMock, getChartMock, FakeChart, chartSetup };
 });
 
-vi.mock('../../../src/scripts/charts/chart-setup', () => ({
-  Chart: FakeChart
-}));
+vi.mock('../../../src/scripts/charts/chart-setup', () => {
+  chartSetup.loaded = true;
+  return { Chart: FakeChart };
+});
 
 import { fetchJson, showError, renderChart, whenVisible, readPanelConfig, onPageLoad, mountPanel } from '../../../src/scripts/charts/mount-panel';
+const chartLoadedWithHelpers = chartSetup.loaded;
 
 describe('mount-panel.ts', () => {
   beforeEach(() => {
     document.body.innerHTML = '';
     vi.clearAllMocks();
+  });
+
+  it('does not load Chart.js with the shared panel helpers', () => {
+    expect(chartLoadedWithHelpers).toBe(false);
   });
 
   describe('fetchJson', () => {
@@ -34,7 +41,7 @@ describe('mount-panel.ts', () => {
 
       const result = await fetchJson('/api/thing.json');
       expect(result).toEqual({ hello: 'world' });
-      expect(global.fetch).toHaveBeenCalledWith('/api/thing.json');
+      expect(global.fetch).toHaveBeenCalledWith('/api/thing.json', { signal: expect.any(AbortSignal) });
     });
 
     it('throws when the response is not ok', async () => {
@@ -57,27 +64,39 @@ describe('mount-panel.ts', () => {
   });
 
   describe('renderChart', () => {
-    it('destroys an existing chart on the canvas before creating a new one', () => {
+    it('destroys an existing chart on the canvas before creating a new one', async () => {
       const canvas = document.createElement('canvas');
+      document.body.appendChild(canvas);
       const existing = { destroy: vi.fn() };
       getChartMock.mockReturnValueOnce(existing as unknown as { destroy: () => void });
 
       const config = { type: 'line', data: {}, options: {} } as never;
-      const chart = renderChart(canvas, config);
+      const chart = await renderChart(canvas, config);
 
       expect(getChartMock).toHaveBeenCalledWith(canvas);
       expect(existing.destroy).toHaveBeenCalled();
       expect(chart).toBeInstanceOf(FakeChart);
     });
 
-    it('creates a chart without destroying anything when none exists', () => {
+    it('creates a chart without destroying anything when none exists', async () => {
       const canvas = document.createElement('canvas');
+      document.body.appendChild(canvas);
       getChartMock.mockReturnValueOnce(undefined);
 
       const config = { type: 'bar', data: {}, options: {} } as never;
-      renderChart(canvas, config);
+      await renderChart(canvas, config);
 
       expect(destroyMock).not.toHaveBeenCalled();
+    });
+
+    it('skips a canvas removed while the chart library loads', async () => {
+      const canvas = document.createElement('canvas');
+      document.body.appendChild(canvas);
+      const rendering = renderChart(canvas, { type: 'line', data: {} } as never);
+      canvas.remove();
+
+      await expect(rendering).resolves.toBeUndefined();
+      expect(getChartMock).not.toHaveBeenCalled();
     });
   });
 
@@ -188,11 +207,12 @@ describe('mount-panel.ts', () => {
       const canvas = document.getElementById('chart-1');
       capturedCallback([{ isIntersecting: true, target: canvas } as unknown as IntersectionObserverEntry], {} as unknown as IntersectionObserver);
 
+      await vi.waitFor(() => expect(getChartMock).toHaveBeenCalledWith(canvas));
       expect(buildConfig).toHaveBeenCalledWith({ value: 1 });
     });
 
     it('shows the error banner when chart rendering throws', async () => {
-      document.body.innerHTML = '<canvas id="chart-1"></canvas><div id="panel-error" class="hidden"></div>';
+      document.body.innerHTML = '<div data-visualization aria-busy="true"><canvas id="chart-1"></canvas><div data-visualization-loading>Loading</div></div><div id="panel-error" class="hidden"></div>';
       const json = vi.fn().mockResolvedValue({ value: 1 });
       (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValue({ ok: true, json });
 
@@ -203,7 +223,8 @@ describe('mount-panel.ts', () => {
         return { observe: vi.fn(), disconnect: vi.fn(), unobserve: vi.fn() };
       });
 
-      const buildConfig = vi.fn(() => {
+      const buildConfig = vi.fn().mockReturnValue({ type: 'line', data: {}, options: {} });
+      getChartMock.mockImplementationOnce(() => {
         throw new Error('boom');
       });
 
@@ -216,7 +237,9 @@ describe('mount-panel.ts', () => {
       const canvas = document.getElementById('chart-1');
       capturedCallback([{ isIntersecting: true, target: canvas } as unknown as IntersectionObserverEntry], {} as unknown as IntersectionObserver);
 
-      expect(document.getElementById('panel-error')?.classList.contains('hidden')).toBe(false);
+      await vi.waitFor(() => expect(document.getElementById('panel-error')?.classList.contains('hidden')).toBe(false));
+      expect(document.querySelector('[data-visualization]')?.getAttribute('aria-busy')).toBe('false');
+      expect(document.querySelector('[data-visualization-loading]')?.textContent).toContain('Unable to display');
     });
   });
 });

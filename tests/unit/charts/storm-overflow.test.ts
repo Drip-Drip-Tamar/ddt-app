@@ -176,7 +176,7 @@ describe('storm-overflow.ts', () => {
       await Promise.resolve();
       await Promise.resolve();
 
-      expect(global.fetch).toHaveBeenCalledWith('/api/cso-live.json');
+      expect(global.fetch).toHaveBeenCalledWith('/api/cso-live.json', { signal: expect.any(AbortSignal) });
       expect(document.getElementById('cso-error')?.classList.contains('hidden')).toBe(false);
     });
   });

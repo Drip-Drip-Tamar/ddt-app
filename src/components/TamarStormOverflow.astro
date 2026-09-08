@@ -1,5 +1,6 @@
 ---
 import Section from '@components/Section.astro';
+import VisualizationLoading from '@components/VisualizationLoading.astro';
 import type { Section as SectionType } from 'types';
 
 export interface Props extends SectionType {
@@ -15,7 +16,7 @@ const chartId = `cso-chart-${Math.random().toString(36).substring(2, 11)}`;
 <Section {...sectionProps} class={className}>
     <div class="cso-container" data-storm-overflow data-chart-id={chartId} data-endpoint="/api/cso-live.json">
         <div class="mb-6">
-            <h3 class="text-2xl font-bold mb-2">Storm Overflows — Calstock Area</h3>
+            <h2 class="text-2xl font-bold mb-2">Storm Overflows — Calstock Area</h2>
             <p class="text-sm text-base-content/70">
                 Combined Sewer Overflow (CSO) activity within 10km radius. Storm overflows discharge untreated sewage during heavy rainfall. Check current
                 status before water activities.
@@ -24,7 +25,7 @@ const chartId = `cso-chart-${Math.random().toString(36).substring(2, 11)}`;
 
         <div class="bg-base-100 rounded-lg shadow-lg p-4 md:p-6">
             <div class="mb-3">
-                <h4 class="text-lg font-semibold mb-1">5-Day CSO Activity</h4>
+                <h3 class="text-lg font-semibold mb-1">5-Day CSO Activity</h3>
                 <p class="text-xs text-base-content/60">Real-time monitoring from South West Water</p>
             </div>
 
@@ -41,13 +42,14 @@ const chartId = `cso-chart-${Math.random().toString(36).substring(2, 11)}`;
             </div>
 
             <!-- Chart Canvas -->
-            <div class="chart-wrapper mb-6">
-                <canvas id={chartId} class="cso-chart" style="height: 250px; max-height: 300px;"></canvas>
+            <div class="chart-wrapper mb-6" data-visualization aria-busy="true">
+                <VisualizationLoading label="Loading storm overflow activity chart…" />
+                <canvas id={chartId} class="cso-chart" role="img" aria-label="Storm overflow activity over the past five days"></canvas>
             </div>
 
             <!-- Recent Events Table -->
             <div class="overflow-x-auto">
-                <h5 class="text-sm font-semibold mb-2">Recent Events (within 10km)</h5>
+                <h4 class="text-sm font-semibold mb-2">Recent Events (within 10km)</h4>
                 <table class="table table-xs">
                     <thead>
                         <tr>
@@ -141,6 +143,7 @@ const chartId = `cso-chart-${Math.random().toString(36).substring(2, 11)}`;
 
     .chart-wrapper {
         width: 100%;
+        height: 250px;
     }
 
     .table {
@@ -148,8 +151,8 @@ const chartId = `cso-chart-${Math.random().toString(36).substring(2, 11)}`;
     }
 
     @media (max-width: 640px) {
-        .cso-chart {
-            max-height: 200px !important;
+        .chart-wrapper {
+            height: 200px;
         }
     }
 </style>

@@ -251,7 +251,7 @@ describe('water-quality.ts', () => {
       expect(() => mountWaterQualityChart(root)).not.toThrow();
     });
 
-    it('parses the payload and renders the chart once visible', () => {
+    it('parses the payload and renders the chart once visible', async () => {
       const root = document.createElement('div');
       const script = document.createElement('script');
       script.setAttribute('type', 'application/json');
@@ -283,6 +283,7 @@ describe('water-quality.ts', () => {
       mountWaterQualityChart(root);
 
       expect(observe).toHaveBeenCalledWith(canvas);
+      await vi.waitFor(() => expect(constructChart).toHaveBeenCalled());
     });
 
     it('reveals its error alert without throwing on invalid JSON payload', () => {
@@ -304,7 +305,7 @@ describe('water-quality.ts', () => {
       expect(errorAlert.classList.contains('hidden')).toBe(false);
     });
 
-    it('reveals only its own error alert when chart rendering fails', () => {
+    it('reveals only its own error alert when chart rendering fails', async () => {
       document.body.innerHTML = `
         <div id="other-chart">
           <div class="hidden" data-water-chart-error></div>
@@ -337,7 +338,7 @@ describe('water-quality.ts', () => {
 
       mountWaterQualityChart(root);
 
-      expect(errorAlert.classList.contains('hidden')).toBe(false);
+      await vi.waitFor(() => expect(errorAlert.classList.contains('hidden')).toBe(false));
       expect(otherErrorAlert.classList.contains('hidden')).toBe(true);
     });
   });

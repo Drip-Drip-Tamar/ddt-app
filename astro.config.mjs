@@ -34,6 +34,7 @@ const sanityConfig = buildSanityConfig(
 // runtime. SSR content pages set Cache-Control headers (outside preview mode)
 // so Netlify's CDN can still edge-cache them.
 export default defineConfig({
+    site: env.SITE_URL || env.URL || undefined,
     output: 'server', // Enable server-side rendering
     adapter: netlify(),
     session: {
