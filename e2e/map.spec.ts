@@ -32,8 +32,8 @@ test.describe('storm overflow map page', () => {
         // /api/cso-live.json route.
         await expect(page.locator('[data-storm-overflow]')).toBeVisible();
         const stormOverflowCanvas = page.locator('[data-storm-overflow] canvas');
+        await stormOverflowCanvas.locator("..").scrollIntoViewIfNeeded();
         await expect(stormOverflowCanvas).toBeVisible();
-        await stormOverflowCanvas.scrollIntoViewIfNeeded();
 
         await expect
             .poll(() =>
@@ -98,3 +98,36 @@ test.describe('storm overflow map page', () => {
         await expect(page.getByRole('button', { name: 'Gunnislake CSO', exact: true })).toBeVisible();
     });
 });
+
+for (const fails of [false, true]) {
+    test(`map skeleton settles after a ${fails ? 'failed' : 'delayed'} response without resizing`, async ({ page }) => {
+        let release!: () => void;
+        const pending = new Promise<void>((resolve) => { release = resolve; });
+        await page.route('**/api/cso-live.json*', (route) => route.fulfill({ json: csoLiveFixture }));
+        await page.route('**/api/cso.json*', async (route) => {
+            await pending;
+            await route.fulfill(fails ? { status: 503 } : { json: csoMapFixture });
+        });
+        try {
+            await page.goto('/map');
+            const frame = page.locator('.map-frame');
+            await frame.scrollIntoViewIfNeeded();
+            await expect(frame).toHaveAttribute('aria-busy', 'true');
+            await expect(frame.getByRole('status')).toHaveText('Loading map and overflow locations…');
+            const before = await frame.boundingBox();
+            release();
+            await expect(frame).toHaveAttribute('aria-busy', 'false');
+            expect((await frame.boundingBox())!.height).toBe(before!.height);
+            if (fails) {
+                await expect(frame.getByRole('status')).toContainText('Map unavailable');
+                await expect(page.locator('[id$="-status"]')).toHaveText('Unavailable');
+                await expect(page.getByRole('alert')).toContainText('CSO data unavailable');
+            } else {
+                await expect(frame.getByRole('status')).toHaveCount(0);
+                await expect(page.getByRole('button', { name: 'Calstock CSO', exact: true })).toBeVisible();
+            }
+        } finally {
+            release();
+        }
+    });
+}

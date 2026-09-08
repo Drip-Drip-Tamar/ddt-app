@@ -1,7 +1,8 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-const { mapInstance, LMock } = vi.hoisted(() => {
+const { mapInstance, LMock, leafletSetup } = vi.hoisted(() => {
+  const leafletSetup = { loaded: false };
   const mapInstance = {
     remove: vi.fn(),
     on: vi.fn()
@@ -20,12 +21,13 @@ const { mapInstance, LMock } = vi.hoisted(() => {
     divIcon: vi.fn(() => ({})),
     marker: vi.fn(() => ({ addTo: markerAddTo }))
   };
-  return { mapInstance, LMock };
+  return { mapInstance, LMock, leafletSetup };
 });
 
-vi.mock('../../../src/scripts/charts/leaflet-setup', () => ({
-  default: LMock
-}));
+vi.mock('../../../src/scripts/charts/leaflet-setup', () => {
+  leafletSetup.loaded = true;
+  return { default: LMock };
+});
 
 import {
   markerStyleFor,
@@ -37,11 +39,16 @@ import {
   type CsoFeature,
   type CsoMapData
 } from '../../../src/scripts/charts/storm-overflow-map';
+const leafletLoadedWithMapModule = leafletSetup.loaded;
 
 describe('storm-overflow-map.ts', () => {
   beforeEach(() => {
     document.body.innerHTML = '';
     vi.clearAllMocks();
+  });
+
+  it('does not load Leaflet with the map mounting helpers', () => {
+    expect(leafletLoadedWithMapModule).toBe(false);
   });
 
   describe('markerStyleFor', () => {
@@ -212,10 +219,21 @@ describe('storm-overflow-map.ts', () => {
 
       expect(mapInstance.remove).toHaveBeenCalledTimes(1);
     });
+
+    it('skips a map removed while Leaflet loads', async () => {
+      const mapEl = buildMapElement();
+      document.body.appendChild(mapEl);
+      const initialization = initializeStormOverflowMap(mapEl);
+      mapEl.remove();
+
+      await initialization;
+      expect(LMock.map).not.toHaveBeenCalled();
+      expect(global.fetch).toHaveBeenCalledTimes(1);
+    });
   });
 
   describe('mountStormOverflowMap / registerStormOverflowMaps', () => {
-    it('initializes the map once it becomes visible', () => {
+    it('initializes the map once it becomes visible', async () => {
       const observe = vi.fn();
       let capturedCallback: IntersectionObserverCallback = () => {};
       // @ts-expect-error minimal IntersectionObserver stub for jsdom
@@ -236,9 +254,10 @@ describe('storm-overflow-map.ts', () => {
 
       mountStormOverflowMap(mapEl);
       expect(observe).toHaveBeenCalledWith(mapEl);
+      expect(LMock.map).not.toHaveBeenCalled();
 
       capturedCallback([{ isIntersecting: true, target: mapEl } as unknown as IntersectionObserverEntry], {} as unknown as IntersectionObserver);
-      expect(LMock.map).toHaveBeenCalled();
+      await vi.waitFor(() => expect(LMock.map).toHaveBeenCalled());
     });
 
     it('registerStormOverflowMaps is idempotent across repeated calls', () => {

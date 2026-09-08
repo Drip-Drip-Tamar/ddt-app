@@ -72,6 +72,23 @@ describe('mobile-nav.ts', () => {
     expect(document.activeElement).not.toBe(toggle);
   });
 
+  it('dismisses from the toggle with Escape and when keyboard focus leaves the menu', () => {
+    const { toggle, panel } = renderNav();
+    const outside = document.createElement('button');
+    document.body.append(outside);
+    mountMobileNav();
+
+    openNav(toggle);
+    toggle.focus();
+    dispatchKeydown(toggle, { key: 'Escape' });
+    expect(toggle.getAttribute('aria-expanded')).toBe('false');
+
+    openNav(toggle);
+    outside.focus();
+    expect(panel.classList.contains('is-visible')).toBe(false);
+    expect(document.activeElement).toBe(outside);
+  });
+
   it('does not intercept Tab or Shift+Tab while the disclosure is open', () => {
     const { toggle, first, last } = renderNav();
     mountMobileNav();

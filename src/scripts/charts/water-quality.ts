@@ -4,7 +4,7 @@
  * renders it. Also owns the optional data-table toggle.
  */
 import type { ChartConfiguration, ScriptableContext } from 'chart.js';
-import { onPageLoad, renderChart, whenVisible } from './mount-panel';
+import { finishVisualization, onPageLoad, renderChart, whenVisible } from './mount-panel';
 
 export const SHIFT_OFFSET = 100;
 
@@ -186,22 +186,24 @@ export function mountWaterQualityChart(root: HTMLElement): void {
         payload = JSON.parse(payloadEl.textContent || '{}');
     } catch (error) {
         console.error('Invalid water quality chart payload:', error);
+        finishVisualization(canvas, 'Unable to display the chart. Please use the data table below.');
         errorAlert?.classList.remove('hidden');
         return;
     }
 
-    whenVisible(canvas, () => {
+    whenVisible(canvas, async () => {
         try {
             const { chartData, chartConfig, chartType } = payload;
             applyDatasetStyles(chartData);
             finalizeChartConfig(chartConfig, chartData);
-            renderChart(canvas, {
+            await renderChart(canvas, {
                 type: chartType,
                 data: chartData,
                 options: chartConfig
             } as unknown as ChartConfiguration);
         } catch (error) {
             console.error('Failed to load chart libraries:', error);
+            finishVisualization(canvas, 'Unable to display the chart. Please use the data table below.');
             errorAlert?.classList.remove('hidden');
         }
     });
@@ -218,6 +220,8 @@ export function initTableToggle(root: HTMLElement): void {
 
     toggleBtn.addEventListener('click', () => {
         const isExpanded = toggleBtn.getAttribute('aria-expanded') === 'true';
+        tableContainer.inert = isExpanded;
+        tableContainer.setAttribute('aria-hidden', String(isExpanded));
         const toggleText = toggleBtn.querySelector('.toggle-text');
         const chevron = toggleBtn.querySelector<HTMLElement>('.chevron-icon');
 

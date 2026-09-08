@@ -4,6 +4,7 @@ import { getWaterSamples, transformSamplesToChartData, getChartConfig } from '@d
 import { marked } from 'marked';
 import Action from '@components/Action.astro';
 import Section from '@components/Section.astro';
+import VisualizationLoading from '@components/VisualizationLoading.astro';
 
 export interface Props extends WaterQualitySection {}
 
@@ -50,16 +51,25 @@ const chartPayload = JSON.stringify({ chartData, chartConfig, chartType }).repla
         set:html={marked(body)}
       />
     )}
+    {sortedSamples[0] && (
+      <p class="text-sm mb-6">
+        Most recent sample: <time datetime={sortedSamples[0].date}>{new Date(sortedSamples[0].date).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}</time>
+      </p>
+    )}
     
     {showChart && (
       <div class="chart-wrapper mb-8">
         <script is:inline type="application/json" data-water-chart-payload set:html={chartPayload} />
         <div class="bg-base-100 rounded-lg shadow-lg p-4 md:p-6">
-          <canvas 
-            id={chartId}
-            class="water-chart"
-            style="height: 450px; max-height: 600px;"
-          ></canvas>
+          <div class="water-chart-frame" data-visualization aria-busy="true">
+            <VisualizationLoading label="Loading water quality chart…" />
+            <canvas
+              id={chartId}
+              class="water-chart"
+              role="img"
+              aria-label="Bacteria levels over time at our sampling sites"
+            ></canvas>
+          </div>
 
           <div class="alert alert-warning mt-4 hidden" data-water-chart-error role="alert">
             <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
@@ -94,8 +104,8 @@ const chartPayload = JSON.stringify({ chartData, chartConfig, chartType }).repla
           </svg>
         </button>
         
-        <div id={`table-${chartId}`} class="table-container" style="max-height: 0; overflow: hidden;">
-          <div class="table-content overflow-x-auto">
+        <div id={`table-${chartId}`} class="table-container" inert aria-hidden="true" style="max-height: 0; overflow: hidden;">
+          <div class="table-content overflow-x-auto" role="region" aria-label="Recent test results" tabindex="0">
             <h3 class="text-xl font-semibold mb-4">Recent Test Results</h3>
             <table class="table table-zebra w-full">
               <thead>
@@ -160,28 +170,12 @@ const chartPayload = JSON.stringify({ chartData, chartConfig, chartType }).repla
 </script>
 
 <style>
-  .water-quality-container {
-    max-width: 80rem; /* Equivalent to max-w-7xl */
-    margin-left: auto;
-    margin-right: auto;
-    padding-left: 1rem;
-    padding-right: 1rem;
-    padding-top: 2rem;
-    padding-bottom: 2rem;
+  .water-chart-frame {
+    height: 450px;
   }
-  
-  @media (min-width: 640px) {
-    .water-quality-container {
-      padding-left: 1.5rem;
-      padding-right: 1.5rem;
-    }
-  }
-  
-  @media (min-width: 1024px) {
-    .water-quality-container {
-      padding-left: 2rem;
-      padding-right: 2rem;
-    }
+
+  .water-chart {
+    max-width: 100%;
   }
   
   .chart-wrapper {
@@ -189,8 +183,8 @@ const chartPayload = JSON.stringify({ chartData, chartConfig, chartType }).repla
   }
   
   @media (max-width: 640px) {
-    .water-chart {
-      max-height: 400px !important;
+    .water-chart-frame {
+      height: 400px;
     }
   }
   

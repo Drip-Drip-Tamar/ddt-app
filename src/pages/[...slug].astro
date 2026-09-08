@@ -35,7 +35,9 @@ const { title, sections, metaTitle, metaDescription, socialImage } = page || {};
 // convention shared by the rest of the components, so normalise at this
 // boundary rather than changing that convention everywhere.
 const pageTitle = metaTitle ?? title;
-const pageDescription = metaDescription ?? undefined;
+const introductoryBody = sections?.find((section) => section._type === 'heroSection')?.body;
+const pageDescription = metaDescription || introductoryBody?.split(/\n\s*\n/)[0]
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1').replace(/[*_#`]/g, '').replace(/\s+/g, ' ').trim().slice(0, 160);
 const pageImage = socialImage?.src ? { src: socialImage.src } : undefined;
 
 
@@ -52,10 +54,10 @@ const componentMap: Record<string, AstroComponentFactory> = {
 <Layout title={pageTitle} description={pageDescription} image={pageImage}>
     <div>
         {sections?.length ? (
-            sections.map((section) => {
+            sections.map((section, index) => {
                 const Component = section._type ? componentMap[section._type] : undefined;
                 return Component ? (
-                    <Component {...section} />
+                    <Component {...section} {...(section._type === 'heroSection' ? { headingLevel: index === 0 ? 'h1' : 'h2' } : {})} />
                 ) : null;
             })
         ) : (

@@ -97,6 +97,8 @@ describe('sanity-image utilities', () => {
 
     it('should return true for string containing image-', () => {
       expect(isSanityImage('image-123-1024x768-jpg')).toBe(true);
+      expect(isSanityImage('https://cdn.sanity.io/images/project/production/123-1024x768.jpg')).toBe(true);
+      expect(isSanityImage('https://example.com/image-photo.jpg')).toBe(false);
     });
   });
 

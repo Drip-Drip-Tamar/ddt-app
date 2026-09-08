@@ -10,7 +10,7 @@
  * any future view-transition navigation. Mounting is idempotent — any Chart
  * instance already attached to a canvas is destroyed before re-creating.
  */
-import { Chart, type ChartConfiguration } from './chart-setup';
+import type { Chart, ChartConfiguration } from './chart-setup';
 
 export interface PanelChart<T> {
     /** id of the target <canvas> element. */
@@ -20,10 +20,8 @@ export interface PanelChart<T> {
 }
 
 export interface MountPanelOptions<T> {
-    /** Endpoint fetched with an ok-check; alternative to `getData`. */
-    endpoint?: string;
-    /** Custom data fetcher (e.g. multiple endpoints in parallel). */
-    getData?: () => Promise<T>;
+    /** Endpoint fetched with an ok-check and a bounded wait. */
+    endpoint: string;
     /** id of the error banner to reveal on any failure. */
     errorId: string;
     /** Optional id of an element to hide when data loading fails. */
@@ -32,15 +30,13 @@ export interface MountPanelOptions<T> {
     onData?: (data: T) => void;
     /** Charts to render lazily once the panel scrolls into view. */
     charts?: PanelChart<T>[];
-    /** id of the element observed for lazy rendering (default: first canvas). */
-    observeId?: string;
     /** Called if chart rendering fails (in addition to the error banner). */
     logLabel?: string;
 }
 
 /** Fetch JSON with the shared ok-check. */
 export async function fetchJson<T>(endpoint: string): Promise<T> {
-    const response = await fetch(endpoint);
+    const response = await fetch(endpoint, { signal: AbortSignal.timeout(30_000) });
     if (!response.ok) throw new Error(`Failed to fetch ${endpoint}`);
     return response.json() as Promise<T>;
 }
@@ -50,13 +46,29 @@ export function showError(errorId: string): void {
     document.getElementById(errorId)?.classList.remove('hidden');
 }
 
+/** Settle the reserved loading area on success, missing data, or failure. */
+export function finishVisualization(element: Element, message?: string): void {
+    const frame = element.closest<HTMLElement>('[data-visualization]');
+    if (!frame) return;
+    frame.setAttribute('aria-busy', 'false');
+    frame.dataset.state = message ? 'unavailable' : 'ready';
+    const loading = frame.querySelector<HTMLElement>('[data-visualization-loading]');
+    if (!loading) return;
+    if (message) loading.textContent = message;
+    else loading.hidden = true;
+}
+
 /**
  * Render a chart onto a canvas, destroying any existing Chart instance
  * bound to it first so re-mounting is idempotent.
  */
-export function renderChart(canvas: HTMLCanvasElement, config: ChartConfiguration): Chart {
+export async function renderChart(canvas: HTMLCanvasElement, config: ChartConfiguration): Promise<Chart | undefined> {
+    const { Chart } = await import('./chart-setup');
+    if (!canvas.isConnected) return;
     Chart.getChart(canvas)?.destroy();
-    return new Chart(canvas, config);
+    const chart = new Chart(canvas, { ...config, options: { ...config.options, animation: false } });
+    finishVisualization(canvas);
+    return chart;
 }
 
 /**
@@ -93,37 +105,42 @@ export function readPanelConfig<T extends Record<string, string>>(element: HTMLE
 
 /** The shared panel lifecycle. */
 export async function mountPanel<T>(options: MountPanelOptions<T>): Promise<void> {
-    const { endpoint, getData, errorId, hideOnErrorId, onData, charts = [], observeId, logLabel = 'panel' } = options;
+    const { endpoint, errorId, hideOnErrorId, onData, charts = [], logLabel = 'panel' } = options;
 
     try {
-        const data = endpoint ? await fetchJson<T>(endpoint) : await getData!();
+        const data = await fetchJson<T>(endpoint);
 
         onData?.(data);
 
-        if (charts.length === 0) return;
-
-        const observedId = observeId ?? charts[0].canvasId;
-        const observed = document.getElementById(observedId);
-        if (!observed) return;
-
-        whenVisible(observed, () => {
-            try {
-                for (const { canvasId, buildConfig } of charts) {
-                    const canvas = document.getElementById(canvasId) as HTMLCanvasElement | null;
-                    if (!canvas) continue;
+        for (const { canvasId, buildConfig } of charts) {
+            const canvas = document.getElementById(canvasId) as HTMLCanvasElement | null;
+            if (!canvas) continue;
+            whenVisible(canvas, async () => {
+                try {
                     const config = buildConfig(data);
-                    if (!config) continue;
-                    renderChart(canvas, config);
+                    if (!config) {
+                        finishVisualization(canvas, 'No chart data is available.');
+                        return;
+                    }
+                    await renderChart(canvas, config);
+                } catch (error) {
+                    console.error(`Failed to render ${logLabel} charts:`, error);
+                    finishVisualization(canvas, 'Unable to display this chart. Please reload to try again.');
+                    showError(errorId);
                 }
-            } catch (error) {
-                console.error(`Failed to render ${logLabel} charts:`, error);
-                showError(errorId);
-            }
-        });
+            });
+        }
     } catch (error) {
         console.error(`Error loading ${logLabel} data:`, error);
         showError(errorId);
         if (hideOnErrorId) document.getElementById(hideOnErrorId)?.classList.add('hidden');
+        for (const { canvasId } of charts) {
+            const canvas = document.getElementById(canvasId);
+            if (canvas) finishVisualization(canvas, 'Data unavailable. Please reload to try again.');
+            for (const suffix of ['current', 'stations', 'events']) {
+                document.getElementById(`${canvasId}-${suffix}`)?.classList.add('hidden');
+            }
+        }
     }
 }
 

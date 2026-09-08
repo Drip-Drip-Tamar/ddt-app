@@ -57,7 +57,7 @@ export function mountMobileNav(): void {
 
   };
 
-  const handleDocumentClick = (event: MouseEvent) => {
+  const handleOutsideInteraction = (event: MouseEvent | FocusEvent) => {
     if (
       !isOpen() ||
       !(event.target instanceof Node) ||
@@ -71,12 +71,14 @@ export function mountMobileNav(): void {
   };
 
   navToggleBtn.addEventListener('click', handleToggleClick);
-  nav.addEventListener('keydown', handleNavKeydown);
-  document.addEventListener('click', handleDocumentClick);
+  document.addEventListener('keydown', handleNavKeydown);
+  document.addEventListener('click', handleOutsideInteraction);
+  document.addEventListener('focusin', handleOutsideInteraction);
 
   disposeMountedNav = () => {
     navToggleBtn.removeEventListener('click', handleToggleClick);
-    nav.removeEventListener('keydown', handleNavKeydown);
-    document.removeEventListener('click', handleDocumentClick);
+    document.removeEventListener('keydown', handleNavKeydown);
+    document.removeEventListener('click', handleOutsideInteraction);
+    document.removeEventListener('focusin', handleOutsideInteraction);
   };
 }

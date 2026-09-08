@@ -1,5 +1,6 @@
 ---
 import { Image } from 'astro:assets';
+import type { SanityImageSource } from '@sanity/image-url';
 import { 
     generateSrcSet, 
     defaultSizes, 
@@ -9,7 +10,7 @@ import {
 
 interface Props {
     src?: string;
-    asset?: any;
+    asset?: SanityImageSource;
     width?: number;
     height?: number;
     dimensions?: {
@@ -39,8 +40,8 @@ const {
 } = Astro.props;
 
 // Determine if this is a Sanity image - prioritize asset over src
-const isSanity = asset ? isSanityImage(asset) : false;
-const sanitySource = asset; // Always use asset for Sanity images
+const sanitySource = asset || src;
+const isSanity = isSanityImage(sanitySource);
 
 // For non-Sanity images, ensure we have a valid src
 const hasValidSrc = !isSanity && src;
@@ -63,8 +64,9 @@ const imgHeight = height || dimensions?.height || defaults.height;
 
 // Generate responsive image props for Sanity images
 const responsiveSizes = isSanity ? (sizes || (imageType !== 'custom' && defaultSizes[imageType]) || '100vw') : undefined;
-const srcSet = isSanity ? generateSrcSet(sanitySource) : undefined;
-const defaultSrc = isSanity ? getImageUrl(sanitySource, 800) : undefined;
+const widths = imageType === 'logo' || imageType === 'avatar' ? [64, 96, 128, 192, 256, 320] : undefined;
+const srcSet = isSanity ? generateSrcSet(sanitySource, widths) : undefined;
+const defaultSrc = isSanity ? getImageUrl(sanitySource, Math.min(imgWidth, 1920)) : undefined;
 
 // Format for non-Sanity images
 const format = hasValidSrc && src?.includes('.svg') ? 'svg' : 'webp';
@@ -83,6 +85,8 @@ const shouldRender = isSanity ? (sanitySource && defaultSrc) : hasValidSrc;
             format={format} 
             class:list={className}
             loading={loading}
+            fetchpriority={fetchpriority}
+            decoding="async"
         />
     ) : (
         <img
@@ -95,6 +99,7 @@ const shouldRender = isSanity ? (sanitySource && defaultSrc) : hasValidSrc;
             class={className}
             loading={loading}
             fetchpriority={fetchpriority}
+            decoding="async"
         />
     )
 ) : null}

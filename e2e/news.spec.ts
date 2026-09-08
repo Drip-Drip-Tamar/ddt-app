@@ -10,6 +10,12 @@ import { test, expect } from '@playwright/test';
 // state" copy renders instead of a list — both are valid page shells, so
 // this test accepts either.
 test.describe('news page', () => {
+    test('redirects the old posts listing to news', async ({ request }) => {
+        const response = await request.get('/posts', { maxRedirects: 0 });
+        expect(response.status()).toBe(301);
+        expect(response.headers().location).toBe('/news');
+    });
+
     test('returns 200 and renders the page shell', async ({ page }) => {
         const response = await page.goto('/news');
         expect(response?.ok()).toBeTruthy();

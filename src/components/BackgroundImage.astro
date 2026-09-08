@@ -1,42 +1,26 @@
 ---
 import { type BackgroundImage } from 'types';
-import { getImageUrl, isSanityImage } from '@utils/sanity-image';
+import ResponsiveImage from '@components/ResponsiveImage.astro';
 
 interface Props extends BackgroundImage {
     fit?: 'cover' | 'contain' | 'fill';
+    loading?: 'eager' | 'lazy';
 }
 
-const { image, opacity, fit = 'cover' } = Astro.props;
-
-// Map fit values to CSS background-size values
-const fitClasses = {
-    cover: 'bg-cover',
-    contain: 'bg-contain',
-    fill: 'bg-auto'
-};
-
-// Generate optimized URL for background image
-let backgroundUrl: string | undefined;
-if (image) {
-    const sanitySource = image.asset || image.src;
-    if (isSanityImage(sanitySource)) {
-        // Use optimized Sanity URL at 1920px width for backgrounds
-        backgroundUrl = getImageUrl(sanitySource, 1920, { quality: 85 });
-    } else if (image.src) {
-        // Fallback for non-Sanity images
-        backgroundUrl = image.src;
-    }
-}
+const { image, opacity, fit = 'cover', loading = 'lazy' } = Astro.props;
+const fitClasses = { cover: 'object-cover', contain: 'object-contain', fill: 'object-fill' };
 ---
 
-{
-    backgroundUrl && (
-        <div
-            class={`absolute inset-0 bg-center bg-no-repeat ${fitClasses[fit]}`}
-            style={{
-                backgroundImage: `url('${backgroundUrl}')`,
-                opacity: (opacity ?? 100) * 0.01
-            }}
+{image && (
+    <div class="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true" style={{ opacity: (opacity ?? 100) * 0.01 }}>
+        <ResponsiveImage
+            {...image}
+            alt=""
+            sizes="100vw"
+            imageType="hero"
+            loading={loading}
+            fetchpriority={loading === 'eager' ? 'high' : 'auto'}
+            class={`absolute inset-0 h-full w-full object-center ${fitClasses[fit]}`}
         />
-    )
-}
+    </div>
+)}

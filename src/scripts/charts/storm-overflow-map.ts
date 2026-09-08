@@ -3,9 +3,8 @@
  * live-status badge, fed from the /api/cso.json endpoint.
  */
 import type { Map as LeafletMap } from 'leaflet';
-import L from './leaflet-setup';
 import { escapeHtml, formatShortDateTime } from './format';
-import { fetchJson, onPageLoad, showError, whenVisible } from './mount-panel';
+import { fetchJson, finishVisualization, onPageLoad, showError, whenVisible } from './mount-panel';
 
 export interface CsoFeature {
     name: string;
@@ -93,6 +92,7 @@ const mapRegistry = new WeakMap<HTMLElement, LeafletMap>();
 /** Initialise the Leaflet map on a container element. */
 export async function initializeStormOverflowMap(mapElement: HTMLElement): Promise<void> {
     const mapId = mapElement.id;
+    if (!mapElement.isConnected) return;
     try {
         const lat = parseFloat(mapElement.dataset.lat ?? '');
         const lon = parseFloat(mapElement.dataset.lon ?? '');
@@ -100,6 +100,12 @@ export async function initializeStormOverflowMap(mapElement: HTMLElement): Promi
         const days = parseFloat(mapElement.dataset.days ?? '');
         const apiUrl = mapElement.dataset.api ?? '/api/cso.json';
         const centreName = mapElement.dataset.name || 'Calstock';
+
+        const [{ default: L }, data] = await Promise.all([
+            import('./leaflet-setup'),
+            fetchJson<CsoMapData>(`${apiUrl}?lat=${lat}&lon=${lon}&radiusKm=${radiusKm}&days=${days}`)
+        ]);
+        if (!mapElement.isConnected) return;
 
         // Destroy any existing map instance bound to this element.
         mapRegistry.get(mapElement)?.remove();
@@ -150,8 +156,6 @@ export async function initializeStormOverflowMap(mapElement: HTMLElement): Promi
             .addTo(map)
             .bindPopup(`<strong>${escapeHtml(centreName)}</strong><br>Monitoring center`);
 
-        const data = await fetchJson<CsoMapData>(`${apiUrl}?lat=${lat}&lon=${lon}&radiusKm=${radiusKm}&days=${days}`);
-
         const statusEl = document.getElementById(`${mapId}-status`);
         if (statusEl) {
             const badge = statusBadgeFor(data);
@@ -193,8 +197,13 @@ export async function initializeStormOverflowMap(mapElement: HTMLElement): Promi
         map.on('blur', () => {
             map.scrollWheelZoom.disable();
         });
+        mapElement.inert = false;
+        finishVisualization(mapElement);
     } catch (error) {
         console.error('Error initializing map:', error);
+        finishVisualization(mapElement, 'Map unavailable. Please reload to try again, or check WaterFit Live below.');
+        const statusEl = document.getElementById(`${mapId}-status`);
+        if (statusEl) statusEl.textContent = 'Unavailable';
         showError(`${mapId}-error`);
     }
 }

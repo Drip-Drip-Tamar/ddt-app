@@ -3,9 +3,10 @@ import { type ActionButton } from 'types';
 
 interface Props extends ActionButton {
     class?: string;
+    'aria-current'?: 'page';
 }
 
-const { label, ariaLabel, url, theme, target, class: className } = Astro.props;
+const { label, ariaLabel, url, theme, target, class: className, 'aria-current': ariaCurrent } = Astro.props;
 
 const themeClassMap = {
     primary: 'btn-primary',
@@ -17,7 +18,7 @@ const themeClassMap = {
 
 {
     url ? (
-        <a class:list={['btn', themeClassMap[theme || 'primary'], className]} href={url} target={target || '_self'} rel={target === '_blank' ? 'noopener noreferrer' : undefined} aria-label={ariaLabel}>
+        <a class:list={['btn', themeClassMap[theme || 'primary'], className]} href={url} target={target || '_self'} rel={target === '_blank' ? 'noopener noreferrer' : undefined} aria-label={ariaLabel} aria-current={ariaCurrent}>
             <span>{label}</span>
         </a>
     ) : (

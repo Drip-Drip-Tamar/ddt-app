@@ -4,20 +4,22 @@ import { type HeroSection } from 'types';
 import Action from '@components/Action.astro';
 import Section from '@components/Section.astro';
 
-interface Props extends HeroSection {}
+interface Props extends HeroSection {
+    headingLevel?: 'h1' | 'h2';
+}
 
-const { heading, body, cta, height, backgroundImageFit, ...rest } = Astro.props;
+const { heading, body, cta, height, backgroundImageFit, headingLevel: Heading = 'h1', ...rest } = Astro.props;
 ---
 
-<Section {...rest} height={height} backgroundImageFit={backgroundImageFit} class="text-center">
+<Section {...rest} height={height} backgroundImageFit={backgroundImageFit} backgroundImageLoading={Heading === 'h1' ? 'eager' : 'lazy'} class="text-center">
     {
         heading && (
-            <h1 class="text-4xl font-black sm:text-6xl text-balance">
+            <Heading class:list={['mx-auto max-w-5xl font-black leading-tight text-balance', Heading === 'h1' ? 'text-3xl sm:text-5xl' : 'text-2xl sm:text-4xl']}>
                 {heading}
-            </h1>
+            </Heading>
         )
     }
-    {body && <div class:list={['mx-auto', heading && 'mt-6', 'max-w-prose markdown']} set:html={marked.parse(body)} />}
+    {body && <div class:list={['mx-auto', heading && 'mt-6', 'max-w-prose markdown hero-copy']} set:html={marked.parse(body)} />}
     {
         cta && cta.length > 0 && (
             <div class:list={[(heading || body) && 'mt-8', 'flex flex-wrap items-center justify-center gap-4']}>
